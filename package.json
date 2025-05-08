@@ -1,0 +1,26 @@
+{
+  "name": "gfin",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "bun run --hot --silent --no-clear-screen ./backend/src/index.tsx --dev",
+    "prod": "bun run --silent --no-clear-screen ./backend/src/index.tsx",
+    "db": "bun run --silent node_modules/rlib/server/db/cli.ts",
+    "prisma": "cd shared && bun prisma",
+    "ui": "cd frontend && bunx --bun shadcn@latest",
+    "link-rlib": "bun run --silent node_modules/rlib/utils/link-rlib.ts"
+  },
+  "dependencies": {
+    "bun-plugin-tailwind": "^0.0.15",
+    "dayjs": "^1.11.13",
+    "lodash": "^4.17.21",
+    "react-hook-form": "^7.56.1",
+    "react-phone-number-input": "^3.4.12",
+    "rlib": "https://github.com/rizrmd/rlib.git",
+    "valtio": "^2.1.4"
+  },
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ]
+}

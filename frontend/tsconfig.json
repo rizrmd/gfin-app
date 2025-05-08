@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "target": "ES2024",
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "module": "preserve",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+
+    "strictNullChecks": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "backend/*": ["../backend/src/*"],
+      "shared/*": ["../shared/*"],
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.17.16",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.13",
+    "bcryptjs": "^3.0.2",
+    "better-auth": "^1.2.7",
+    "lodash": "^4.17.21",
+    "nodemailer": "^6.10.1"
+  }
+}

@@ -1,0 +1,129 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../models"
+  binaryTargets = ["native", "windows", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ai_agent {
+  id                Int                @id(map: "task_pkey") @default(autoincrement())
+  created_at        DateTime?          @db.Timestamp(6)
+  updated_at        DateTime?          @db.Timestamp(6)
+  created_by        String?            @db.VarChar
+  updated_by        String?            @db.VarChar
+  nc_order          Decimal?           @db.Decimal
+  description       String?
+  type              String?
+  output            Json?              @db.Json
+  org_grant_task_id Int?               @unique(map: "ai_task_org_grant_task_id_key")
+  instruction       String?
+  name              String?
+  tools             String?
+  ai_agent_id       Int?
+  ai_agent          ai_agent?          @relation("ai_agentToai_agent", fields: [ai_agent_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ai_agent_ai_agent_eddqgg12pu")
+  other_ai_agent    ai_agent[]         @relation("ai_agentToai_agent")
+  org_proposal_task org_proposal_task? @relation(fields: [org_grant_task_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_grant__ai_task_ofaysijfgr")
+  ai_task           ai_task[]
+
+  @@index([ai_agent_id], map: "fk_ai_agent_ai_agent_jjncxbwdzh")
+  @@index([org_grant_task_id], map: "fk_org_grant__ai_task_joy4mqsuvz")
+  @@index([nc_order], map: "task_order_idx")
+}
+
+model ai_task {
+  id          Int       @id(map: "org-task_pkey") @default(autoincrement())
+  created_at  DateTime? @db.Timestamp(6)
+  updated_at  DateTime? @db.Timestamp(6)
+  created_by  String?   @db.VarChar
+  updated_by  String?   @db.VarChar
+  nc_order    Decimal?  @db.Decimal
+  priority    String?
+  task_id     Int?
+  status      String?   @default("pending")
+  error       String?
+  log         String?
+  org_id      Int?
+  instruction String?
+  output      Json?     @db.Json
+  org         org?      @relation(fields: [org_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_org_task_w9sv9g3glg")
+  ai_agent    ai_agent? @relation(fields: [task_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_task_org_task_hysi_iqy5n")
+
+  @@index([org_id], map: "fk_org_org_task_d7sdowq_89")
+  @@index([task_id], map: "fk_task_org_task_bavr93gjb8")
+  @@index([nc_order], map: "org-task_order_idx")
+}
+
+model jobs {
+  id              String    @id @db.VarChar(36)
+  type            String    @db.VarChar(100)
+  payload         Json
+  status          String    @db.VarChar(20)
+  created_at      DateTime  @db.Timestamp(6)
+  updated_at      DateTime  @db.Timestamp(6)
+  attempts        Int       @default(0)
+  max_attempts    Int       @default(3)
+  last_attempt_at DateTime? @db.Timestamp(6)
+  error           String?
+  retry_config    Json?
+  result          Json?
+}
+
+model org {
+  id           Int            @id @default(autoincrement())
+  created_at   DateTime?      @db.Timestamp(6)
+  updated_at   DateTime?      @db.Timestamp(6)
+  created_by   String?        @db.VarChar
+  updated_by   String?        @db.VarChar
+  nc_order     Decimal?       @db.Decimal
+  name         String?
+  status       String?        @default("active")
+  questions    Json?          @db.Json
+  info         Json?          @db.Json
+  ai_task      ai_task[]
+  org_proposal org_proposal[]
+
+  @@index([nc_order], map: "org_order_idx")
+}
+
+model org_proposal {
+  id                Int                 @id(map: "org-grant_pkey") @default(autoincrement())
+  created_at        DateTime?           @db.Timestamp(6)
+  updated_at        DateTime?           @db.Timestamp(6)
+  created_by        String?             @db.VarChar
+  updated_by        String?             @db.VarChar
+  nc_order          Decimal?            @db.Decimal
+  title             String?
+  posted_date       DateTime?           @db.Date
+  close_date        DateTime?           @db.Date
+  org_id            Int?
+  summary           Json?               @db.Json
+  proposal          Json?               @db.Json
+  source_url        String?
+  type              String?             @default("grant")
+  org               org?                @relation(fields: [org_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_org_grant_egoairvrp8")
+  org_proposal_task org_proposal_task[]
+
+  @@index([org_id], map: "fk_org_org_grant_cy5_qmlv8i")
+  @@index([nc_order], map: "org-grant_order_idx")
+}
+
+model org_proposal_task {
+  id           Int           @id(map: "org_grant_task_pkey") @default(autoincrement())
+  created_at   DateTime?     @db.Timestamp(6)
+  updated_at   DateTime?     @db.Timestamp(6)
+  created_by   String?       @db.VarChar
+  updated_by   String?       @db.VarChar
+  nc_order     Decimal?      @db.Decimal
+  task         String?
+  status       String?       @default("incomplete")
+  org_grant_id Int?
+  ai_agent     ai_agent?
+  org_proposal org_proposal? @relation(fields: [org_grant_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_org_grant_org_grant__4po6grkr75")
+
+  @@index([org_grant_id], map: "fk_org_grant_org_grant__a6sijr385b")
+  @@index([nc_order], map: "org_grant_task_order_idx")
+}

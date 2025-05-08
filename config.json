@@ -1,0 +1,11 @@
+{
+  "db": { "orm": "prisma" },
+  "backend": { "prodPort": 4550 },
+  "sites": {
+    "app.gfin": {
+      "devPort": 3550,
+      "domains": ["app.gofunditnow.com", "gfin.local", "localhost"],
+      "default": true
+    }
+  }
+}
