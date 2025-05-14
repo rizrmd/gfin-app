@@ -14,9 +14,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { user } from "@/lib/user";
 import { cn } from "@/lib/utils";
-import { NavBottom } from "./nav-bottom";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();

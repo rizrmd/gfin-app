@@ -1,26 +1,11 @@
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarGroup
 } from "@/components/ui/sidebar";
-import { navigate } from "@/lib/router";
 // import { useLocalSet } from "@/lib/hooks/use-local-set";
-import { user } from "@/lib/user";
 import {
   BarChart3,
   Bed,
   Calendar,
-  ChevronRight,
   Clipboard,
   ClipboardList,
   Clock,
@@ -41,9 +26,8 @@ import {
   Users2Icon,
   UsersRound,
   Wallet,
-  Wallet2Icon,
+  Wallet2Icon
 } from "lucide-react";
-import { useEffect } from "react";
 import { useLocation } from "wouter";
 
 // Types remain the same

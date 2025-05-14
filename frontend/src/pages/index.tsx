@@ -1,3 +1,3 @@
 export default () => {
-  return <div className={cn("hello world")}> INDEX </div>;
+  return <>Hello index.tsx</>;
 };

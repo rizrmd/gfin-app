@@ -8,7 +8,7 @@ export const AppLoading = () => {
       <div className="border-t border-t-slate-300 w-[140px]"></div>
       <div className="flex items-center text-sm space-x-1">
         <Spinner className="w-[17px] h-[17px] opacity-50" />
-        <div>Memuat...</div>
+        <div>Loading...</div>
       </div>
     </div>
   );

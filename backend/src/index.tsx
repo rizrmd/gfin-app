@@ -1,6 +1,6 @@
-import { dir, initDev, initEnv, initProd, type onFetch } from "rlib/server";
-import { auth } from "./lib/better-auth";
 import { $ } from "bun";
+import { dir, initDev, initEnv, initProd } from "rlib/server";
+import { agent } from "./lib/ws/agent";
 
 if (!dir.exists("shared:models")) {
   await $`bun i`.cwd(dir.path("shared:"));
@@ -21,6 +21,7 @@ if (isDev) {
     index,
     loadApi,
     loadModels,
+    ws: { agent },
   });
 } else {
   const config = await import("../../config.json");
@@ -29,5 +30,6 @@ if (isDev) {
     loadApi,
     loadModels,
     config,
+    ws: { agent },
   });
 }

@@ -22,6 +22,7 @@ export const EForm = <
   ).current;
   const read = useSnapshot(write);
 
+  const f = useRef(null as any);
   useEffect(() => {
     write.Field = ref(EField.bind(write));
     write.submit = ref(() => {
@@ -36,6 +37,7 @@ export const EForm = <
         e.preventDefault();
         read.submit();
       }}
+      ref={f}
     >
       {opt.children({
         Field: read.Field,
@@ -45,7 +47,7 @@ export const EForm = <
         read: read.data as any,
         write: write.data as any,
       })}
-      <button type="submit" className="hidden"></button>
+      <button type="submit" className="opacity-0 w-0 h-0 overflow-hidden">x</button>
     </form>
   );
 };

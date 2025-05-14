@@ -10,9 +10,22 @@
     "**/.gitignore": true,
     "**/bun.lock": true,
     "bunfig.toml": true,
-    ".dockerignore": true
+    ".dockerignore": true,
+    ".cursor": true,
+    ".github": true,
+    "package-lock.json": true,
+    "yarn.lock": true,
   },
   "files.associations": {
     "*.css": "tailwindcss"
-  }
+  },
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "driver": "PostgreSQL",
+      "name": "GFIN",
+      "connectString": "postgres://gfin:Gfin123!@107.155.75.50:5999/gfin"
+    }
+  ]
 }

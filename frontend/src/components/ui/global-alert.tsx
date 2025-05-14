@@ -107,7 +107,7 @@ export function GlobalAlert() {
       <AlertDialogContent className="select-none">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {snap.mode === "confirm" ? "Konfirmasi" : "Informasi"}
+            {snap.mode === "confirm" ? "Confirmation" : "Information"}
           </AlertDialogTitle>
           <AlertDialogDescription className="whitespace-pre-wrap">
             {typeof snap.message === "object" ? (
@@ -140,13 +140,13 @@ export function GlobalAlert() {
                 className="cursor-pointer"
                 onClick={snap.onCancel}
               >
-                Tidak
+                No
               </AlertDialogCancel>
               <AlertDialogAction
                 className="cursor-pointer"
                 onClick={snap.onConfirm}
               >
-                Ya
+                Yes
               </AlertDialogAction>
             </>
           ) : (
