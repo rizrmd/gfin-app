@@ -1,4 +1,5 @@
 export type OrgState = {
+  client_id: string;
   entry: Partial<{
     name: string;
     state: string;

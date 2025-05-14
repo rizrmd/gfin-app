@@ -2,7 +2,7 @@ import type { ServerWebSocket } from "bun";
 import type { BrowserAgent } from "r-agent";
 import type { OrgState } from "shared/lib/org";
 
-export type WSAgentData = { user_id: string; url: URL };
+export type WSAgentData = { client_id: string; url: URL };
 
 if (!(global as any).ai_agents) {
   (global as any).ai_agents = new Map();
@@ -37,7 +37,7 @@ export const newAgent = async <T>(opt: {
     {
       pageExtractionLLM: llm,
       registerNewStepCallback(state, modelOutput, step) {
-        const found = agents.get(opt.ws.data.user_id)?.running[opt.taskName];
+        const found = agents.get(opt.ws.data.client_id)?.running[opt.taskName];
         if (found) {
           found.current.step = step;
           found.current.goal = modelOutput.current_state.next_goal;
@@ -53,7 +53,7 @@ export const newAgent = async <T>(opt: {
       registerDoneCallback(history) {
         let result = JSON.parse(history.final_result() || "{}");
         if (result && typeof result.data === "string") {
-          const found = agents.get(opt.ws.data.user_id)?.running[opt.taskName];
+          const found = agents.get(opt.ws.data.client_id)?.running[opt.taskName];
           if (found) {
             found.current.step = 0;
             found.current.goal = "";

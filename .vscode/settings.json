@@ -11,8 +11,6 @@
     "**/bun.lock": true,
     "bunfig.toml": true,
     ".dockerignore": true,
-    ".cursor": true,
-    ".github": true,
     "package-lock.json": true,
     "yarn.lock": true,
   },

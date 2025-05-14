@@ -1,7 +1,7 @@
 import { AppLogo } from "@/components/app/logo";
 import { OnboardFrame } from "@/components/custom/onboard-frame";
 import { OnboardFirstForm } from "@/components/custom/onboarding/first-form";
-import { onboard } from "@/components/custom/onboarding/utils/state";
+import { onboard } from "@/lib/ai-onboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
@@ -15,7 +15,7 @@ export default () => {
   const read = useSnapshot(onboard);
 
   useEffect(() => {
-    read.sync.init();
+    // read.sync.init();
   }, []);
 
   return (

@@ -7,8 +7,10 @@ export const agent: WebSocketHandler<WSAgentData> & {
   upgrade: (opt: { req: Request; server: Server }) => any | Promise<any>;
 } = {
   upgrade({ req, server }) {
+    const url = new URL(req.url);
+    const client_id = url.pathname.split("/").pop()!;
     return {
-      user_id: "1",
+      client_id,
     };
   },
   async message(ws, raw) {
@@ -19,12 +21,13 @@ export const agent: WebSocketHandler<WSAgentData> & {
         });
 
     if (msg.type === "init") {
-      const state = agents.get(ws.data.user_id);
+      const state = agents.get(ws.data.client_id);
+
       if (state) {
         state.state = msg.state;
       }
     } else if (msg.type === "action") {
-      const agent = agents.get(ws.data.user_id);
+      const agent = agents.get(ws.data.client_id);
       if (agent) {
         agent.state = msg.state;
         if (msg.action === "cancel") {
@@ -56,8 +59,8 @@ export const agent: WebSocketHandler<WSAgentData> & {
     }
   },
   open(ws) {
-    if (agents.has(ws.data.user_id)) {
-      const agent = agents.get(ws.data.user_id);
+    if (agents.has(ws.data.client_id)) {
+      const agent = agents.get(ws.data.client_id);
       if (agent) {
         ws.send(
           JSON.stringify({
@@ -72,13 +75,11 @@ export const agent: WebSocketHandler<WSAgentData> & {
         );
       }
     } else {
-      agents.set(ws.data.user_id, {
-        state: { entry: {}, final: {} },
+      agents.set(ws.data.client_id, {
+        state: { client_id: "", entry: {}, final: {} },
         running: {},
       });
     }
   },
-  close(ws) {
-    // agents.delete(ws.data.user_id);
-  },
+  close(ws) {},
 };

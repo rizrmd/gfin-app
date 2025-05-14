@@ -1,5 +1,4 @@
 import { defineAPI } from "rlib/server";
-import bcrypt from "bcrypt";
 
 export default defineAPI({
   name: "register",
@@ -21,11 +20,14 @@ export default defineAPI({
     }
 
     if (password.length < 8) {
-      return { error: "Password must be at least 8 characters long", _status: 400 };
+      return {
+        error: "Password must be at least 8 characters long",
+        _status: 400,
+      };
     }
 
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await Bun.password.hash(password);
 
     try {
       const newClient = await db.client.create({
@@ -41,12 +43,13 @@ export default defineAPI({
           deleted_at: new Date(), // Added to satisfy schema requirement
         },
       });
-      // Successfully created
+      // Successfully created a new client
+
       return { id: newClient.id, email: newClient.email, _status: 201 };
     } catch (error: any) {
       console.error("Registration error:", error);
       // Check for unique constraint violation (e.g., email already exists)
-      if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+      if (error.code === "P2002" && error.meta?.target?.includes("email")) {
         return { error: "Email already exists", _status: 409 };
       }
       return { error: "Failed to create client", _status: 500 };

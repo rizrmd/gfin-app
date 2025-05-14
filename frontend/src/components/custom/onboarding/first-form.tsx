@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSnapshot } from "valtio";
-import { onboard } from "./utils/state";
+import { onboard } from "../../../lib/ai-onboard";
 import { usStates } from "shared/lib/us_states";
 
 export const OnboardFirstForm = () => {
