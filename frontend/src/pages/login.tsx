@@ -97,9 +97,9 @@ export default () => {
                 </a>
               </p>
               <p className="text-sm text-gray-600 text-center">
-                Already have an account?{" "}
-                <a href="/login" className="text-blue-500 hover:underline">
-                  Sign in
+                Do not have an account?{" "}
+                <a href="/register" className="text-blue-500 hover:underline">
+                  Register Here
                 </a>
               </p>
             </div>

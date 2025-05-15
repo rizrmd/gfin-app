@@ -18,7 +18,7 @@ export const LoginForm = () => {
       onSubmit={async ({ write, read }) => {
         write.loading = true;
         try {
-          await api.login(read);
+          await api.login();
           navigate("/");
         } catch (error) {
           Alert.info("Login failed:", error);
@@ -26,7 +26,8 @@ export const LoginForm = () => {
           write.loading = false;
         }
       }}
-      className="space-y-4"
+    className={cn("space-y-4", css `
+      .field-label { display: none;}`)}
     >
       {({ Field, read, submit }) => {
         return (
