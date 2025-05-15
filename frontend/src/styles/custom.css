@@ -1,0 +1,15 @@
+/* Add your custom CSS rules here */
+:root {
+  /* Custom CSS Variables */
+  --primary-color: #000000;
+  /* Add more custom variables as needed */
+}
+
+/* Add your custom classes */
+.custom-class-example {
+  /* Your styles */
+}
+
+.page-form--form form .mb-2.capitalize {
+    display: none;
+}

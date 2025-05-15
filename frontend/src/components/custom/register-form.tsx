@@ -6,6 +6,7 @@ import { useLocal } from "@/lib/hooks/use-local";
 import { navigate } from "@/lib/router";
 import { usStates } from "shared/lib/us_states";
 
+
 export const RegisterForm = () => {
   const local = useLocal({
     loading: false,
