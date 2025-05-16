@@ -1,6 +1,6 @@
 import { gunzipSync, gzipSync, type ServerWebSocket } from "bun";
 import type { ClientState } from "shared/lib/client_state";
-import type { AITask } from "./task";
+import type { AITask, AITaskID } from "./task";
 import { pack, unpack } from "msgpackr";
 import { proxy, subscribe } from "valtio";
 
@@ -19,7 +19,7 @@ const newClient = (client_id: CLIENT_ID) => {
   };
   const client = {
     client_id,
-    tasks: [] as AITask[],
+    tasks: {} as Record<AITaskID, AITask>,
     state: proxy({}) as ClientState,
     connections: new Set<ServerWebSocket<WSAIData>>(),
     sync: {
