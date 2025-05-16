@@ -4,8 +4,7 @@ import { Alert } from "@/components/ui/global-alert";
 import { api } from "@/lib/gen/api";
 import { useLocal } from "@/lib/hooks/use-local";
 import { navigate } from "@/lib/router";
-import { usStates } from "shared/lib/us_states";
-
+import { usBizUrl } from "shared/lib/biz_url";
 export const RegisterForm = () => {
   const local = useLocal({
     loading: false,
@@ -71,9 +70,8 @@ export const RegisterForm = () => {
               name="state"
               disabled={read.loading}
               dropdown={{
-                options: usStates.map((s) => {
-                  const parts = s.split(" - ");
-                  return { label: s, value: parts[1] };
+                options: usBizUrl.map((s) => {
+                  return { label: `${s.abbr} - ${s.state}`, value: s.state };
                 }),
               }}
               label="State"
