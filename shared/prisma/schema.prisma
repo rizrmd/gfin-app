@@ -9,21 +9,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model client {
-  id           String         @id(map: "client_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email        String
-  password     String
-  profile      Json?          @default("{}")
-  deleted_at   DateTime       @db.Timestamptz(6)
-  organization organization[]
+model clients {
+  id            String          @id(map: "client_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String // Primary email for the client
+  password      String // Hashed password for the client
+  profile       Json?           @default("{}") // Stores additional profile information like firstName, lastName.
+  // Should NOT store 'password' or 'workEmail' if it's the same as the top-level 'email'.
+  deleted_at    DateTime        @db.Timestamptz(6)
+  organizations organizations[]
+  ai_task       ai_task[]
 }
 
-model organization {
-  id        String    @id(map: "organization_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_client String    @db.Uuid
-  name      String
-  data      Json
-  questions Json
-  deleted   DateTime? @db.Timestamptz(6)
-  client    client    @relation(fields: [id_client], references: [id], onDelete: Cascade)
+model organizations {
+  id         String    @id(map: "organization_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_client  String    @db.Uuid
+  name       String // Primary name of the organization
+  data       Json // Stores detailed organization information as defined in 'blankOrg' from client_state.ts.
+  questions  Json
+  deleted_at DateTime? @map("deleted") @db.Timestamptz(6)
+  client     clients   @relation(fields: [id_client], references: [id], onDelete: Cascade)
+}
+
+enum AITaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  INTERRUPTED
+  INVALID_WORKER_PATH
+}
+
+model ai_task {
+  id                         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_client                  String       @db.Uuid
+  task_type                  String
+  worker_script_path         String
+  status                     AITaskStatus @default(PENDING)
+  input_json                 Json         @db.Json
+  output_json                Json?        @db.Json
+  last_known_progress_json   Json?        @db.Json
+  client_state_on_start_json Json         @db.Json
+  last_error_json            Json?        @db.Json
+  created_at                 DateTime     @default(now())
+  updated_at                 DateTime     @updatedAt
+  client                     clients      @relation(fields: [id_client], references: [id], onDelete: Cascade)
 }
