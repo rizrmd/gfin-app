@@ -1,4 +1,4 @@
-export const stateBizUrl = [
+export const usBizUrl = [
   {
     state: "Alabama",
     website: "https://arc-sos.state.al.us/CGI/CORPNAME.MBR/INPUT",

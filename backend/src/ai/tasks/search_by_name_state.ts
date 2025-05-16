@@ -1,15 +1,15 @@
-import { sampleOrg, type OrgState } from "shared/lib/org";
-import { stateBizUrl } from "../helper/state_biz_url";
+import { blankOrg, type ClientState } from "shared/lib/org";
+import { usBizUrl } from "../lib/us_biz_url";
 
 export const search_by_name_state = {
-  prompt: (org: OrgState) => {
-    const url = stateBizUrl.find((e) => {
+  prompt: (org: ClientState) => {
+    const url = usBizUrl.find((e) => {
       return e.state === org.entry.state;
     });
 
     const name = org.entry.name;
     const state = org.entry.state;
-    const output = JSON.stringify(sampleOrg);
+    const output = JSON.stringify(blankOrg);
 
     return `
 Search for organizations with name "${name}" in state "${state} in google
