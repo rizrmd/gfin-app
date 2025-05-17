@@ -1,17 +1,16 @@
 import { EForm } from "@/components/ext/eform/EForm";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/global-alert";
-import { api } from "@/lib/gen/api";
 import { useLocal } from "@/lib/hooks/use-local";
 import { navigate } from "@/lib/router";
+import { Wand2 } from "lucide-react";
 import { usBizUrl } from "shared/lib/biz_url";
+
 export const RegisterForm = () => {
   const local = useLocal({
     loading: false,
     firstName: "",
     lastName: "",
     workEmail: "",
-    password: "",
     orgName: "",
     state: "",
   });
@@ -26,25 +25,10 @@ export const RegisterForm = () => {
       data={local}
       onSubmit={async ({ write, read }) => {
         write.loading = true;
-        try {
-          const res = await api.register(read);
-          if (res.error) {
-            await Alert.info(res.error);
-            return;
-          }
-          if (res.id) {
-            localStorage.setItem("client_id", res.id);
-          }
-          navigate("/onboard/welcome");
-        } catch (error) {
-          Alert.info("Registration failed:", error);
-        } finally {
-          write.loading = false;
-        }
       }}
       className="space-y-4"
     >
-      {({ Field, read, submit }) => {
+      {({ Field, read, submit, write }) => {
         return (
           <>
             <Field
@@ -59,13 +43,17 @@ export const RegisterForm = () => {
               label="Work Email"
               input={{ type: "email" }}
             />
-            <Field
+            {/* <Field
               name="password"
               disabled={read.loading}
               label="Password"
               input={{ type: "password" }}
+            /> */}
+            <Field
+              name="orgName"
+              disabled={read.loading}
+              label="Organization Name"
             />
-            <Field name="orgName" disabled={read.loading} label="Org Name" />
             <Field
               name="state"
               disabled={read.loading}
@@ -76,14 +64,34 @@ export const RegisterForm = () => {
               }}
               label="State"
             />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={read.loading}
-              onClick={submit}
-            >
-              {read.loading ? "Creating Account..." : "Create Account"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant={"secondary"}
+                onClick={(e) => {
+                  const fill = {
+                    firstName: "Damu",
+                    lastName: "Winston",
+                    workEmail: "damu@deeplearningintelligence.com",
+                    orgName: "Deep Learning Intelligence",
+                    state: "Florida",
+                  };
+                  for (const [k, v] of Object.entries(fill)) {
+                    write[k] = v;
+                  }
+                  e.preventDefault();
+                }}
+              >
+                <Wand2 />
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={read.loading}
+                onClick={submit}
+              >
+                {read.loading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </div>
           </>
         );
       }}
