@@ -10,17 +10,17 @@ datasource db {
 }
 
 model clients {
-  id            String          @id(map: "client_id") @default(uuid()) @db.Uuid
+  id            String          @id(map: "client_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String
-  password      String
+  password      String?
   profile       Json?           @default("{}")
-  deleted_at    DateTime        @db.Timestamptz(6)
+  deleted_at    DateTime?        @db.Timestamptz(6)
   ai_task       ai_task[]
   organizations organizations[]
 }
 
 model organizations {
-  id         String    @id(map: "organization_id") @default(uuid()) @db.Uuid
+  id         String    @id(map: "organization_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   id_client  String    @db.Uuid
   name       String
   data       Json
@@ -30,7 +30,7 @@ model organizations {
 }
 
 model ai_task {
-  id                 String       @id @default(uuid()) @db.Uuid
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   id_client          String       @db.Uuid
   worker_script_path String
   status             AITaskStatus @default(PENDING)

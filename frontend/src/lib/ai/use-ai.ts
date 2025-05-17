@@ -1,7 +1,10 @@
 import { subscribe } from "valtio";
 import { aiState } from "./state";
 import { aiSync } from "./sync";
-
+import { type TaskName, type Tasks } from "backend/ai/tasks";
+import { pack } from "msgpackr";
+import { gzipSync } from "fflate";
+import { user } from "../user";
 const aiClient = () => {
   const state = aiState();
   const sync = aiSync();
@@ -11,6 +14,17 @@ const aiClient = () => {
   return {
     state,
     sync,
+    task: {
+      active: {} as Record<string, any>,
+      do: async <Name extends TaskName>(
+        name: Name,
+        input: Tasks[Name]["input"]
+      ): Promise<Tasks[Name]["output"]> => {
+        return new Promise<Tasks[Name]["output"]>((resolve, reject) => {
+          sync.ws?.send(gzipSync(pack({ type: "doTask", name, input })));
+        });
+      },
+    },
   };
 };
 

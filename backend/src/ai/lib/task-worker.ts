@@ -155,6 +155,7 @@ export const taskWorker = <
   }
 >(arg: {
   name: string;
+  desc: string;
   execute: (opt: {
     input: InputParams;
     progress: (progressInfo: Progress) => void;
@@ -167,8 +168,15 @@ export const taskWorker = <
   }) => Promise<OutputParams>;
   // getCallbacksProvider removed
 }) => {
+  const result = {
+    name: arg.name,
+    desc: arg.desc,
+    file: import.meta.file,
+    input: {} as InputParams,
+    output: {} as OutputParams,
+  };
   if (!import.meta.main) {
-    return { name, file: import.meta.file };
+    return result;
   }
 
   let clientId: string;
@@ -305,8 +313,5 @@ export const taskWorker = <
   };
 
   // Return taskType for the calling module to export
-  return {
-    name: arg.name,
-    file: import.meta.file,
-  };
+  return result;
 };

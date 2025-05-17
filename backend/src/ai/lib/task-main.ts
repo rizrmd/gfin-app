@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "path";
+import path, { join } from "path";
 import type { ClientState } from "shared/lib/client_state";
 import {
   AITaskStatus as AiTaskStatus,
@@ -15,7 +15,6 @@ import {
   type WorkerProgressMessage,
   type WorkerToMainMessage,
 } from "./task-worker";
-import { error } from "console";
 
 export type TaskId = string;
 export type AiTask<
@@ -24,6 +23,7 @@ export type AiTask<
   OutputResult extends object = {}
 > = {
   id: TaskId;
+  desc: string;
   status: AiTaskStatus; // This status is now AITaskStatus from Prisma
   input: InputArg;
   output: OutputResult | null;
@@ -250,6 +250,7 @@ async function spawnAndInitWorker<
   const input = persistedTask.input as InputParams; // use new field name
   const managedTask: AiTask = {
     id: persistedTask.id,
+    desc: persistedTask.name,
     worker: { process: worker, scriptPath: workerScriptFullPath },
     callbacks: taskCallback(client.id, persistedTask.id),
     input,
@@ -304,21 +305,17 @@ export async function submitTask<
   OutputResult extends object,
   Progress extends ProgressState<any>
 >(opt: {
+  client_id: ClientId;
   name: TaskName;
-  path: string;
   input: InputParams;
-  clientState: ClientState;
-  callbacks: TaskCallback<Progress, OutputResult>;
 }): Promise<TaskId | null> {
-  const { name, path, input, clientState, callbacks } = opt;
+  const { name, input, client_id } = opt;
 
+  const path = join(__dirname, "../tasks", name + ".ts");
   if (!isValidWorkerPath(path)) {
     console.error(
       `[TaskOrchestrator] Submission failed: Invalid worker script path: ${path}`
     );
-    callbacks.onError?.({
-      message: `Invalid worker script path: ${path}`,
-    });
     return null;
   }
 
@@ -329,18 +326,15 @@ export async function submitTask<
         worker_script_path: path, // use new field name
         status: AiTaskStatus.PENDING,
         input: input as any, // Cast to any for Prisma Json type, use new field name
-        id_client: clientState.client_id,
+        id_client: client_id,
       },
     });
 
-    await spawnAndInitWorker(clientState.client_id, persistedTask, callbacks);
+    let callbacks = taskCallback(client_id, persistedTask.id);
+    await spawnAndInitWorker(client_id, persistedTask, callbacks);
     return persistedTask.id;
   } catch (error: any) {
     console.error("[TaskOrchestrator] Error submitting task:", error);
-    callbacks.onError?.({
-      message: "Failed to submit task to orchestrator.",
-      stack: error.stack,
-    });
     return null;
   }
 }
@@ -393,26 +387,11 @@ export async function resumeTasksOnStartup(): Promise<void> {
           task.last_progress as unknown as ProgressState<any>;
       }
 
-      // If task.last_progress was null or undefined, resumeFromProgress remains undefined.
-      // This check might be redundant if the above handles nulls correctly, but kept for clarity.
       if (!task.last_progress) {
-        // use new field name
         console.warn(
           `[TaskOrchestrator] last_progress is null for task ${task.id}. Resuming without progress.`
         ); // use new field name
         resumeFromProgress = undefined;
-      } else {
-        try {
-          // Validate if the parsed JSON actually conforms to ProgressState, if needed.
-          // This is a placeholder for potential deeper validation.
-          // For now, we assume it's correctly structured.
-        } catch (e) {
-          console.error(
-            `[TaskOrchestrator] Failed to validate lastKnownProgressJson structure for task ${task.id}:`,
-            e
-          );
-          // Optionally, mark task as FAILED or attempt to start without progress
-        }
       }
 
       // If task was PENDING, it means it never started, so no progress to resume from.

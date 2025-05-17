@@ -1,40 +1,36 @@
+import { AppLogo } from "@/components/app/logo";
+import { OnboardFrame } from "@/components/custom/onboard-frame";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/gen/api";
+import { useAI } from "@/lib/ai/use-ai";
+import { navigate } from "@/lib/router";
 import { Protected, user } from "@/lib/user";
-import { useSnapshot } from "valtio";
 
 export default () => {
+  const ai = useAI();
   return (
     <Protected>
-      Hello welcome.tsx
-      <Button
-        onClick={async () => {
-          const client_id = localStorage.getItem("client_id");
-          if (client_id) {
-            // const res = await api.session({ client_id });
-            // if (res) {
-            //   await agent.sync.init({
-            //     client_id,
-            //     entry: {
-            //       name: res.profile.orgName as string,
-            //       state: res.profile.state as string,
-            //     },
-            //     final: {},
-            //   });
-            //   await agent.do_task("search_by_name_state");
-            // }
-          }
-        }}
-      >
-        Trigger search organization profile
-      </Button>
-      <Button
-        onClick={() => {
-          user.logout();
-        }}
-      >
-        Logout
-      </Button>
+      <OnboardFrame className="flex flex-col items-center justify-center gap-4">
+        <AppLogo />
+        Hello welcome.tsx
+        <Button
+          onClick={async () => {
+            ai.task.do("search_org", {
+              orgName: user.organization.name!,
+              state: user.organization.data!.filingInformation.state,
+            });
+          }}
+        >
+          Trigger search organization profile
+        </Button>
+        <Button
+          onClick={() => {
+            user.logout();
+            navigate("/");
+          }}
+        >
+          Logout
+        </Button>
+      </OnboardFrame>
     </Protected>
   );
 };

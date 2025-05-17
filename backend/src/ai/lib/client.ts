@@ -1,10 +1,7 @@
 import type { ServerWebSocket } from "bun";
 import { gunzipSync, gzipSync } from "bun";
 import { pack, unpack } from "msgpackr";
-import {
-  type AiTask,
-  type TaskId
-} from "./task-main";
+import { submitTask, type AiTask, type TaskId } from "./task-main";
 
 export type WSAIData = {
   client_id: ClientId;
@@ -22,19 +19,6 @@ if (!g.ai_clients) {
 }
 
 export const clients = g.ai_clients;
-
-// Helper to map task-main's onError to client's onError
-function adaptError(
-  taskMainError: { message: string; stack?: string },
-  clientOnError: (error: Error) => void
-) {
-  clientOnError(
-    new Error(
-      taskMainError.message +
-        (taskMainError.stack ? `\nStack: ${taskMainError.stack}` : "")
-    )
-  );
-}
 
 const newClient = (client_id: ClientId) => {
   const send = (ws: ServerWebSocket<WSAIData>, msg: any) => {
@@ -58,12 +42,12 @@ const newClient = (client_id: ClientId) => {
       },
       onMessage(ws: ServerWebSocket<WSAIData>, raw: any) {
         const data = unpack(gunzipSync(raw));
+        console.log(data);
+        if (data.type === "doTask") {
+          submitTask({ client_id, name: data.name, input: data.input });
+        }
       },
     },
-  };
-
-  const timeout = {
-    state_changed: null as null | Timer,
   };
 
   return client;

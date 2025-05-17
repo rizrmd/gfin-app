@@ -1,4 +1,8 @@
-import search_by_name_state from "./tasks/search_by_name_state";
+import search_org from "./tasks/search_org";
 
-export const tasks = [search_by_name_state.file] as const;
-export type TaskName = (typeof tasks)[number];
+export const tasks = {
+  search_org: search_org,
+} as const;
+
+export type Tasks = typeof tasks;
+export type TaskName = keyof typeof tasks;

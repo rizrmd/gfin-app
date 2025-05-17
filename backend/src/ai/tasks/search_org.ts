@@ -7,8 +7,9 @@ export default taskWorker<
   { step: SerializableAgentState },
   { orgName: string; state: string }
 >({
-  name: "search_by_name_state",
-  async execute({ state, agent, progress, resumeFrom, db, input }) {
+  name: "search_org",
+  desc: "Finding organizations",
+  async execute({ agent, progress, resumeFrom, db, input }) {
     const name = input.orgName;
     const us_state = input.state;
     const url = usBizUrl.find((e) => {
@@ -16,11 +17,11 @@ export default taskWorker<
     });
 
     const prompt = `
-    Search for organizations with name "${name}" in state "${state} in google
-    "${url ? `, prioritize visting url with ${url.website}` : ""}.
+Search for organizations with name "${name}" in ${us_state} in google
+${url ? `, prioritize visting url with ${url.website}` : ""}.
 
-    Return the result in JSON format with the following fields:
-    ${JSON.stringify(blankOrg)}
+Return the result in JSON format with the following fields:
+${JSON.stringify(blankOrg)}
     `;
 
     const maxSteps = 10;

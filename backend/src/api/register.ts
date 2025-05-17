@@ -1,4 +1,6 @@
 import { defineAPI } from "rlib/server";
+import { PrismaClient } from "../../../shared/models"; // Adjusted path
+import type { blankOrg } from "shared/lib/client_state";
 
 export default defineAPI({
   name: "register",
@@ -8,51 +10,101 @@ export default defineAPI({
     firstName: string;
     lastName: string;
     workEmail: string;
-    password: string;
+    password?: string; // Added password field
     orgName: string;
     state: string;
   }) {
-    const { workEmail, password, firstName, lastName, orgName, state } = data;
+    const { workEmail, firstName, lastName, orgName, state, password } = data;
 
-    // Basic validation
-    if (!workEmail || !password || !firstName || !orgName) {
-      return { error: "Missing required fields", _status: 400 };
+    if (!workEmail || !firstName || !lastName || !orgName || !state) {
+      throw new Error("All fields are required.");
     }
 
-    if (password.length < 8) {
+    const exists = await db.clients.findFirst({
+      where: { email: workEmail },
+      include: {
+        organizations: true,
+      },
+    });
+    if (exists) {
       return {
-        error: "Password must be at least 8 characters long",
-        _status: 400,
+        success: true,
+        message: "Client and organization loaded successfully.",
+        client: {
+          id: exists.id,
+          email: exists.email,
+          profile: exists.profile,
+        },
+        organization: {
+          id: exists.organizations[0]!.id,
+          name: exists.organizations[0]!.name,
+          data: exists.organizations[0]!.data,
+        },
       };
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await Bun.password.hash(password);
+    const hashedPassword = password
+      ? Bun.password.hashSync(password, "argon2id")
+      : null;
 
     try {
-      const newClient = await db.client.create({
+      // Create the client
+      const newClient = await db.clients.create({
         data: {
           email: workEmail,
           password: hashedPassword,
           profile: {
             firstName,
             lastName,
-            orgName,
-            state,
           },
-          deleted_at: new Date(), // Added to satisfy schema requirement
         },
       });
-      // Successfully created a new client
 
-      return { id: newClient.id, email: newClient.email, _status: 201 };
-    } catch (error: any) {
+      // Create the organization
+      const newOrganization = await db.organizations.create({
+        data: {
+          id_client: newClient.id,
+          name: orgName,
+          data: {
+            entityInformation: { entityName: orgName },
+            filingInformation: { state: state },
+          } as typeof blankOrg, // Default empty data
+          questions: {}, // Default empty questions
+        },
+      });
+
+      return {
+        success: true,
+        message: "Client and organization registered successfully.",
+        client: {
+          id: newClient.id,
+          email: newClient.email,
+          profile: newClient.profile,
+        },
+        organization: {
+          id: newOrganization.id,
+          name: newOrganization.name,
+          data: newOrganization.data,
+        },
+      };
+    } catch (error) {
       console.error("Registration error:", error);
-      // Check for unique constraint violation (e.g., email already exists)
-      if (error.code === "P2002" && error.meta?.target?.includes("email")) {
-        return { error: "Email already exists", _status: 409 };
+      // Consider more specific error handling based on Prisma error codes
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "P2002" &&
+        "meta" in error &&
+        typeof error.meta === "object" &&
+        error.meta !== null &&
+        "target" in error.meta &&
+        Array.isArray(error.meta.target) &&
+        error.meta.target.includes("email")
+      ) {
+        throw new Error("A client with this email already exists.");
       }
-      return { error: "Failed to create client", _status: 500 };
+      throw new Error("Failed to register client and organization.");
     }
   },
 });

@@ -1,12 +1,20 @@
 import { gunzipSync } from "fflate";
 import { unpack } from "msgpackr";
 import { baseUrl } from "../gen/base-url";
+import { user } from "../user";
 
 export const aiSync = () => {
   const sync = {
     init() {
       if (!sync.ws || sync.ws.readyState === WebSocket.CLOSED) {
-        const url = new URL(`${baseUrl.app_gfin}/ws/ai`);
+        if (!user.client?.id) {
+          user.init();
+
+          if (!user.client?.id) {
+            return;
+          }
+        }
+        const url = new URL(`${baseUrl.app_gfin}/ws/ai/${user.client.id}`);
 
         if (location.protocol === "https:") {
           url.protocol = "wss:";
@@ -18,7 +26,6 @@ export const aiSync = () => {
           sync.ws.onmessage = async (event) => {
             const buf = await event.data.arrayBuffer();
             const msg = unpack(gunzipSync(new Uint8Array(buf)));
-            console.log(msg);
           };
           sync.ws.onclose = () => {
             console.log("WebSocket connection closed");
