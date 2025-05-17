@@ -170,8 +170,8 @@ export abstract class AITaskWorker<
 export const taskWorker = <
   T extends object,
   Progress extends ProgressState<T> = {
-    percentComplete: 0;
-    description: "";
+    percentComplete: number;
+    description: string;
     data: T;
   },
   InputParams extends object = {},
