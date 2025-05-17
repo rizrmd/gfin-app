@@ -1,4 +1,4 @@
-import { RegisterForm } from "@/components/custom/register-form";
+import { LoginForm } from "@/components/custom/login-form";
 
 export default () => {
   return (
@@ -11,9 +11,7 @@ export default () => {
         `
       )}
     >
-      <div 
-        className={cn(
-          "page-form--details flex flex-1 pt-25 pb-10 justify-stretch",
+      <div className={cn( "page-form--details flex flex-1 pt-25 pb-10 justify-stretch",
           css`
             flex-direction: column;
           `
@@ -74,18 +72,18 @@ export default () => {
                 <h2 className={cn(
                     "text-2xl font-bold mb-2",
                     css`
-                      text-align: left;
+                      text-align: center;
                     `
                   )}
                 >
-                  Create an Account
+                  Welcome Back.
                 </h2>
-                <p className="text-sm text-gray-600 mb-7">
-                  Create your GoFundItNow account. We require a work email address when signing up for an account.
+                <p className="text-sm text-gray-600 mb-7 text-center">
+                  Login to your GoFundItNow account. 
                 </p>
             </div>
 
-            <RegisterForm />
+            <LoginForm />
 
             <div className="form_footer">
               <p className="text-1xl text-gray-600 mt-7 mb-7 text-center max-w-md">
@@ -99,9 +97,9 @@ export default () => {
                 </a>
               </p>
               <p className="text-sm text-gray-600 text-center">
-                Already have an account?{" "}
-                <a href="/login" className="text-blue-500 hover:underline">
-                  Sign in
+                Do not have an account?{" "}
+                <a href="/register" className="text-blue-500 hover:underline">
+                  Register Here
                 </a>
               </p>
             </div>

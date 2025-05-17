@@ -40,7 +40,7 @@ export const EField = function <
 
   return (
     <Label onClick={() => {}} className={cn("flex flex-col", className)}>
-      <div className={cn("mb-2",!label && "capitalize")}>
+      <div className={cn("mb-2 field-label",!label && "capitalize")}>
         {label || name}
         {optional && (
           <span className="text-gray-500 lowercase"> (optional)</span>
