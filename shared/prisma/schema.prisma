@@ -11,23 +11,37 @@ datasource db {
 
 model clients {
   id            String          @id(map: "client_id") @default(uuid()) @db.Uuid
-  email         String // Primary email for the client
-  password      String // Hashed password for the client
-  profile       Json?           @default("{}") // Stores additional profile information like firstName, lastName.
-  // Should NOT store 'password' or 'workEmail' if it's the same as the top-level 'email'.
+  email         String
+  password      String
+  profile       Json?           @default("{}")
   deleted_at    DateTime        @db.Timestamptz(6)
-  organizations organizations[]
   ai_task       ai_task[]
+  organizations organizations[]
 }
 
 model organizations {
   id         String    @id(map: "organization_id") @default(uuid()) @db.Uuid
   id_client  String    @db.Uuid
-  name       String // Primary name of the organization
-  data       Json // Stores detailed organization information as defined in 'blankOrg' from client_state.ts.
+  name       String
+  data       Json
   questions  Json
   deleted_at DateTime? @db.Timestamptz(6)
   client     clients   @relation(fields: [id_client], references: [id], onDelete: Cascade)
+}
+
+model ai_task {
+  id                 String       @id @default(uuid()) @db.Uuid
+  id_client          String       @db.Uuid
+  worker_script_path String
+  status             AITaskStatus @default(PENDING)
+  created_at         DateTime     @default(now())
+  updated_at         DateTime     @updatedAt
+  input              Json         @db.Json
+  last_error         Json?        @db.Json
+  last_progress      Json?        @db.Json
+  name               String
+  output             Json?        @db.Json
+  client             clients      @relation(fields: [id_client], references: [id], onDelete: Cascade)
 }
 
 enum AITaskStatus {
@@ -37,19 +51,4 @@ enum AITaskStatus {
   FAILED
   INTERRUPTED
   INVALID_WORKER_PATH
-}
-
-model ai_task {
-  id                 String       @id @default(uuid()) @db.Uuid
-  id_client          String       @db.Uuid
-  name               String
-  worker_script_path String
-  status             AITaskStatus @default(PENDING)
-  input              Json         @db.Json
-  output             Json?        @db.Json
-  last_progress      Json?        @db.Json
-  last_error         Json?        @db.Json
-  created_at         DateTime     @default(now())
-  updated_at         DateTime     @updatedAt
-  client             clients      @relation(fields: [id_client], references: [id], onDelete: Cascade)
 }

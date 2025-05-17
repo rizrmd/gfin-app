@@ -4,7 +4,7 @@ import type { ClientState } from "shared/lib/client_state";
 import type { ClientId } from "./client";
 import type { TaskId } from "./task-main";
 import type { SerializableAgentState } from "../../../../../r-agent/browser_use/agent/serializable_views";
-import { createAgentBrowser } from "./task-worker-agent-browser";
+import { createAgentBrowser } from "./agents/agent-browser";
 
 // Generic progress state. Each worker will define its own specific ProgressState.
 export type ProgressState<T extends object> = {
@@ -62,13 +62,21 @@ export interface WorkerErrorMessage {
   stack?: string;
 }
 
+export interface WorkerStateUpdateMessage {
+  client_id: ClientId;
+  type: "stateUpdate";
+  task_id: TaskId;
+  updatedStateSlice: Partial<ClientState>;
+}
+
 export type WorkerToMainMessage<
   OUT,
   TProgressState extends ProgressState<any>
 > =
   | WorkerProgressMessage<TProgressState>
   | WorkerCompleteMessage<OUT>
-  | WorkerErrorMessage;
+  | WorkerErrorMessage
+  | WorkerStateUpdateMessage;
 
 export abstract class AITaskWorker<
   IN extends object,
@@ -173,6 +181,7 @@ export const taskWorker = <
   execute: (opt: {
     input: InputParams;
     state: ClientState;
+    updateState: (state: Partial<ClientState>) => void;
     progress: (progressInfo: Progress) => void;
     resumeFrom?: Progress;
     taskId: string;
@@ -240,6 +249,21 @@ export const taskWorker = <
     self.postMessage(errorMessage);
   };
 
+  // Helper to post state update messages
+  const postUpdateState = (
+    currentClientId: string,
+    currentTaskId: string,
+    updatedStateSlice: Partial<ClientState>
+  ): void => {
+    const message: WorkerStateUpdateMessage = {
+      client_id: currentClientId,
+      type: "stateUpdate",
+      task_id: currentTaskId,
+      updatedStateSlice,
+    };
+    self.postMessage(message);
+  };
+
   self.onmessage = async (
     event: MessageEvent<MainToWorkerMessage<InputParams, Progress>>
   ) => {
@@ -264,6 +288,9 @@ export const taskWorker = <
           taskId: taskId,
           agent: {
             browser: createAgentBrowser(),
+          },
+          updateState: (stateSlice) => {
+            postUpdateState(clientId, taskId, stateSlice);
           },
         });
         postCompletion(clientId, taskId, result);
