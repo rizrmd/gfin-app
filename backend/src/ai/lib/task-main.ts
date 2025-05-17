@@ -15,6 +15,7 @@ import {
   type WorkerProgressMessage,
   type WorkerToMainMessage,
 } from "./task-worker";
+import { error } from "console";
 
 export type TaskId = string;
 export type AiTask<
@@ -51,7 +52,7 @@ export const taskCallback = <
       if (client) {
       }
     },
-    onComplete(output, clientStateUpdate) {},
+    onComplete(output) {},
   } as TaskCallback<Progress, OutputResult>;
 };
 
@@ -61,11 +62,7 @@ export interface TaskCallback<
   OutputResult extends object = {}
 > {
   onProgress?: (args: Progress) => void;
-  onStateUpdate?: (args: Partial<ClientState>) => void;
-  onComplete?: (
-    output: OutputResult,
-    clientStateUpdate?: Partial<ClientState>
-  ) => void;
+  onComplete?: (output: OutputResult) => void;
   onError?: (error: { message: string; stack?: string }) => void;
 }
 
@@ -103,6 +100,51 @@ async function handleWorkerMessage<
 
   try {
     switch (message.type) {
+      case "dbRequest":
+        try {
+          const table = (db as any)[message.tableName];
+          if (!table) {
+            managedTask.worker.process.postMessage({
+              type: "dbResponse",
+              id: message.task_id,
+              task_id: message.task_id,
+              client_id: message.client_id,
+              error: `Table ${message.tableName} not found`,
+            });
+            return;
+          }
+
+          const method = await table[message.method];
+
+          if (!method) {
+            managedTask.worker.process.postMessage({
+              type: "dbResponse",
+              id: message.task_id,
+              task_id: message.task_id,
+              client_id: message.client_id,
+              error: `Method ${message.tableName}.${message.method} not found`,
+            });
+            return;
+          }
+          const dbResponse = await method(...message.args);
+
+          managedTask.worker.process.postMessage({
+            type: "dbResponse",
+            id: message.id,
+            client_id: message.client_id,
+            task_id: message.task_id,
+            result: dbResponse,
+          });
+        } catch (error: any) {
+          managedTask.worker.process.postMessage({
+            type: "dbResponse",
+            id: message.id,
+            client_id: message.client_id,
+            task_id: message.task_id,
+            error: error.message,
+          });
+        }
+        break;
       case "progress":
         const progressMessage = message as WorkerProgressMessage<Progress>;
         await db.ai_task.update({
@@ -128,10 +170,7 @@ async function handleWorkerMessage<
             updated_at: new Date(), // use new field name
           },
         });
-        managedTask.callbacks.onComplete?.(
-          completeMessage.output,
-          completeMessage.state
-        );
+        managedTask.callbacks.onComplete?.(completeMessage.output);
         // TODO: Handle global client state update (message.state) if necessary
         client.activeTasks.delete(managedTask.id);
         managedTask.worker.process.terminate();
@@ -209,7 +248,6 @@ async function spawnAndInitWorker<
 
   const worker = new Worker(workerScriptFullPath);
   const input = persistedTask.input as InputParams; // use new field name
-  const clientStateOnStart = client.state;
   const managedTask: AiTask = {
     id: persistedTask.id,
     worker: { process: worker, scriptPath: workerScriptFullPath },
@@ -251,7 +289,6 @@ async function spawnAndInitWorker<
     type: "init",
     task_id: persistedTask.id,
     input,
-    initialState: clientStateOnStart,
     resumeFromProgress,
   };
   worker.postMessage(initMessage);

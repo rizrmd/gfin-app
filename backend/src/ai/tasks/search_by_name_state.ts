@@ -1,23 +1,27 @@
 import type { SerializableAgentState } from "r-agent/browser_use/agent/serializable_views";
 import { taskWorker } from "../lib/task-worker";
 import { usBizUrl } from "shared/lib/biz_url";
+import { blankOrg } from "shared/lib/client_state";
 
-export default taskWorker<{ step: SerializableAgentState }>({
+export default taskWorker<
+  { step: SerializableAgentState },
+  { orgName: string; state: string }
+>({
   name: "search_by_name_state",
-  async execute({ state, agent, progress, resumeFrom, updateState }) {
-    const name = state.organization.entityInformation.entityName;
-    const us_state = state.organization.filingInformation.state;
+  async execute({ state, agent, progress, resumeFrom, db, input }) {
+    const name = input.orgName;
+    const us_state = input.state;
     const url = usBizUrl.find((e) => {
       return e.state === us_state;
     });
 
     const prompt = `
-Search for organizations with name "${name}" in state "${state} in google
-"${url ? `, prioritize visting url with ${url.website}` : ""}.
+    Search for organizations with name "${name}" in state "${state} in google
+    "${url ? `, prioritize visting url with ${url.website}` : ""}.
 
-Return the result in JSON format with the following fields:
-${JSON.stringify(state.organization)}
-`;
+    Return the result in JSON format with the following fields:
+    ${JSON.stringify(blankOrg)}
+    `;
 
     const maxSteps = 10;
     await agent.browser({

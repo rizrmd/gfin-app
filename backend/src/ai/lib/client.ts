@@ -1,15 +1,10 @@
 import type { ServerWebSocket } from "bun";
 import { gunzipSync, gzipSync } from "bun";
 import { pack, unpack } from "msgpackr";
-import type { ClientState } from "shared/lib/client_state";
-import { proxy, snapshot, subscribe } from "valtio";
 import {
-  submitTask,
   type AiTask,
-  type TaskId,
-  type TaskCallback,
+  type TaskId
 } from "./task-main";
-import type { ProgressState } from "./task-worker"; // Keep for TProgressState generic constraint
 
 export type WSAIData = {
   client_id: ClientId;
@@ -52,12 +47,11 @@ const newClient = (client_id: ClientId) => {
 
   const client = {
     id: client_id,
-    state: proxy({ client_id } as ClientState), // Initialize with client_id
     connections: new Set<ServerWebSocket<WSAIData>>(),
     activeTasks: new Map<TaskId, AiTask>(),
     sync: {
       send,
-      broadcast(arg: { type: "state"; state: ClientState }) {
+      broadcast(arg: {}) {
         for (const ws of client.connections) {
           send(ws, arg);
         }
@@ -71,16 +65,6 @@ const newClient = (client_id: ClientId) => {
   const timeout = {
     state_changed: null as null | Timer,
   };
-
-  subscribe(client.state, () => {
-    if (timeout.state_changed) clearTimeout(timeout.state_changed);
-    timeout.state_changed = setTimeout(() => {
-      client.sync.broadcast({
-        type: "state",
-        state: snapshot(client.state) as ClientState,
-      });
-    }, 300);
-  });
 
   return client;
 };

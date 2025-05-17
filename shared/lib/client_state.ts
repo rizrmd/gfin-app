@@ -2,8 +2,6 @@ export type ORG_ID = string;
 
 export type ClientState = {
   client_id: string;
-  profile: typeof blankProfile;
-  organization: typeof blankOrg;
 };
 
 export const blankProfile = {

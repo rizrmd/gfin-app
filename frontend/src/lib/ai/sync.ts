@@ -1,9 +1,8 @@
-import { baseUrl } from "../gen/base-url";
-import type { AIState } from "./state";
-import { unpack } from "msgpackr";
 import { gunzipSync } from "fflate";
+import { unpack } from "msgpackr";
+import { baseUrl } from "../gen/base-url";
 
-export const aiSync = (arg: { state: AIState }) => {
+export const aiSync = () => {
   const sync = {
     init() {
       if (!sync.ws || sync.ws.readyState === WebSocket.CLOSED) {

@@ -1,11 +1,16 @@
-import { newAIState } from "./state";
+import { subscribe } from "valtio";
+import { aiState } from "./state";
 import { aiSync } from "./sync";
 
 const aiClient = () => {
-  const aiState = newAIState();
+  const state = aiState();
+  const sync = aiSync();
+
+  subscribe(state, () => {});
+
   return {
-    state: aiState,
-    sync: aiSync({ state: aiState }),
+    state,
+    sync,
   };
 };
 
