@@ -8,6 +8,7 @@
     "**/.vscode": true,
     "**/node_modules": true,
     "**/.gitignore": true,
+    "**/gen": true,
     "**/bun.lock": true,
     "bunfig.toml": true,
     ".dockerignore": true,

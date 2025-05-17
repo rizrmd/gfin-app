@@ -3,28 +3,29 @@ import { Button } from "@/components/ui/button";
 import { useLocal } from "@/lib/hooks/use-local";
 import { navigate } from "@/lib/router";
 import { Wand2 } from "lucide-react";
+import type { FC } from "react";
 import { usBizUrl } from "shared/lib/biz_url";
 
-export const RegisterForm = () => {
-  const local = useLocal({
-    loading: false,
-    firstName: "",
-    lastName: "",
-    workEmail: "",
-    orgName: "",
-    state: "",
-  });
+const emptyForm = {
+  loading: false,
+  firstName: "",
+  lastName: "",
+  workEmail: "",
+  orgName: "",
+  state: "",
+};
 
-  if (localStorage.getItem("client_id") !== null) {
-    navigate("/onboard/welcome");
-    return <></>;
-  }
+export const RegisterForm: FC<{
+  onSubmit: (form: typeof emptyForm) => void;
+}> = ({ onSubmit }) => {
+  const local = useLocal(emptyForm);
 
   return (
     <EForm
       data={local}
       onSubmit={async ({ write, read }) => {
         write.loading = true;
+        onSubmit(write);
       }}
       className="space-y-4"
     >

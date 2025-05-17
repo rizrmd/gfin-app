@@ -17,4 +17,8 @@ if (!w.ai_client) {
   w.ai_client = aiClient();
 }
 
-export const useAI = () => {};
+export const useAI = () => {
+  w.ai_client.sync.init();
+
+  return w.ai_client;
+};
