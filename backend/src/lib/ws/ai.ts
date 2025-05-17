@@ -23,7 +23,6 @@ export const ws_ai: WebSocketHandler<WSAIData> & {
 
     const client = getClient(ws.data.client_id);
     client.connections.add(ws);
-    // client.sync.send(ws, { type: "state", state: client.state });
   },
   close(ws) {
     if (!validate(ws.data.client_id)) {

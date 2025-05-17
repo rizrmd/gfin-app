@@ -11,36 +11,34 @@ export default taskWorker<
   name: "search_org",
   desc: "Finding organizations",
   async execute({ agent, progress, resumeFrom, db, input }) {
-    return blankOrg as any;
+    const name = input.orgName;
+    const us_state = input.state;
+    const url = usBizUrl.find((e) => {
+      return e.state === us_state;
+    });
 
-    //     const name = input.orgName;
-    //     const us_state = input.state;
-    //     const url = usBizUrl.find((e) => {
-    //       return e.state === us_state;
-    //     });
+    const prompt = `
+    Search google for organizations with name "${name}" in ${us_state} 
+    ${url ? `, prioritize visting url with ${url.website}` : ""}.
 
-    //     const prompt = `
-    // Search for organizations with name "${name}" in ${us_state} in google
-    // ${url ? `, prioritize visting url with ${url.website}` : ""}.
+    Return the result in JSON format with the following fields:
+    ${JSON.stringify(blankOrg)}
+        `;
 
-    // Return the result in JSON format with the following fields:
-    // ${JSON.stringify(blankOrg)}
-    //     `;
+    const maxSteps = 10;
+    const res = await agent.browser({
+      prompt,
+      restore: resumeFrom?.data.step,
+      maxSteps,
+      onStep({ restore, current }) {
+        progress({
+          data: { step: restore },
+          description: current.nextGoal,
+          percentComplete: (current.step / maxSteps) * 100,
+        });
+      },
+    });
 
-    //     const maxSteps = 10;
-    //     const res = await agent.browser({
-    //       prompt,
-    //       restore: resumeFrom?.data.step,
-    //       maxSteps,
-    //       onStep({ restore, current }) {
-    //         progress({
-    //           data: { step: restore },
-    //           description: current.nextGoal,
-    //           percentComplete: (current.step / maxSteps) * 100,
-    //         });
-    //       },
-    //     });
-
-    //     return res as typeof blankOrg;
+    return res as typeof blankOrg;
   },
 });

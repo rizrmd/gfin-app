@@ -1,6 +1,5 @@
 import fs from "fs";
 import path, { join } from "path";
-import type { ClientState } from "shared/lib/client_state";
 import {
   AITaskStatus as AiTaskStatus,
   type ai_task as PersistedAITask,

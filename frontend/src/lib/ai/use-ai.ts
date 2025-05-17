@@ -1,11 +1,10 @@
 import { type TaskName, type Tasks } from "backend/ai/tasks";
 import { gzipSync } from "fflate";
 import { pack } from "msgpackr";
-import { subscribe } from "valtio";
+import { useEffect } from "react";
+import { v6 } from "uuid";
 import { aiState } from "./state";
 import { aiSync } from "./sync";
-import { useEffect, useRef } from "react";
-import { v6 } from "uuid";
 const aiClient = () => {
   const state = aiState();
   const sync = aiSync();
