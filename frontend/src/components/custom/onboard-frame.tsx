@@ -10,7 +10,7 @@ export const OnboardFrame = (opt: {
         "flex min-h-screen bg-white items-stretch",
 
         css`
-          background-image: url("/images/onboarding/background-illustration.png");
+          background-image: url("/img/onboard/ilustr.png");
           background-position-x: center;
           background-position-y: bottom;
           background-size: 956px 200px;
@@ -22,7 +22,7 @@ export const OnboardFrame = (opt: {
       <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden">
         {/* Background Illustration */}
         <img
-          src={"/images/onboarding/section-bg02.png"} // Use the new background SVG
+          src={"/img/onboard/circles.png"} // Use the new background SVG
           alt=""
           className="absolute bottom-0 left-0 w-full object-cover" // Changed to object-cover
         />
