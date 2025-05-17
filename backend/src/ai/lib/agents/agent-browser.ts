@@ -49,6 +49,11 @@ export const createAgentBrowser = () => {
           try {
             if (history.is_successful()) {
               const parsed = JSON.parse(history.final_result() || "{}");
+
+              if (parsed && typeof parsed === "object" && parsed.data) {
+                resolve(parsed.data as T);
+                return;
+              }
               resolve(parsed as T);
             } else {
               reject(history.errors());

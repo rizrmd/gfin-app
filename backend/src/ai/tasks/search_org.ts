@@ -5,7 +5,8 @@ import { blankOrg } from "shared/lib/client_state";
 
 export default taskWorker<
   { step: SerializableAgentState },
-  { orgName: string; state: string }
+  { orgName: string; state: string },
+  typeof blankOrg
 >({
   name: "search_org",
   desc: "Finding organizations",
@@ -25,7 +26,7 @@ ${JSON.stringify(blankOrg)}
     `;
 
     const maxSteps = 10;
-    await agent.browser({
+    const res = await agent.browser({
       prompt,
       restore: resumeFrom?.data.step,
       maxSteps,
@@ -38,6 +39,6 @@ ${JSON.stringify(blankOrg)}
       },
     });
 
-    return {};
+    return res as typeof blankOrg;
   },
 });

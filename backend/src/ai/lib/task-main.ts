@@ -98,6 +98,7 @@ async function handleWorkerMessage<
     return;
   }
 
+  console.log(message);
   try {
     switch (message.type) {
       case "dbRequest":
@@ -246,7 +247,7 @@ async function spawnAndInitWorker<
     return;
   }
 
-  const worker = new Worker(workerScriptFullPath);
+  const worker = new Worker(workerScriptFullPath, { env: process.env as any });
   const input = persistedTask.input as InputParams; // use new field name
   const managedTask: AiTask = {
     id: persistedTask.id,

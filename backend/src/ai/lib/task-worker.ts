@@ -175,7 +175,8 @@ export const taskWorker = <
     input: {} as InputParams,
     output: {} as OutputParams,
   };
-  if (!import.meta.main) {
+
+  if (Bun.isMainThread) {
     return result;
   }
 
