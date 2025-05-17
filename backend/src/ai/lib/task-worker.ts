@@ -4,9 +4,8 @@ import type { ClientState } from "shared/lib/client_state";
 
 // Generic progress state. Each worker will define its own specific ProgressState.
 export interface ProgressState {
-  // Common properties can be defined here if any,
-  // but often it's worker-specific.
-  // Example: percentComplete?: number;
+  percentComplete: number;
+  description: string;
 }
 
 // Message types from main thread to worker
@@ -52,10 +51,13 @@ export interface WorkerErrorMessage {
   stack?: string;
 }
 
-export type WorkerToMainMessage<OUT, TProgressState extends ProgressState> =
+export type WorkerToMainMessage<OUT, TProgressState extends ProgressState> = {
+  clientId: string;
+} & (
   | WorkerProgressMessage<TProgressState>
   | WorkerCompleteMessage<OUT>
-  | WorkerErrorMessage;
+  | WorkerErrorMessage
+);
 
 export abstract class AITaskWorker<
   IN extends object,
@@ -100,7 +102,7 @@ export abstract class AITaskWorker<
   // Updated to include percent
   protected postProgress(
     percent: number,
-    currentProgress: TProgressState, // This is effectively 'details'
+    currentProgress: TProgressState,
     stateUpdate?: Partial<ClientState>
   ): void {
     const message: WorkerProgressMessage<TProgressState> = {
@@ -142,3 +144,116 @@ export abstract class AITaskWorker<
     // needs to react to these external state changes immediately.
   }
 }
+
+export const taskWorker = <
+  IN extends object,
+  OUT extends object,
+  TProgressState extends ProgressState = ProgressState
+>(arg: {
+  name: string;
+  execute: (opt: {
+    input: IN;
+    state: ClientState;
+    progress: (progressInfo: {
+      percent: number;
+      details: TProgressState;
+      state?: Partial<ClientState>;
+    }) => void;
+    resumeFrom?: TProgressState;
+    taskId: string;
+  }) => Promise<OUT>;
+  // getCallbacksProvider removed
+}) => {
+  if (!import.meta.main) {
+    return { name, file: import.meta.file };
+  }
+
+  let taskId: string;
+  let currentInput: IN;
+  let currentState: ClientState;
+
+  // Helper to post progress messages
+  const postProgress = (
+    currentTaskId: string,
+    percent: number,
+    details: TProgressState,
+    stateUpdate?: Partial<ClientState>
+  ): void => {
+    const message: WorkerProgressMessage<TProgressState> = {
+      type: "progress",
+      taskId: currentTaskId,
+      percent,
+      currentProgress: details,
+      state: stateUpdate,
+    };
+    self.postMessage(message);
+  };
+
+  // Helper to post completion messages
+  const postCompletion = (
+    currentTaskId: string,
+    output: OUT,
+    stateUpdate?: Partial<ClientState>
+  ): void => {
+    const message: WorkerCompleteMessage<OUT> = {
+      type: "complete",
+      taskId: currentTaskId,
+      output,
+      state: stateUpdate,
+    };
+    self.postMessage(message);
+  };
+
+  // Helper to post error messages
+  const postError = (
+    currentTaskId: string,
+    errorMsg: string,
+    stack?: string
+  ): void => {
+    const errorMessage: WorkerErrorMessage = {
+      type: "error",
+      taskId: currentTaskId,
+      message: errorMsg,
+      stack,
+    };
+    self.postMessage(errorMessage);
+  };
+
+  self.onmessage = async (
+    event: MessageEvent<MainToWorkerMessage<IN, TProgressState>>
+  ) => {
+    const message = event.data;
+
+    if (message.type === "init") {
+      taskId = message.taskId;
+      currentInput = message.input;
+      currentState = message.initialState;
+      const resumeFromProgress = message.resumeFromProgress;
+
+      try {
+        const result = await arg.execute({
+          input: currentInput,
+          state: currentState,
+          progress: ({ percent, details, state: progressStateUpdate }) => {
+            // Ensure details conforms to TProgressState, which it should by execute's signature
+            postProgress(taskId, percent, details, progressStateUpdate);
+          },
+          resumeFrom: resumeFromProgress,
+          taskId: taskId,
+        });
+        postCompletion(taskId, result);
+      } catch (error: any) {
+        postError(taskId, error.message, error.stack);
+      }
+    } else if (message.type === "stateUpdate") {
+      // Update the worker's understanding of the client state
+      currentState = { ...currentState, ...message.updatedStateSlice };
+    }
+  };
+
+  // Return taskType for the calling module to export
+  return {
+    name: arg.name,
+    file: import.meta.file,
+  };
+};

@@ -1,35 +1,67 @@
-import type { ClientState } from "shared/lib/client_state";
-// Corrected path to Prisma client and type-only imports
-import {
-  PrismaClient,
-  AITaskStatus,
-  type ai_task as PersistedAITask,
-} from "../../../../shared/models"; // Corrected path and AITaskStatus import, aliased ai_task
-import {
-  type ProgressState,
-  type WorkerInitMessage,
-  type WorkerToMainMessage,
-  type WorkerProgressMessage,
-  type WorkerCompleteMessage,
-  type WorkerErrorMessage,
-  AITaskWorker, // AITaskWorker is a class, so it's not a type-only import
-} from "./task-worker";
 import fs from "fs";
 import path from "path";
+import type { ClientState } from "shared/lib/client_state";
+import {
+  AITaskStatus as AiTaskStatus,
+  type ai_task as PersistedAITask,
+} from "shared/models"; // Corrected path and AITaskStatus import, aliased ai_task
+import type { TaskName } from "../tasks";
+import { getClient, type ClientId } from "./client";
+import {
+  type ProgressState,
+  type WorkerCompleteMessage,
+  type WorkerErrorMessage,
+  type WorkerInitMessage,
+  type WorkerProgressMessage,
+  type WorkerToMainMessage,
+} from "./task-worker";
 
-// Access the global Prisma client instance
-const prisma = (global as any).db as PrismaClient;
+export type TaskId = string;
+export type AiTask<
+  InputArg extends object = {},
+  OutputResult extends object = {},
+  Progress extends ProgressState = ProgressState
+> = {
+  id: TaskId;
+  status: AiTaskStatus; // This status is now AITaskStatus from Prisma
+  input: InputArg;
+  output: OutputResult | null;
+  worker: {
+    process: Worker;
+    scriptPath: string;
+  };
+  callbacks: TaskCallback<Progress, OutputResult>;
+};
 
-export type AITaskID = string;
+export const taskCallback = <
+  Progress extends ProgressState,
+  OutputResult extends object = {}
+>(
+  client_id: ClientId,
+  task_id: string
+) => {
+  return {
+    onError: (error) => {
+      const client = getClient(client_id);
+      if (client) {
+      }
+    },
+    onProgress: (progress) => {
+      const client = getClient(client_id);
+      if (client) {
+      }
+    },
+    onComplete(output, clientStateUpdate) {},
+  } as TaskCallback<Progress, OutputResult>;
+};
 
 // Callbacks for a managed task
-export interface AITaskCallbacks<
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState // This is 'details'
+export interface TaskCallback<
+  TProgress extends ProgressState,
+  OUT extends object = {}
 > {
   onProgress?: (args: {
-    details: TProgressState;
+    details: TProgress;
     percent: number;
     clientStateUpdate?: Partial<ClientState>;
   }) => void;
@@ -37,58 +69,7 @@ export interface AITaskCallbacks<
   onError?: (error: { message: string; stack?: string }) => void;
 }
 
-// In-memory representation of a task managed by the orchestrator
-interface ManagedAITask<
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState
-> {
-  dbId: AITaskID;
-  taskType: string;
-  workerScriptPath: string;
-  worker: Worker;
-  callbacks: AITaskCallbacks<IN, OUT, TProgressState>;
-  input: IN;
-  clientStateOnStart: ClientState;
-}
-
-// Store for active tasks managed by this orchestrator instance
-const allActiveTasks = new Map<AITaskID, ManagedAITask<any, any, any>>();
-
-// Registry for providing callbacks for resumed tasks
-type TaskLogicProvider<
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState
-> = (
-  persistedTask: PersistedAITask
-) => AITaskCallbacks<IN, OUT, TProgressState>;
-
-const taskLogicProviders = new Map<string, TaskLogicProvider<any, any, any>>();
-
-/**
- * Registers a function that provides the business logic (callbacks) for a given task type.
- * This is used when resuming tasks on startup to re-attach their specific logic.
- * @param taskType The type of the task (e.g., "search_by_name_state").
- * @param provider A function that takes persisted task data and returns AITaskCallbacks.
- */
-export function registerTaskLogicProvider<
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState
->(
-  taskType: string,
-  provider: TaskLogicProvider<IN, OUT, TProgressState>
-): void {
-  if (taskLogicProviders.has(taskType)) {
-    console.warn(
-      `[TaskOrchestrator] Overwriting task logic provider for taskType: ${taskType}`
-    );
-  }
-  taskLogicProviders.set(taskType, provider);
-}
-
-function isValidWorkerScriptPath(scriptPath: string): boolean {
+function isValidWorkerPath(scriptPath: string): boolean {
   // Assuming scriptPath is relative to the project root or a known base directory.
   // For this example, let's assume it's relative to 'backend/src/ai/tasks/'
   // This might need adjustment based on actual project structure and how paths are stored.
@@ -97,9 +78,6 @@ function isValidWorkerScriptPath(scriptPath: string): boolean {
 
   // Security: Ensure the path doesn't try to escape the intended directory
   if (!fullPath.startsWith(basePath)) {
-    console.error(
-      `[TaskOrchestrator] Invalid worker script path (directory traversal attempt): ${scriptPath}`
-    );
     return false;
   }
 
@@ -107,13 +85,14 @@ function isValidWorkerScriptPath(scriptPath: string): boolean {
 }
 
 async function handleWorkerMessage<
-  OUT extends object,
-  TProgressState extends ProgressState
+  OutputResult extends object,
+  Progress extends ProgressState
 >(
-  event: MessageEvent<WorkerToMainMessage<OUT, TProgressState>>
+  event: MessageEvent<WorkerToMainMessage<OutputResult, Progress>>
 ): Promise<void> {
   const message = event.data;
-  const managedTask = allActiveTasks.get(message.taskId);
+  const client = getClient(message.clientId);
+  const managedTask = client.activeTasks.get(message.taskId);
 
   if (!managedTask) {
     console.error(
@@ -125,13 +104,12 @@ async function handleWorkerMessage<
   try {
     switch (message.type) {
       case "progress":
-        const progressMessage =
-          message as WorkerProgressMessage<TProgressState>;
-        await prisma.ai_task.update({
+        const progressMessage = message as WorkerProgressMessage<Progress>;
+        await db.ai_task.update({
           // Use new model name
-          where: { id: managedTask.dbId },
+          where: { id: managedTask.id },
           data: {
-            last_known_progress_json: progressMessage.currentProgress as any, // Cast to any for Prisma Json type, use new field name
+            last_progress: progressMessage.currentProgress as any, // Cast to any for Prisma Json type, use new field name
             updated_at: new Date(), // use new field name
           },
         });
@@ -144,13 +122,13 @@ async function handleWorkerMessage<
         break;
 
       case "complete":
-        const completeMessage = message as WorkerCompleteMessage<OUT>;
-        await prisma.ai_task.update({
+        const completeMessage = message as WorkerCompleteMessage<OutputResult>;
+        await db.ai_task.update({
           // Use new model name
-          where: { id: managedTask.dbId },
+          where: { id: managedTask.id },
           data: {
-            status: AITaskStatus.COMPLETED,
-            output_json: completeMessage.output as any, // Cast to any for Prisma Json type, use new field name
+            status: AiTaskStatus.COMPLETED,
+            output: completeMessage.output as any, // Cast to any for Prisma Json type, use new field name
             updated_at: new Date(), // use new field name
           },
         });
@@ -159,18 +137,18 @@ async function handleWorkerMessage<
           completeMessage.state
         );
         // TODO: Handle global client state update (message.state) if necessary
-        allActiveTasks.delete(managedTask.dbId);
-        managedTask.worker.terminate();
+        client.activeTasks.delete(managedTask.id);
+        managedTask.worker.process.terminate();
         break;
 
       case "error":
         const errorMessage = message as WorkerErrorMessage;
-        await prisma.ai_task.update({
+        await db.ai_task.update({
           // Use new model name
-          where: { id: managedTask.dbId },
+          where: { id: managedTask.id },
           data: {
-            status: AITaskStatus.FAILED,
-            last_error_json: {
+            status: AiTaskStatus.FAILED,
+            last_error: {
               message: errorMessage.message,
               stack: errorMessage.stack,
             } as any, // Cast to any, use new field name
@@ -181,59 +159,70 @@ async function handleWorkerMessage<
           message: errorMessage.message,
           stack: errorMessage.stack,
         });
-        allActiveTasks.delete(managedTask.dbId);
-        managedTask.worker.terminate();
+        client.activeTasks.delete(managedTask.id);
+        managedTask.worker.process.terminate();
         break;
     }
   } catch (dbError) {
     console.error(
-      `[TaskOrchestrator] Database error while handling worker message for task ${managedTask.dbId}:`,
+      `[TaskOrchestrator] Database error while handling worker message for task ${managedTask.id}:`,
       dbError
     );
     // Potentially try to update task status to FAILED if not already
     managedTask.callbacks.onError?.({
       message: "Internal orchestrator error during worker message handling.",
     });
-    allActiveTasks.delete(managedTask.dbId);
-    managedTask.worker.terminate();
+    client.activeTasks.delete(managedTask.id);
+    managedTask.worker.process.terminate();
   }
 }
 
 async function spawnAndInitWorker<
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState
+  InputParams extends object,
+  OutputResult extends object,
+  Progress extends ProgressState
 >(
+  clientId: ClientId,
   persistedTask: PersistedAITask,
-  callbacks: AITaskCallbacks<IN, OUT, TProgressState>,
-  resumeFromProgress?: TProgressState
+  callbacks: TaskCallback<Progress, OutputResult>,
+  resumeFromProgress?: Progress
 ): Promise<void> {
-  // Construct the full path to the worker script.
-  // This assumes workerScriptPath is relative to a known directory, e.g., 'backend/src/ai/tasks/'
-  // Adjust this path construction as per your project's structure.
   const workerScriptFullPath = path.resolve(
     __dirname,
     "../tasks",
     persistedTask.worker_script_path
-  ); // use new field name
+  );
 
-  const worker = new Worker(workerScriptFullPath); // Bun uses file paths directly for Workers
+  if (!isValidWorkerPath(workerScriptFullPath)) {
+    console.error(
+      `[TaskOrchestrator] Invalid worker script path: ${workerScriptFullPath}`
+    );
+    callbacks.onError?.({
+      message: `Invalid worker script path: ${workerScriptFullPath}`,
+    });
+    return;
+  }
 
-  // Prisma's Json type is already parsed, no need for JSON.parse
-  const input = persistedTask.input_json as IN; // use new field name
-  const clientStateOnStart =
-    persistedTask.client_state_on_start_json as ClientState; // use new field name
+  const client = getClient(clientId);
+  if (!client) {
+    console.error(
+      `[TaskOrchestrator] Client not found for clientId: ${clientId}`
+    );
+    return;
+  }
 
-  const managedTask: ManagedAITask<IN, OUT, TProgressState> = {
-    dbId: persistedTask.id,
-    taskType: persistedTask.task_type, // use new field name
-    workerScriptPath: persistedTask.worker_script_path, // use new field name
-    worker,
-    callbacks,
+  const worker = new Worker(workerScriptFullPath);
+  const input = persistedTask.input as InputParams; // use new field name
+  const clientStateOnStart = client.state;
+  const managedTask: AiTask = {
+    id: persistedTask.id,
+    worker: { process: worker, scriptPath: workerScriptFullPath },
+    callbacks: taskCallback(client.id, persistedTask.id),
     input,
-    clientStateOnStart,
+    output: null,
+    status: "PENDING",
   };
-  allActiveTasks.set(persistedTask.id, managedTask);
+  client.activeTasks.set(persistedTask.id, managedTask);
 
   worker.onmessage = handleWorkerMessage;
   worker.onerror = async (err) => {
@@ -241,12 +230,12 @@ async function spawnAndInitWorker<
       `[TaskOrchestrator] Worker error for task ${persistedTask.id}:`,
       err.message
     );
-    await prisma.ai_task.update({
+    await db.ai_task.update({
       // Use new model name
       where: { id: persistedTask.id },
       data: {
-        status: AITaskStatus.FAILED,
-        last_error_json: {
+        status: AiTaskStatus.FAILED,
+        last_error: {
           message: "Worker crashed or unhandled error",
           details: err.message,
         } as any, // Cast to any, use new field name
@@ -257,11 +246,11 @@ async function spawnAndInitWorker<
       message: "Worker crashed or unhandled error",
       stack: err.message,
     });
-    allActiveTasks.delete(persistedTask.id);
+    client.activeTasks.delete(persistedTask.id);
     // Worker might have already terminated or be in an unstable state.
   };
 
-  const initMessage: WorkerInitMessage<IN, TProgressState> = {
+  const initMessage: WorkerInitMessage<InputParams, Progress> = {
     type: "init",
     taskId: persistedTask.id,
     input,
@@ -270,48 +259,47 @@ async function spawnAndInitWorker<
   };
   worker.postMessage(initMessage);
 
-  await prisma.ai_task.update({
-    // Use new model name
+  await db.ai_task.update({
     where: { id: persistedTask.id },
-    data: { status: AITaskStatus.RUNNING, updated_at: new Date() }, // use new field name
+    data: { status: AiTaskStatus.RUNNING, updated_at: new Date() },
   });
 }
 
 export async function submitTask<
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState
->(
-  taskType: string,
-  workerScriptPath: string, // e.g., "search_by_name_state_worker.ts"
-  input: IN,
-  clientStateOnStart: ClientState,
-  callbacks: AITaskCallbacks<IN, OUT, TProgressState>
-): Promise<AITaskID | null> {
-  if (!isValidWorkerScriptPath(workerScriptPath)) {
+  InputParams extends object,
+  OutputResult extends object,
+  Progress extends ProgressState
+>(opt: {
+  name: TaskName;
+  path: string;
+  input: InputParams;
+  clientState: ClientState;
+  callbacks: TaskCallback<Progress, OutputResult>;
+}): Promise<TaskId | null> {
+  const { name, path, input, clientState, callbacks } = opt;
+
+  if (!isValidWorkerPath(path)) {
     console.error(
-      `[TaskOrchestrator] Submission failed: Invalid worker script path: ${workerScriptPath}`
+      `[TaskOrchestrator] Submission failed: Invalid worker script path: ${path}`
     );
     callbacks.onError?.({
-      message: `Invalid worker script path: ${workerScriptPath}`,
+      message: `Invalid worker script path: ${path}`,
     });
     return null;
   }
 
   try {
-    const persistedTask = await prisma.ai_task.create({
-      // Use new model name
+    const persistedTask = await db.ai_task.create({
       data: {
-        task_type: taskType, // use new field name
-        worker_script_path: workerScriptPath, // use new field name
-        status: AITaskStatus.PENDING,
-        input_json: input as any, // Cast to any for Prisma Json type, use new field name
-        client_state_on_start_json: clientStateOnStart as any, // Cast to any for Prisma Json type, use new field name
-        id_client: clientStateOnStart.client_id,
+        name, // use new field name
+        worker_script_path: path, // use new field name
+        status: AiTaskStatus.PENDING,
+        input: input as any, // Cast to any for Prisma Json type, use new field name
+        id_client: clientState.client_id,
       },
     });
 
-    await spawnAndInitWorker(persistedTask, callbacks);
+    await spawnAndInitWorker(clientState.client_id, persistedTask, callbacks);
     return persistedTask.id;
   } catch (error: any) {
     console.error("[TaskOrchestrator] Error submitting task:", error);
@@ -324,21 +312,19 @@ export async function submitTask<
 }
 
 export async function resumeTasksOnStartup(): Promise<void> {
-  console.log("[TaskOrchestrator] Resuming tasks on startup...");
   try {
-    const tasksToResume = await prisma.ai_task.findMany({
+    const tasksToResume = await db.ai_task.findMany({
       // Use new model name
       where: {
         OR: [
-          { status: AITaskStatus.RUNNING },
-          { status: AITaskStatus.PENDING },
-          { status: AITaskStatus.INTERRUPTED }, // Assuming INTERRUPTED implies it was running
+          { status: AiTaskStatus.RUNNING },
+          { status: AiTaskStatus.PENDING },
+          { status: AiTaskStatus.INTERRUPTED }, // Assuming INTERRUPTED implies it was running
         ],
       },
     });
 
     if (tasksToResume.length === 0) {
-      console.log("[TaskOrchestrator] No tasks to resume.");
       return;
     }
 
@@ -347,61 +333,37 @@ export async function resumeTasksOnStartup(): Promise<void> {
     );
 
     for (const task of tasksToResume) {
-      if (!isValidWorkerScriptPath(task.worker_script_path)) {
-        // use new field name
+      if (!isValidWorkerPath(task.worker_script_path)) {
         console.error(
           `[TaskOrchestrator] Cannot resume task ${task.id}: Invalid worker script path: ${task.worker_script_path}`
-        ); // use new field name
-        await prisma.ai_task.update({
-          // Use new model name
+        );
+        await db.ai_task.update({
           where: { id: task.id },
           data: {
-            status: AITaskStatus.INVALID_WORKER_PATH,
-            last_error_json: {
+            status: AiTaskStatus.INVALID_WORKER_PATH,
+            last_error: {
               message: `Invalid worker script path: ${task.worker_script_path}`,
-            } as any, // Cast to any, use new field name
-            updated_at: new Date(), // use new field name
+            } as any,
+            updated_at: new Date(),
           },
         });
         continue;
       }
 
       // For resumed tasks, try to get callbacks from the registry.
-      let callbacks: AITaskCallbacks<any, any, any>;
-      const logicProvider = taskLogicProviders.get(task.task_type);
-
-      if (logicProvider) {
-        try {
-          callbacks = logicProvider(task);
-        } catch (e: any) {
-          console.error(
-            `[TaskOrchestrator] Error getting callbacks from provider for taskType ${task.task_type}, task ID ${task.id}: ${e.message}`
-          );
-          // Fallback to default logging callbacks if provider fails
-          callbacks = getDefaultResumedTaskCallbacks(task.id);
-        }
-      } else {
-        console.warn(
-          `[TaskOrchestrator] No logic provider registered for taskType: ${task.task_type}. Resuming task ${task.id} with default logging callbacks.`
-        );
-        callbacks = getDefaultResumedTaskCallbacks(task.id);
-      }
+      let callbacks = taskCallback(task.id_client, task.id);
 
       let resumeFromProgress: ProgressState | undefined = undefined;
-      if (task.last_known_progress_json) {
-        // use new field name
-        // Prisma's Json type is already parsed
-        resumeFromProgress = task.last_known_progress_json as ProgressState; // use new field name
-        // No try-catch needed for parsing, but you might want one for type assertion validation if necessary
-        // For simplicity, assuming the stored JSON matches ProgressState structure.
+      if (task.last_progress) {
+        resumeFromProgress = task.last_progress as unknown as ProgressState;
       }
 
-      // If task.last_known_progress_json was null or undefined, resumeFromProgress remains undefined.
+      // If task.last_progress was null or undefined, resumeFromProgress remains undefined.
       // This check might be redundant if the above handles nulls correctly, but kept for clarity.
-      if (!task.last_known_progress_json) {
+      if (!task.last_progress) {
         // use new field name
         console.warn(
-          `[TaskOrchestrator] last_known_progress_json is null for task ${task.id}. Resuming without progress.`
+          `[TaskOrchestrator] last_progress is null for task ${task.id}. Resuming without progress.`
         ); // use new field name
         resumeFromProgress = undefined;
       } else {
@@ -419,26 +381,29 @@ export async function resumeTasksOnStartup(): Promise<void> {
       }
 
       // If task was PENDING, it means it never started, so no progress to resume from.
-      if (task.status === AITaskStatus.PENDING) {
+      if (task.status === AiTaskStatus.PENDING) {
         resumeFromProgress = undefined;
       }
 
-      console.log(
-        `[TaskOrchestrator] Resuming task ${task.id} (${task.task_type})`
-      ); // use new field name
+      console.log(`[TaskOrchestrator] Resuming task ${task.id} (${task.name})`); // use new field name
       try {
-        await spawnAndInitWorker(task, callbacks, resumeFromProgress);
+        await spawnAndInitWorker(
+          task.id_client,
+          task,
+          callbacks,
+          resumeFromProgress
+        );
       } catch (spawnError: any) {
         console.error(
           `[TaskOrchestrator] Failed to spawn worker for resumed task ${task.id}:`,
           spawnError
         );
-        await prisma.ai_task.update({
+        await db.ai_task.update({
           // Use new model name
           where: { id: task.id },
           data: {
-            status: AITaskStatus.FAILED,
-            last_error_json: {
+            status: AiTaskStatus.FAILED,
+            last_error: {
               message: "Failed to spawn worker on resume.",
               stack: spawnError.stack,
             } as any, // Cast to any, use new field name
@@ -451,52 +416,3 @@ export async function resumeTasksOnStartup(): Promise<void> {
     console.error("[TaskOrchestrator] Error during task resumption:", error);
   }
 }
-
-function getDefaultResumedTaskCallbacks(
-  taskId: string
-): AITaskCallbacks<any, any, any> {
-  return {
-    onProgress: ({ details, percent, clientStateUpdate }) =>
-      console.log(
-        `[DefaultResumedTask-${taskId}] Progress: ${percent}%`,
-        details,
-        "ClientStateUpdate:",
-        clientStateUpdate
-      ),
-    onComplete: (output, clientStateUpdate) =>
-      console.log(
-        `[DefaultResumedTask-${taskId}] Complete:`,
-        output,
-        "ClientStateUpdate:",
-        clientStateUpdate
-      ),
-    onError: (error) =>
-      console.error(`[DefaultResumedTask-${taskId}] Error:`, error),
-  };
-}
-
-// Example of how to call resumeTasksOnStartup (e.g., in your main application file)
-// (async () => {
-//   await resumeTasksOnStartup();
-// })();
-
-export type AITask<
-  IN extends object = {},
-  OUT extends object = {},
-  TProgressState extends ProgressState = ProgressState
-> = {
-  id: AITaskID;
-  status: "pending" | "running" | "completed" | "failed"; // This status is now AITaskStatus from Prisma
-  input: IN;
-  output: OUT | null;
-  // worker: Worker; // Worker management is now internal to the orchestrator
-  onProgress: (
-    progress: {
-      percent: number;
-      state?: Partial<ClientState>;
-      details?: TProgressState; // Changed from object to TProgressState
-    }
-  ) => void;
-  onComplete: (result: { output: OUT; state?: Partial<ClientState> }) => void;
-  onError: (error: Error) => void; // Error is now { message: string; stack?: string }
-};

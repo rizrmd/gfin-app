@@ -1,4 +1,4 @@
-import { clients, getClient, type WSAIData } from "backend/ai/lib/ws";
+import { getClient, type WSAIData } from "backend/ai/lib/client";
 import type { Server, WebSocketHandler } from "bun";
 
 export const ws_ai: WebSocketHandler<WSAIData> & {

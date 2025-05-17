@@ -5,21 +5,21 @@ import type { ClientState } from "shared/lib/client_state";
 import { proxy, snapshot, subscribe } from "valtio";
 import {
   submitTask,
-  type AITask,
-  type AITaskID,
-  type AITaskCallbacks,
+  type AiTask,
+  type TaskId,
+  type TaskCallback,
 } from "./task-main";
 import type { ProgressState } from "./task-worker"; // Keep for TProgressState generic constraint
 
 export type WSAIData = {
-  client_id: CLIENT_ID;
+  client_id: ClientId;
   url: string;
 };
 
-export type CLIENT_ID = string;
+export type ClientId = string;
 
 const g = global as unknown as {
-  ai_clients: Record<CLIENT_ID, ReturnType<typeof newClient>>;
+  ai_clients: Record<ClientId, ReturnType<typeof newClient>>;
 };
 
 if (!g.ai_clients) {
@@ -41,7 +41,7 @@ function adaptError(
   );
 }
 
-const newClient = (client_id: CLIENT_ID) => {
+const newClient = (client_id: ClientId) => {
   const send = (ws: ServerWebSocket<WSAIData>, msg: any) => {
     try {
       ws.send(gzipSync(pack(msg)));
@@ -51,139 +51,41 @@ const newClient = (client_id: CLIENT_ID) => {
   };
 
   const client = {
-    client_id,
-    // activeTasks will store tasks using the ID returned by submitTask
-    // Allow any TProgressState for tasks stored here
-    activeTasks: {} as Record<AITaskID, Partial<AITask<any, any, any>>>, // Simplified type for storage
+    id: client_id,
     state: proxy({ client_id } as ClientState), // Initialize with client_id
     connections: new Set<ServerWebSocket<WSAIData>>(),
-
-    startTask: async <
-      IN extends object,
-      OUT extends object,
-      TProgressState extends ProgressState
-    >(taskDetails: {
-      taskType: string;
-      workerPath: string;
-      input: IN;
-      onProgress: (progress: {
-        percent: number;
-        details?: TProgressState;
-        state?: Partial<ClientState>;
-      }) => void;
-      onComplete: (result: {
-        output: OUT;
-        state?: Partial<ClientState>;
-      }) => void;
-      onError: (error: Error) => void;
-    }): Promise<AITask<IN, OUT, TProgressState> | null> => {
-
-      // This object will be returned to the caller of startTask.
-      // Its properties (id, status, output) will be updated by the orchestrator's callbacks.
-      const finalReturnedTask: AITask<IN, OUT, TProgressState> = {
-        id: "", // Placeholder, will be set by submitTask's result
-        status: "pending",
-        input: taskDetails.input,
-        output: null,
-        // These are the original onProgress, onComplete, onError methods provided by the caller of startTask.
-        // They will be invoked by the finalOrchestratorCallbacks.
-        onProgress: taskDetails.onProgress,
-        onComplete: taskDetails.onComplete,
-        onError: taskDetails.onError,
-      };
-      
-      const clientStateSnapshot = snapshot(client.state) as ClientState;
-
-      // These callbacks are passed to task-main's submitTask.
-      // They will update the finalReturnedTask object and the client's global state.
-      const finalOrchestratorCallbacks: AITaskCallbacks<IN, OUT, TProgressState> = {
-        onProgress: ({ details, percent, clientStateUpdate }) => {
-          finalReturnedTask.status = "running"; 
-          if (clientStateUpdate) {
-            Object.assign(client.state, clientStateUpdate);
-          }
-          // Call the original onProgress (now a method of finalReturnedTask)
-          finalReturnedTask.onProgress({ percent, details, state: clientStateUpdate });
-        },
-        onComplete: (output, clientStateUpdate) => {
-          finalReturnedTask.status = "completed";
-          finalReturnedTask.output = output;
-          if (clientStateUpdate) {
-            Object.assign(client.state, clientStateUpdate);
-          }
-          finalReturnedTask.onComplete({ output, state: clientStateUpdate });
-          // Clean up from activeTasks
-          if (finalReturnedTask.id && client.activeTasks[finalReturnedTask.id]) {
-            delete client.activeTasks[finalReturnedTask.id];
-          }
-        },
-        onError: (error) => {
-          finalReturnedTask.status = "failed";
-          // Adapt and call the original onError (now a method of finalReturnedTask)
-          adaptError(error, finalReturnedTask.onError);
-          // Clean up from activeTasks
-          if (finalReturnedTask.id && client.activeTasks[finalReturnedTask.id]) {
-            delete client.activeTasks[finalReturnedTask.id];
-          }
-        },
-      };
-
-      // Call submitTask from task-main.ts ONCE.
-      const orchestratorTaskId = await submitTask<IN, OUT, TProgressState>(
-        taskDetails.taskType,
-        taskDetails.workerPath,
-        taskDetails.input,
-        clientStateSnapshot,
-        finalOrchestratorCallbacks 
-      );
-
-      if (!orchestratorTaskId) {
-        // If submission fails, call the original onError.
-        taskDetails.onError(new Error("Failed to submit task to orchestrator."));
-        return null;
-      }
-
-      // Submission was successful, update the finalReturnedTask with the actual ID.
-      finalReturnedTask.id = orchestratorTaskId;
-      finalReturnedTask.status = "running"; // Set initial status
-
-      // Store in activeTasks. Using 'as any' to simplify type compatibility for the collection,
-      // as the primary type safety is for the returned 'finalReturnedTask'.
-      client.activeTasks[orchestratorTaskId] = finalReturnedTask as any; 
-      
-      return finalReturnedTask;
-    },
+    activeTasks: new Map<TaskId, AiTask>(),
     sync: {
       send,
-      broadcastState() {
+      broadcast(arg: { type: "state"; state: ClientState }) {
         for (const ws of client.connections) {
-          send(ws, { type: "state", state: client.state });
+          send(ws, arg);
         }
       },
       onMessage(ws: ServerWebSocket<WSAIData>, raw: any) {
         const data = unpack(gunzipSync(raw));
-        console.log("Received message:", data);
-        // Handle client messages if any (e.g., cancel task)
-        // This part is not implemented in the original code.
       },
     },
   };
 
   const timeout = {
-    change: null as any, // Consider using NodeJS.Timeout or Bun.Timer
+    state_changed: null as null | Timer,
   };
 
   subscribe(client.state, () => {
-    clearTimeout(timeout.change);
-    timeout.change = setTimeout(() => {
-      client.sync.broadcastState();
+    if (timeout.state_changed) clearTimeout(timeout.state_changed);
+    timeout.state_changed = setTimeout(() => {
+      client.sync.broadcast({
+        type: "state",
+        state: snapshot(client.state) as ClientState,
+      });
     }, 300);
   });
 
   return client;
 };
 
-export const getClient = (client_id: CLIENT_ID) => {
+export const getClient = (client_id: ClientId) => {
   if (!clients[client_id]) {
     clients[client_id] = newClient(client_id);
   }
