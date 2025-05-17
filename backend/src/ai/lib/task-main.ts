@@ -18,9 +18,9 @@ import {
 
 export type TaskId = string;
 export type AiTask<
+  Progress extends ProgressState<any> = ProgressState<any>,
   InputArg extends object = {},
-  OutputResult extends object = {},
-  Progress extends ProgressState = ProgressState
+  OutputResult extends object = {}
 > = {
   id: TaskId;
   status: AiTaskStatus; // This status is now AITaskStatus from Prisma
@@ -34,7 +34,7 @@ export type AiTask<
 };
 
 export const taskCallback = <
-  Progress extends ProgressState,
+  Progress extends ProgressState<any>,
   OutputResult extends object = {}
 >(
   client_id: ClientId,
@@ -57,15 +57,15 @@ export const taskCallback = <
 
 // Callbacks for a managed task
 export interface TaskCallback<
-  TProgress extends ProgressState,
-  OUT extends object = {}
+  Progress extends ProgressState<any>,
+  OutputResult extends object = {}
 > {
-  onProgress?: (args: {
-    details: TProgress;
-    percent: number;
-    clientStateUpdate?: Partial<ClientState>;
-  }) => void;
-  onComplete?: (output: OUT, clientStateUpdate?: Partial<ClientState>) => void;
+  onProgress?: (args: Progress) => void;
+  onStateUpdate?: (args: Partial<ClientState>) => void;
+  onComplete?: (
+    output: OutputResult,
+    clientStateUpdate?: Partial<ClientState>
+  ) => void;
   onError?: (error: { message: string; stack?: string }) => void;
 }
 
@@ -86,17 +86,17 @@ function isValidWorkerPath(scriptPath: string): boolean {
 
 async function handleWorkerMessage<
   OutputResult extends object,
-  Progress extends ProgressState
+  Progress extends ProgressState<any>
 >(
   event: MessageEvent<WorkerToMainMessage<OutputResult, Progress>>
 ): Promise<void> {
   const message = event.data;
-  const client = getClient(message.clientId);
-  const managedTask = client.activeTasks.get(message.taskId);
+  const client = getClient(message.client_id);
+  const managedTask = client.activeTasks.get(message.task_id);
 
   if (!managedTask) {
     console.error(
-      `[TaskOrchestrator] Received message for unknown taskId: ${message.taskId}`
+      `[TaskOrchestrator] Received message for unknown taskId: ${message.task_id}`
     );
     return;
   }
@@ -109,15 +109,11 @@ async function handleWorkerMessage<
           // Use new model name
           where: { id: managedTask.id },
           data: {
-            last_progress: progressMessage.currentProgress as any, // Cast to any for Prisma Json type, use new field name
+            last_progress: progressMessage.progress as any, // Cast to any for Prisma Json type, use new field name
             updated_at: new Date(), // use new field name
           },
         });
-        managedTask.callbacks.onProgress?.({
-          details: progressMessage.currentProgress,
-          percent: progressMessage.percent,
-          clientStateUpdate: progressMessage.state,
-        });
+        managedTask.callbacks.onProgress?.(progressMessage.progress);
         // TODO: Handle global client state update (message.state) if necessary
         break;
 
@@ -180,7 +176,7 @@ async function handleWorkerMessage<
 async function spawnAndInitWorker<
   InputParams extends object,
   OutputResult extends object,
-  Progress extends ProgressState
+  Progress extends ProgressState<any>
 >(
   clientId: ClientId,
   persistedTask: PersistedAITask,
@@ -251,8 +247,9 @@ async function spawnAndInitWorker<
   };
 
   const initMessage: WorkerInitMessage<InputParams, Progress> = {
+    client_id: clientId,
     type: "init",
-    taskId: persistedTask.id,
+    task_id: persistedTask.id,
     input,
     initialState: clientStateOnStart,
     resumeFromProgress,
@@ -268,7 +265,7 @@ async function spawnAndInitWorker<
 export async function submitTask<
   InputParams extends object,
   OutputResult extends object,
-  Progress extends ProgressState
+  Progress extends ProgressState<any>
 >(opt: {
   name: TaskName;
   path: string;
@@ -353,9 +350,10 @@ export async function resumeTasksOnStartup(): Promise<void> {
       // For resumed tasks, try to get callbacks from the registry.
       let callbacks = taskCallback(task.id_client, task.id);
 
-      let resumeFromProgress: ProgressState | undefined = undefined;
+      let resumeFromProgress: ProgressState<any> | undefined = undefined;
       if (task.last_progress) {
-        resumeFromProgress = task.last_progress as unknown as ProgressState;
+        resumeFromProgress =
+          task.last_progress as unknown as ProgressState<any>;
       }
 
       // If task.last_progress was null or undefined, resumeFromProgress remains undefined.

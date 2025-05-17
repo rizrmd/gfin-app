@@ -1,17 +1,26 @@
 /// <reference lib="webworker" />
 
 import type { ClientState } from "shared/lib/client_state";
+import type { ClientId } from "./client";
+import type { TaskId } from "./task-main";
+import type { SerializableAgentState } from "../../../../../r-agent/browser_use/agent/serializable_views";
+import { createAgentBrowser } from "./task-worker-agent-browser";
 
 // Generic progress state. Each worker will define its own specific ProgressState.
-export interface ProgressState {
+export type ProgressState<T extends object> = {
   percentComplete: number;
   description: string;
-}
+  data: T;
+};
 
 // Message types from main thread to worker
-export interface WorkerInitMessage<IN, TProgressState extends ProgressState> {
+export interface WorkerInitMessage<
+  IN,
+  TProgressState extends ProgressState<any>
+> {
+  client_id: ClientId;
   type: "init";
-  taskId: string;
+  task_id: TaskId;
   input: IN;
   initialState: ClientState;
   resumeFromProgress?: TProgressState;
@@ -24,57 +33,61 @@ export interface MainToWorkerStateUpdateMessage {
   updatedStateSlice: Partial<ClientState>;
 }
 
-export type MainToWorkerMessage<IN, TProgressState extends ProgressState> =
-  | WorkerInitMessage<IN, TProgressState>
-  | MainToWorkerStateUpdateMessage;
+export type MainToWorkerMessage<
+  IN,
+  TProgressState extends ProgressState<any>
+> = WorkerInitMessage<IN, TProgressState> | MainToWorkerStateUpdateMessage;
 
 // Message types from worker to main thread
-export interface WorkerProgressMessage<TProgressState extends ProgressState> {
+export interface WorkerProgressMessage<Progress extends ProgressState<any>> {
+  client_id: ClientId;
+  task_id: TaskId;
   type: "progress";
-  taskId: string;
-  percent: number; // Added percent
-  currentProgress: TProgressState; // This is effectively 'details'
-  state?: Partial<ClientState>; // Optional: For global client state updates during progress
+  progress: Progress; // This is effectively 'details'
 }
 
 export interface WorkerCompleteMessage<OUT> {
+  client_id: ClientId;
   type: "complete";
-  taskId: string;
+  task_id: TaskId;
   output: OUT;
   state?: Partial<ClientState>; // Optional: For final global client state update
 }
 
 export interface WorkerErrorMessage {
+  client_id: ClientId;
   type: "error";
-  taskId: string;
+  task_id: TaskId;
   message: string;
   stack?: string;
 }
 
-export type WorkerToMainMessage<OUT, TProgressState extends ProgressState> = {
-  clientId: string;
-} & (
+export type WorkerToMainMessage<
+  OUT,
+  TProgressState extends ProgressState<any>
+> =
   | WorkerProgressMessage<TProgressState>
   | WorkerCompleteMessage<OUT>
-  | WorkerErrorMessage
-);
+  | WorkerErrorMessage;
 
 export abstract class AITaskWorker<
   IN extends object,
   OUT extends object,
-  TProgressState extends ProgressState = ProgressState // Default to base ProgressState
+  Progress extends ProgressState<any>
 > {
+  protected clientId!: string;
   protected taskId!: string;
   protected input!: IN;
   protected currentState!: ClientState;
 
   constructor() {
     self.onmessage = async (
-      event: MessageEvent<MainToWorkerMessage<IN, TProgressState>>
+      event: MessageEvent<MainToWorkerMessage<IN, Progress>>
     ) => {
       const message = event.data;
       if (message.type === "init") {
-        this.taskId = message.taskId;
+        this.clientId = message.client_id;
+        this.taskId = message.task_id;
         this.input = message.input;
         this.currentState = message.initialState;
         try {
@@ -96,21 +109,20 @@ export abstract class AITaskWorker<
   protected abstract execute(
     input: IN,
     state: ClientState,
-    resumeFrom?: TProgressState
+    resumeFrom?: Progress
   ): Promise<OUT>;
 
   // Updated to include percent
   protected postProgress(
     percent: number,
-    currentProgress: TProgressState,
+    currentProgress: Progress,
     stateUpdate?: Partial<ClientState>
   ): void {
-    const message: WorkerProgressMessage<TProgressState> = {
+    const message: WorkerProgressMessage<Progress> = {
+      client_id: this.clientId,
       type: "progress",
-      taskId: this.taskId,
-      percent,
-      currentProgress,
-      state: stateUpdate,
+      task_id: this.taskId,
+      progress: currentProgress,
     };
     self.postMessage(message);
   }
@@ -120,8 +132,9 @@ export abstract class AITaskWorker<
     stateUpdate?: Partial<ClientState>
   ): void {
     const message: WorkerCompleteMessage<OUT> = {
+      client_id: this.clientId,
       type: "complete",
-      taskId: this.taskId,
+      task_id: this.taskId,
       output,
       state: stateUpdate,
     };
@@ -130,8 +143,9 @@ export abstract class AITaskWorker<
 
   protected postError(message: string, stack?: string): void {
     const errorMessage: WorkerErrorMessage = {
+      client_id: this.clientId,
       type: "error",
-      taskId: this.taskId,
+      task_id: this.taskId,
       message,
       stack,
     };
@@ -146,58 +160,63 @@ export abstract class AITaskWorker<
 }
 
 export const taskWorker = <
-  IN extends object,
-  OUT extends object,
-  TProgressState extends ProgressState = ProgressState
+  T extends object,
+  Progress extends ProgressState<T> = {
+    percentComplete: 0;
+    description: "";
+    data: T;
+  },
+  InputParams extends object = {},
+  OutputParams extends object = {}
 >(arg: {
   name: string;
   execute: (opt: {
-    input: IN;
+    input: InputParams;
     state: ClientState;
-    progress: (progressInfo: {
-      percent: number;
-      details: TProgressState;
-      state?: Partial<ClientState>;
-    }) => void;
-    resumeFrom?: TProgressState;
+    progress: (progressInfo: Progress) => void;
+    resumeFrom?: Progress;
     taskId: string;
-  }) => Promise<OUT>;
+    agent: {
+      browser: ReturnType<typeof createAgentBrowser>;
+    };
+  }) => Promise<OutputParams>;
   // getCallbacksProvider removed
 }) => {
   if (!import.meta.main) {
     return { name, file: import.meta.file };
   }
 
+  let clientId: string;
   let taskId: string;
-  let currentInput: IN;
+  let currentInput: InputParams;
   let currentState: ClientState;
 
   // Helper to post progress messages
   const postProgress = (
+    currentClientId: string,
     currentTaskId: string,
-    percent: number,
-    details: TProgressState,
-    stateUpdate?: Partial<ClientState>
+    currentProgress: Progress
   ): void => {
-    const message: WorkerProgressMessage<TProgressState> = {
+    const message: WorkerProgressMessage<Progress> = {
+      client_id: currentClientId,
       type: "progress",
-      taskId: currentTaskId,
-      percent,
-      currentProgress: details,
-      state: stateUpdate,
+      task_id: currentTaskId,
+      progress: currentProgress,
     };
     self.postMessage(message);
   };
 
   // Helper to post completion messages
   const postCompletion = (
+    currentClientId: string,
     currentTaskId: string,
-    output: OUT,
+    output: OutputParams,
     stateUpdate?: Partial<ClientState>
   ): void => {
-    const message: WorkerCompleteMessage<OUT> = {
+    const message: WorkerCompleteMessage<OutputParams> = {
+      client_id: currentClientId,
       type: "complete",
-      taskId: currentTaskId,
+      task_id: currentTaskId,
       output,
       state: stateUpdate,
     };
@@ -206,13 +225,15 @@ export const taskWorker = <
 
   // Helper to post error messages
   const postError = (
+    currentClientId: string,
     currentTaskId: string,
     errorMsg: string,
     stack?: string
   ): void => {
     const errorMessage: WorkerErrorMessage = {
+      client_id: currentClientId,
       type: "error",
-      taskId: currentTaskId,
+      task_id: currentTaskId,
       message: errorMsg,
       stack,
     };
@@ -220,12 +241,13 @@ export const taskWorker = <
   };
 
   self.onmessage = async (
-    event: MessageEvent<MainToWorkerMessage<IN, TProgressState>>
+    event: MessageEvent<MainToWorkerMessage<InputParams, Progress>>
   ) => {
     const message = event.data;
 
     if (message.type === "init") {
-      taskId = message.taskId;
+      clientId = message.client_id;
+      taskId = message.task_id;
       currentInput = message.input;
       currentState = message.initialState;
       const resumeFromProgress = message.resumeFromProgress;
@@ -234,16 +256,19 @@ export const taskWorker = <
         const result = await arg.execute({
           input: currentInput,
           state: currentState,
-          progress: ({ percent, details, state: progressStateUpdate }) => {
+          progress: (progressState) => {
             // Ensure details conforms to TProgressState, which it should by execute's signature
-            postProgress(taskId, percent, details, progressStateUpdate);
+            postProgress(clientId, taskId, progressState);
           },
           resumeFrom: resumeFromProgress,
           taskId: taskId,
+          agent: {
+            browser: createAgentBrowser(),
+          },
         });
-        postCompletion(taskId, result);
+        postCompletion(clientId, taskId, result);
       } catch (error: any) {
-        postError(taskId, error.message, error.stack);
+        postError(clientId, taskId, error.message, error.stack);
       }
     } else if (message.type === "stateUpdate") {
       // Update the worker's understanding of the client state
