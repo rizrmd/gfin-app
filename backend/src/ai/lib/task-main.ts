@@ -6,7 +6,12 @@ import {
   type ai_task as PersistedAITask,
 } from "shared/models"; // Corrected path and AITaskStatus import, aliased ai_task
 import type { TaskName } from "../tasks";
-import { getClient, type ClientId } from "./client";
+import {
+  getClient,
+  taskCallback,
+  type ClientId,
+  type TaskCallback,
+} from "./client";
 import {
   type ProgressState,
   type WorkerCompleteMessage,
@@ -33,38 +38,6 @@ export type AiTask<
   };
   callbacks: TaskCallback<Progress, OutputResult>;
 };
-
-export const taskCallback = <
-  Progress extends ProgressState<any>,
-  OutputResult extends object = {}
->(
-  client_id: ClientId,
-  task_id: string
-) => {
-  return {
-    onError: (error) => {
-      const client = getClient(client_id);
-      if (client) {
-      }
-    },
-    onProgress: (progress) => {
-      const client = getClient(client_id);
-      if (client) {
-      }
-    },
-    onComplete(output) {},
-  } as TaskCallback<Progress, OutputResult>;
-};
-
-// Callbacks for a managed task
-export interface TaskCallback<
-  Progress extends ProgressState<any>,
-  OutputResult extends object = {}
-> {
-  onProgress?: (args: Progress) => void;
-  onComplete?: (output: OutputResult) => void;
-  onError?: (error: { message: string; stack?: string }) => void;
-}
 
 function isValidWorkerPath(scriptPath: string): boolean {
   // Assuming scriptPath is relative to the project root or a known base directory.
@@ -98,7 +71,6 @@ async function handleWorkerMessage<
     return;
   }
 
-  console.log(message);
   try {
     switch (message.type) {
       case "dbRequest":
@@ -253,7 +225,7 @@ async function spawnAndInitWorker<
     id: persistedTask.id,
     desc: persistedTask.name,
     worker: { process: worker, scriptPath: workerScriptFullPath },
-    callbacks: taskCallback(client.id, persistedTask.id),
+    callbacks: taskCallback(client.id, persistedTask.id, persistedTask.name),
     input,
     output: null,
     status: "PENDING",
@@ -309,6 +281,7 @@ export async function submitTask<
   client_id: ClientId;
   name: TaskName;
   input: InputParams;
+  initialized: (task_id: string) => void;
 }): Promise<TaskId | null> {
   const { name, input, client_id } = opt;
 
@@ -331,7 +304,13 @@ export async function submitTask<
       },
     });
 
-    let callbacks = taskCallback(client_id, persistedTask.id);
+    opt.initialized(persistedTask.id); // Call the initialized callback with the task ID
+
+    let callbacks = taskCallback(
+      client_id,
+      persistedTask.id,
+      persistedTask.name
+    );
     await spawnAndInitWorker(client_id, persistedTask, callbacks);
     return persistedTask.id;
   } catch (error: any) {
@@ -380,7 +359,7 @@ export async function resumeTasksOnStartup(): Promise<void> {
       }
 
       // For resumed tasks, try to get callbacks from the registry.
-      let callbacks = taskCallback(task.id_client, task.id);
+      let callbacks = taskCallback(task.id_client, task.id, task.name);
 
       let resumeFromProgress: ProgressState<any> | undefined = undefined;
       if (task.last_progress) {

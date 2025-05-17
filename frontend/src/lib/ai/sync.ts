@@ -26,6 +26,7 @@ export const aiSync = () => {
           sync.ws.onmessage = async (event) => {
             const buf = await event.data.arrayBuffer();
             const msg = unpack(gunzipSync(new Uint8Array(buf)));
+            sync.onmessage(msg);
           };
           sync.ws.onclose = () => {
             console.log("WebSocket connection closed");
@@ -34,6 +35,7 @@ export const aiSync = () => {
       }
     },
     ws: null as WebSocket | null,
+    onmessage(msg: any) {} // will be overridden,
   };
   return sync;
 };

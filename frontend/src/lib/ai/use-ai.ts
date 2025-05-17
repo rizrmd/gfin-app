@@ -1,15 +1,52 @@
+import { type TaskName, type Tasks } from "backend/ai/tasks";
+import { gzipSync } from "fflate";
+import { pack } from "msgpackr";
 import { subscribe } from "valtio";
 import { aiState } from "./state";
 import { aiSync } from "./sync";
-import { type TaskName, type Tasks } from "backend/ai/tasks";
-import { pack } from "msgpackr";
-import { gzipSync } from "fflate";
-import { user } from "../user";
+import { useEffect, useRef } from "react";
+import { v6 } from "uuid";
 const aiClient = () => {
   const state = aiState();
   const sync = aiSync();
 
-  subscribe(state, () => {});
+  const onProgress = {} as Record<string, Set<any>>;
+
+  const taskPromises = {} as Record<
+    string,
+    { id: string; reject: (error: any) => void; resolve: (arg: any) => void }
+  >;
+
+  sync.onmessage = (msg: {
+    type: "taskInit" | "taskComplete" | "taskProgress" | "taskError";
+    task_id: string;
+    name: string;
+    percentComplete: number;
+    description: string;
+    error?: { message: string; stack?: string };
+    output?: any;
+    init_id?: string;
+  }) => {
+    if (msg.type === "taskInit") {
+      taskPromises[msg.init_id!].id = msg.task_id;
+      taskPromises[msg.task_id] = taskPromises[msg.init_id!];
+      delete taskPromises[msg.init_id!];
+    } else if (msg.type === "taskProgress") {
+      for (const callback of onProgress[msg.name] || []) {
+        callback(msg);
+      }
+    } else if (msg.type === "taskComplete") {
+      if (taskPromises[msg.task_id]) {
+        taskPromises[msg.task_id].resolve(msg.output);
+        delete taskPromises[msg.task_id];
+      }
+    } else if (msg.type === "taskError") {
+      if (taskPromises[msg.task_id]) {
+        taskPromises[msg.task_id].reject(msg.error);
+        delete taskPromises[msg.task_id];
+      }
+    }
+  };
 
   return {
     state,
@@ -21,9 +58,18 @@ const aiClient = () => {
         input: Tasks[Name]["input"]
       ): Promise<Tasks[Name]["output"]> => {
         return new Promise<Tasks[Name]["output"]>((resolve, reject) => {
-          sync.ws?.send(gzipSync(pack({ type: "doTask", name, input })));
+          const init_id = v6();
+          taskPromises[init_id] = {
+            id: "",
+            reject,
+            resolve,
+          };
+          sync.ws?.send(
+            gzipSync(pack({ type: "doTask", name, input, init_id: init_id }))
+          );
         });
       },
+      onProgress,
     },
   };
 };
@@ -36,8 +82,39 @@ if (!w.ai_client) {
   w.ai_client = aiClient();
 }
 
-export const useAI = () => {
+export const useAI = (arg?: {
+  progress?: Record<
+    TaskName,
+    (opt: {
+      task_id: string;
+      percentComplete: number;
+      description: string;
+    }) => void
+  >;
+}) => {
   w.ai_client.sync.init();
+
+  useEffect(() => {
+    if (arg) {
+      if (arg.progress) {
+        for (const [name, callback] of Object.entries(arg.progress)) {
+          if (!w.ai_client.task.onProgress[name]) {
+            w.ai_client.task.onProgress[name] = new Set();
+          }
+          w.ai_client.task.onProgress[name].add(callback);
+        }
+      }
+      return () => {
+        if (arg.progress) {
+          for (const [name, callback] of Object.entries(arg.progress)) {
+            if (w.ai_client.task.onProgress[name]) {
+              w.ai_client.task.onProgress[name].delete(callback);
+            }
+          }
+        }
+      };
+    }
+  }, []);
 
   return w.ai_client;
 };

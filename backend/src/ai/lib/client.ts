@@ -2,6 +2,7 @@ import type { ServerWebSocket } from "bun";
 import { gunzipSync, gzipSync } from "bun";
 import { pack, unpack } from "msgpackr";
 import { submitTask, type AiTask, type TaskId } from "./task-main";
+import type { ProgressState } from "./task-worker";
 
 export type WSAIData = {
   client_id: ClientId;
@@ -42,9 +43,22 @@ const newClient = (client_id: ClientId) => {
       },
       onMessage(ws: ServerWebSocket<WSAIData>, raw: any) {
         const data = unpack(gunzipSync(raw));
-        console.log(data);
         if (data.type === "doTask") {
-          submitTask({ client_id, name: data.name, input: data.input });
+          submitTask({
+            client_id,
+            name: data.name,
+            input: data.input,
+            initialized: (task_id) => {
+              client.sync.broadcast({
+                type: "taskInit",
+                task_id,
+                init_id: data.init_id,
+                name: data.name,
+                percentComplete: 0,
+                description: "Initializing",
+              });
+            },
+          });
         }
       },
     },
@@ -58,4 +72,64 @@ export const getClient = (client_id: ClientId) => {
     clients[client_id] = newClient(client_id);
   }
   return clients[client_id];
+};
+
+// Callbacks for a managed task
+export interface TaskCallback<
+  Progress extends ProgressState<any>,
+  OutputResult extends object = {}
+> {
+  onProgress?: (args: Progress) => void;
+  onComplete?: (output: OutputResult) => void;
+  onError?: (error: { message: string; stack?: string }) => void;
+}
+
+export const taskCallback = <
+  Progress extends ProgressState<any>,
+  OutputResult extends object = {}
+>(
+  client_id: ClientId,
+  task_id: string,
+  name: string
+) => {
+  return {
+    onError: (error) => {
+      const client = getClient(client_id);
+      if (client) {
+        client.sync.broadcast({
+          type: "taskError",
+          task_id: task_id,
+          name,
+          percentComplete: 100,
+          description: "Error",
+          error,
+        });
+      }
+    },
+    onProgress: (progress) => {
+      const client = getClient(client_id);
+      if (client) {
+        client.sync.broadcast({
+          type: "taskProgress",
+          task_id: task_id,
+          name,
+          percentComplete: progress.percentComplete,
+          description: progress.description,
+        });
+      }
+    },
+    onComplete(output) {
+      const client = getClient(client_id);
+      if (client) {
+        client.sync.broadcast({
+          type: "taskComplete",
+          task_id: task_id,
+          name,
+          percentComplete: 100,
+          description: "Completed",
+          output,
+        });
+      }
+    },
+  } as TaskCallback<Progress, OutputResult>;
 };

@@ -14,10 +14,11 @@ export default () => {
         Hello welcome.tsx
         <Button
           onClick={async () => {
-            ai.task.do("search_org", {
+            const res = await ai.task.do("search_org", {
               orgName: user.organization.name!,
               state: user.organization.data!.filingInformation.state,
             });
+            console.log(res);
           }}
         >
           Trigger search organization profile
