@@ -26,7 +26,7 @@ export default defineAPI({
         organizations: true,
       },
     });
-    if (exists) {
+    if (exists) { 
       return {
         success: true,
         message: "Client and organization loaded successfully.",

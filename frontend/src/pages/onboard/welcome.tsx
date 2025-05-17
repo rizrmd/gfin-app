@@ -1,5 +1,5 @@
 import { AppLogo } from "@/components/app/logo";
-import { OnboardFrame } from "@/components/custom/onboard-frame";
+import { BodyFrame } from "@/components/custom/body-frame";
 import { Button } from "@/components/ui/button";
 import { useAI } from "@/lib/ai/use-ai";
 import { navigate } from "@/lib/router";
@@ -9,7 +9,7 @@ export default () => {
   const ai = useAI();
   return (
     <Protected>
-      <OnboardFrame className="flex flex-col items-center justify-center gap-4">
+      <BodyFrame className="flex flex-col items-center justify-center gap-4">
         <AppLogo />
         Hello welcome.tsx
         <Button
@@ -31,7 +31,7 @@ export default () => {
         >
           Logout
         </Button>
-      </OnboardFrame>
+      </BodyFrame>
     </Protected>
   );
 };

@@ -1,8 +1,10 @@
+import type React from "react";
 import { DotPattern } from "./dot-pattern";
 
-export const OnboardFrame = (opt: {
+export const BodyFrame = (opt: {
   children: React.ReactNode;
   className?: string;
+  header?: React.ReactNode;
 }) => {
   return (
     <div

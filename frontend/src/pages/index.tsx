@@ -1,5 +1,5 @@
 import { AppLogo } from "@/components/app/logo";
-import { OnboardFrame } from "@/components/custom/onboard-frame";
+import { BodyFrame } from "@/components/custom/body-frame";
 import { RegisterForm } from "@/components/custom/register-form";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
@@ -10,7 +10,7 @@ import { PublicOnly, user } from "@/lib/user";
 
 export default () => {
   return (
-    <OnboardFrame className="flex flex-col items-center justify-center">
+    <BodyFrame className="flex flex-col items-center justify-center">
       <AppLogo />
       <Card className="min-w-[400px] mt-10 p-7 pb-2">
         <PublicOnly>
@@ -31,6 +31,6 @@ export default () => {
           />
         </PublicOnly>
       </Card>
-    </OnboardFrame>
+    </BodyFrame>
   );
 };
