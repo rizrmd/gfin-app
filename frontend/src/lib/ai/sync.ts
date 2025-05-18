@@ -15,11 +15,8 @@ export const aiSync = () => {
             return;
           }
         }
-        const url = new URL(`${baseUrl.app_gfin}/ws/ai/${user.client.id}`);
-
-        if (location.protocol === "https:") {
-          url.protocol = "wss:";
-        }
+        const url = new URL(location.href);
+        url.pathname = `/ws/ai/${user.client.id}`;
 
         sync.ws = new WebSocket(url);
         if (sync.ws) {
