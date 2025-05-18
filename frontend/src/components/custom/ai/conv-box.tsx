@@ -87,40 +87,42 @@ export const AiConversationBox: FC<{
             )}
           </div>
 
-          {lastUser && (
-            <div className="text-gray-900 w-full bg-white pt-3 p-7 pb-[50px] md:pb-7 rounded-lg text-base relative">
-              {recorder.mediaRecorder && (
-                <div
-                  className={cn(
-                    "absolute -top-[80px] left-[50%] -ml-[150px] transition-all",
-                    conv.isSpeaking ? "opacity-0" : "opacity-100"
-                  )}
-                >
-                  <LiveAudioVisualizer
-                    mediaRecorder={recorder.mediaRecorder}
-                    width={300}
-                    height={50}
-                  />
-                </div>
-              )}
-              <Badge variant={"secondary"}>
-                <User />
-                You
-              </Badge>
-              <div className="mt-2">
-                {last?.source === "user" ? (
-                  <TypeWriter
-                    onInit={(typewriter) => {
-                      typewriter.typeString(last.message).start();
-                    }}
-                    options={{ delay: 10 }}
-                  />
-                ) : (
-                  <>{lastUser?.message}</>
+          <div className="text-gray-900 w-full bg-white pt-3 p-7 pb-[50px] md:pb-7 rounded-lg text-base relative">
+            {recorder.mediaRecorder && (
+              <div
+                className={cn(
+                  "absolute -top-[80px] left-[50%] -ml-[150px] transition-all",
+                  conv.isSpeaking ? "opacity-0" : "opacity-100"
                 )}
+              >
+                <LiveAudioVisualizer
+                  mediaRecorder={recorder.mediaRecorder}
+                  width={300}
+                  height={50}
+                />
               </div>
-            </div>
-          )}
+            )}
+            {lastUser && (
+              <>
+                <Badge variant={"secondary"}>
+                  <User />
+                  You
+                </Badge>
+                <div className="mt-2">
+                  {last?.source === "user" ? (
+                    <TypeWriter
+                      onInit={(typewriter) => {
+                        typewriter.typeString(last.message).start();
+                      }}
+                      options={{ delay: 10 }}
+                    />
+                  ) : (
+                    <>{lastUser?.message}</>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </>
