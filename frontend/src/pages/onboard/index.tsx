@@ -62,7 +62,7 @@ export default () => {
           {permission === "granted" && (
             <>{!phase.qa && !phase.profile && <AiConversationBox ai={ai} />}</>
           )}
-          {(permission === "pending" || messages.length === 0) && (
+          {(permission !== 'requesting' && (permission === "pending" || messages.length === 0)) && (
             <div className="flex items-center flex-1 justify-center select-none">
               <div className="flex items-bottom gap-2">
                 <Bot />
