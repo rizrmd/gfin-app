@@ -22,7 +22,7 @@ export default () => {
         header={
           <>
             <AppLogo className="hidden md:flex" />
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="md:absolute inset-0 flex items-center justify-center">
               <Badge variant={"outline"} className="text-base font-semibold">
                 {user.organization.name}
               </Badge>
@@ -31,7 +31,7 @@ export default () => {
           </>
         }
       >
-        <Card className="flex flex-col justify-center p-2 relative  w-[94%] h-[calc(100vh-120px)] mt-10 md:mt-0 md:min-h-[400px] md:h-[60vh] md:w-[400px]  border-0">
+        <Card className="flex flex-col justify-center p-2 w-[94%] absolute h-[80vh] top-[10px] md:relative mt-10 md:mt-0 md:min-h-[400px] md:h-[60vh] md:w-[400px]  border-0">
           <div className="absolute -top-9 -ml-2 select-none items-start flex w-full justify-between">
             <div className="flex gap-2">
               <span className="font-extrabold">Onboard</span>
@@ -62,14 +62,15 @@ export default () => {
           {permission === "granted" && (
             <>{!phase.qa && !phase.profile && <AiConversationBox ai={ai} />}</>
           )}
-          {(permission !== 'requesting' && (permission === "pending" || messages.length === 0)) && (
-            <div className="flex items-center flex-1 justify-center select-none">
-              <div className="flex items-bottom gap-2">
-                <Bot />
-                <TextShimmer>Initializing...</TextShimmer>
+          {permission !== "requesting" &&
+            (permission === "pending" || messages.length === 0) && (
+              <div className="flex items-center flex-1 justify-center select-none">
+                <div className="flex items-bottom gap-2">
+                  <Bot />
+                  <TextShimmer>Initializing...</TextShimmer>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           {permission === "requesting" && (
             <div className="flex flex-col items-stretch px-10 justify-center gap-10">
               <div className="text-3xl font-bold">
