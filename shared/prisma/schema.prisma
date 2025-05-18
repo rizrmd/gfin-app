@@ -26,7 +26,7 @@ model organizations {
   data       Json
   questions  Json
   deleted_at DateTime? @db.Timestamptz(6)
-  onboard    Json      @default("\"{ qa: false, profile: false }\"")
+  onboard    Json      @default("{\"qa\": false, \"profile\": false}")
   client     clients   @relation(fields: [id_client], references: [id], onDelete: Cascade)
 }
 
