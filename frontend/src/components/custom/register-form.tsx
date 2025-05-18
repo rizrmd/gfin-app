@@ -42,7 +42,8 @@ export const RegisterForm = () => {
           write.loading = false;
         }
       }}
-      className="space-y-4"
+      className={cn("space-y-4", css `
+      .field-label { display: none;}`)}
     >
       {({ Field, read, submit }) => {
         return (
@@ -50,22 +51,41 @@ export const RegisterForm = () => {
             <Field
               name="firstName"
               disabled={read.loading}
-              label="First Name"
+              label=""
+              input={{ 
+                type: "text",
+                placeholder: "First Name" 
+              }}
             />
-            <Field name="lastName" disabled={read.loading} label="Last Name" />
+            <Field 
+              name="lastName" 
+              disabled={read.loading} 
+              label=""
+              input={{ 
+                type: "text",
+                placeholder: "Last Name" 
+              }} 
+            />
             <Field
               name="workEmail"
               disabled={read.loading}
-              label="Work Email"
-              input={{ type: "email" }}
+              label=""
+              input={{ type: "email", placeholder: "Work Email" }}
             />
             <Field
               name="password"
               disabled={read.loading}
-              label="Password"
-              input={{ type: "password" }}
+              label=""
+              input={{ type: "password", placeholder: "Password" }}
             />
-            <Field name="orgName" disabled={read.loading} label="Org Name" />
+            <Field 
+              name="orgName" 
+              disabled={read.loading} 
+              label="Org Name"
+              input={{ 
+                placeholder: "Organization Name" 
+              }} 
+            />
             <Field
               name="state"
               disabled={read.loading}
@@ -75,6 +95,7 @@ export const RegisterForm = () => {
                 }),
               }}
               label="State"
+              input={{ placeholder: "State" }}  
             />
             <Button
               type="submit"
