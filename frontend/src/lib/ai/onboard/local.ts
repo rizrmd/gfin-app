@@ -19,7 +19,7 @@ export const aiOnboardLocal = ({
       profile: false,
     },
     render: () => {},
-    storeQA: async (isDone?: boolean) => {
+    storeQA: async () => {
       const res = (await ai.task.do("ask", {
         prompt: `that will generate a message in this json format: [{q: "the question ?", a: "the answer"}] do not output invalid json, exclude your thought. Only add entries when the question is one of the questions in the list: ${JSON.stringify(
           questions
@@ -43,7 +43,7 @@ export const aiOnboardLocal = ({
         local.render();
 
         if (user.organization.id) {
-          if (isDone) {
+          if (Object.keys(local.qa_session).length === questions.length) {
             local.phase.qa = true;
           }
 

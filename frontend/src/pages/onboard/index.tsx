@@ -16,7 +16,14 @@ import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
 import { aiOnboard } from "@/lib/ai/onboard";
 import { Protected, user } from "@/lib/user";
-import { ArrowRight, ChevronRight, Mic, Scroll, Slash } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  ChevronRight,
+  Mic,
+  Scroll,
+  Slash,
+} from "lucide-react";
 export default () => {
   const ai = aiOnboard();
 
@@ -26,7 +33,7 @@ export default () => {
         className="flex flex-col items-center justify-center gap-4"
         header={
           <>
-            <AppLogo />
+            <AppLogo className="hidden md:flex" />
             <div className="absolute inset-0 flex items-center justify-center">
               <Badge variant={"outline"} className="text-base font-semibold">
                 {user.organization.name}
@@ -36,7 +43,7 @@ export default () => {
           </>
         }
       >
-        <Card className="flex flex-col justify-center p-2 relative  min-h-[400px] h-[60vh] w-[400px]  border-0">
+        <Card className="flex flex-col justify-center p-2 relative  w-[94%] h-[calc(100vh-120px)] mt-10 md:mt-0 md:min-h-[400px] md:h-[60vh] md:w-[400px]  border-0">
           <div className="absolute -top-7 -ml-2 select-none items-start flex w-full justify-between">
             <div className="flex gap-2">
               <span className="font-extrabold">Onboard</span>
@@ -62,6 +69,14 @@ export default () => {
                 <AiConversationBox ai={ai} />
               )}
             </>
+          )}
+          {ai.permission === "pending" && (
+            <div className="flex items-center flex-1 justify-center">
+              <div className="flex items-bottom gap-2">
+                <Bot />
+                <TextShimmer>Initializing...</TextShimmer>
+              </div>
+            </div>
           )}
           {ai.permission === "requesting" && (
             <div className="flex flex-col items-stretch px-10 justify-center gap-10">

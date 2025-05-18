@@ -97,7 +97,7 @@ Do your best to summarize our last conversation in a single sentence, ignore chi
       console.error("Error in conversation", message, context);
     },
     onDisconnect() {
-      local.storeQA(true);
+      local.storeQA();
     },
   });
 };
