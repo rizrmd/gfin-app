@@ -2,18 +2,28 @@ import { FlickeringGrid } from "@/components/custom/ai/flicker-grid";
 import { TextShimmer } from "@/components/custom/ai/text-shimmer";
 import { Badge } from "@/components/ui/badge";
 import type { aiOnboard } from "@/lib/ai/onboard";
+import useAudioRecorder from "@/lib/hooks/use-audio-recorder";
 import { BotMessageSquare, Mic, Sparkle, User } from "lucide-react";
-import type { FC } from "react";
+import { useEffect, type FC } from "react";
 import TypeWriter from "typewriter-effect";
+import { LiveAudioVisualizer } from "./audio/live-audio";
 
 export const AiConversationBox: FC<{
   ai: ReturnType<typeof aiOnboard>;
 }> = ({ ai }) => {
+  const recorder = useAudioRecorder();
+
   const { conv, local } = ai;
   const { messages } = local;
   const lastAi = messages.findLast((e) => e.source === "ai");
   const lastUser = messages.findLast((e) => e.source === "user");
   const last = messages.length > 0 ? messages[messages.length - 1] : undefined;
+
+  useEffect(() => {
+    recorder.startRecording();
+  }, []);
+
+  console.log(recorder.mediaRecorder);
   return (
     <>
       <div
@@ -37,6 +47,7 @@ export const AiConversationBox: FC<{
             !conv.isSpeaking ? "opacity-0" : "opacity-100"
           )}
         />
+
         <div className="flex flex-col gap-2 w-full h-full absolute z-30 items-start justify-between">
           <div className="text-gray-900 w-full bg-white pb-3 p-7 rounded-lg text-base">
             <div className="flex w-full justify-between items-center mb-2">
@@ -78,7 +89,21 @@ export const AiConversationBox: FC<{
           </div>
 
           {lastUser && (
-            <div className="text-gray-900 w-full bg-white pt-3 p-7 rounded-lg text-base">
+            <div className="text-gray-900 w-full bg-white pt-3 p-7 pb-[50px] md:pb-7 rounded-lg text-base relative">
+              {recorder.mediaRecorder && (
+                <div
+                  className={cn(
+                    "absolute -top-[80px] left-[50%] -ml-[150px] transition-all",
+                    conv.isSpeaking ? "opacity-0" : "opacity-100"
+                  )}
+                >
+                  <LiveAudioVisualizer
+                    mediaRecorder={recorder.mediaRecorder}
+                    width={300}
+                    height={50}
+                  />
+                </div>
+              )}
               <Badge variant={"secondary"}>
                 <User />
                 You
