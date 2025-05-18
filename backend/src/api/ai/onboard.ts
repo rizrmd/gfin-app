@@ -20,7 +20,7 @@ export default defineAPI({
             where: { id: org.id },
             data: {
               data: org.data,
-              questions: org.questions || {},
+              questions: org.questions,
               onboard: org.onboard || { profile: false, org: false },
             },
           });

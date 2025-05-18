@@ -83,7 +83,6 @@ there are ${
         local.qa_user[params.question] = params.answer;
         localzip.set("gfin-ai-qa-user", local.qa_user);
         local.render();
-        console.log(params);
         await storeQA(arg);
         if (local.qa_done) {
           conv.sendContextualUpdate("All questions have been answered");
@@ -97,13 +96,13 @@ there are ${
       local.messages.push({ ...props, ts: Date.now() });
       local.render();
       if (local.messages.find((e) => e.source === "user")) {
-        localzip.set("gfin-ai-msgs", local.messages);
+        localzip.set("gfin-ai-qa-msgs", local.messages);
       }
     },
     onError(message, context) {
       console.error("Error in conversation", message, context);
     },
-    onDisconnect() {
+    async onDisconnect() {
       if (local.qa_done) {
         local.phase.qa = true;
         local.render();
@@ -112,6 +111,9 @@ there are ${
           id: user.organization.id!,
           onboard: local.phase,
         });
+      } else {
+        await storeQA(arg);
+        onboardQA(arg);
       }
     },
   });
@@ -129,7 +131,7 @@ const defineFirstMessage = async ({
   questions: string[];
 }) => {
   let firstMessage: undefined | string = undefined;
-  const gfin_msgs = localzip.get("gfin-ai-msgs") || [];
+  const gfin_msgs = localzip.get("gfin-ai-qa-msgs") || [];
   if (gfin_msgs.length >= 2 || Object.keys(local.qa_final).length > 0) {
     const res = await ai.task.do("ask", {
       prompt: `\
@@ -236,7 +238,8 @@ ${JSON.stringify(local.qa_final)}
       }
     }
     local.render();
-  } else {}
+  } else {
+  }
 
   if (user.organization.id) {
     if (Object.keys(local.qa_final).length === questions.length) {
