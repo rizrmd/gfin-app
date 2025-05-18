@@ -15,7 +15,7 @@ export const questions = [
   "What is your organization's mission and primary goal? How do these align with the funding opportunity?",
   "Can you provide a brief overview of your company's services and capabilities?",
   "Have you previously been awarded grants or government contracts? If so, can you give an example of a successful project or partnership?",
-  "Do you have any existing certifications (e.g., 8(a), HUBZone, SDVOSB, WOSB) that may be relevant to the funding opportunity?",
+  "Do you have any existing certifications (e.g., HUBZone, SDVOSB, WOSB) that may be relevant to the funding opportunity?",
 ];
 
 export const aiOnboard = () => {
