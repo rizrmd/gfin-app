@@ -18,7 +18,7 @@ export const LoginForm = () => {
       onSubmit={async ({ write, read }) => {
         write.loading = true;
         try {
-          await api.login();
+          // await api.login();
           navigate("/");
         } catch (error) {
           Alert.info("Login failed:", error);

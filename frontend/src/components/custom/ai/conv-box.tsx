@@ -1,13 +1,13 @@
 import { FlickeringGrid } from "@/components/custom/ai/flicker-grid";
 import { TextShimmer } from "@/components/custom/ai/text-shimmer";
 import { Badge } from "@/components/ui/badge";
-import type { aiOnboardConv } from "@/lib/ai/onboard-conv";
+import type { aiOnboard } from "@/lib/ai/onboard";
 import { BotMessageSquare, Mic, Sparkle, User } from "lucide-react";
 import type { FC } from "react";
 import TypeWriter from "typewriter-effect";
 
 export const AiConversationBox: FC<{
-  ai: ReturnType<typeof aiOnboardConv>;
+  ai: ReturnType<typeof aiOnboard>;
 }> = ({ ai }) => {
   const { conv, messages } = ai;
   const lastAi = messages.findLast((e) => e.source === "ai");

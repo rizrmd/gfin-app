@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
-import { aiOnboardConv } from "@/lib/ai/onboard-conv";
+import { aiOnboard } from "@/lib/ai/onboard";
 import { Protected, user } from "@/lib/user";
 import { ArrowRight, Mic } from "lucide-react";
 export default () => {
-  const ai = aiOnboardConv();
+  const ai = aiOnboard();
 
   return (
     <Protected>
