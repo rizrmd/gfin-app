@@ -9,11 +9,14 @@ function AppRoot() {
   const { Page, currentPath, isLoading, params } = useRoot();
 
   if (isLoading) {
-    return <AppLoading />;
+    return (
+      <div className="flex w-screen h-screen items-center justify-center">
+        <AppLoading />
+      </div>
+    );
   }
 
-  const isAuthPath =
-    currentPath.startsWith("/auth") ;
+  const isAuthPath = currentPath.startsWith("/auth");
 
   // For localhost:7500, detect by port and assume it's an auth domain
   const isAuthDomain =
