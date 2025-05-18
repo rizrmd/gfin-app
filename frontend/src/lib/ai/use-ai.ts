@@ -56,13 +56,24 @@ const aiClient = () => {
         name: Name,
         input: Tasks[Name]["input"]
       ): Promise<Tasks[Name]["output"]> => {
-        return new Promise<Tasks[Name]["output"]>((resolve, reject) => {
+        return new Promise<Tasks[Name]["output"]>(async (resolve, reject) => {
           const init_id = v6();
           taskPromises[init_id] = {
             id: "",
             reject,
             resolve,
           };
+          if (!sync.ws || sync.ws.readyState !== WebSocket.OPEN) {
+            await new Promise<void>((resolve) => {
+              const ival = setInterval(() => {
+                if (sync.ws && sync.ws.readyState === WebSocket.OPEN) {
+                  clearInterval(ival);
+                  resolve();
+                }
+              }, 100);
+            });
+          }
+
           sync.ws?.send(
             gzipSync(pack({ type: "doTask", name, input, init_id: init_id }))
           );

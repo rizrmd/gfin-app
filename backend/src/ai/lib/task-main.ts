@@ -326,7 +326,6 @@ export async function resumeTasksOnStartup(): Promise<void> {
         OR: [
           { status: AiTaskStatus.RUNNING },
           { status: AiTaskStatus.PENDING },
-          { status: AiTaskStatus.INTERRUPTED }, // Assuming INTERRUPTED implies it was running
         ],
       },
     });

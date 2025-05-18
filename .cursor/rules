@@ -40,7 +40,7 @@ export default () => {
 
 always use two word for valtio state e.g bookWrite, bookRead.
 
-In server we already setup prisma client in global db variable, just use it.
+In server we already setup prisma client in global db variable, just use it - do not create new PrismaClient instance.
 
 To deal with database CRUD operations such as fetching, inserting, updating, and deleting data, we are using API in folder backend/src/api. Under the hood, we are using prisma for this. For example, in backend/src/api/auth.esensi/user.ts, we are fetching a data from table auth_user filtered by his/her username. This is the example:
 
@@ -63,6 +63,7 @@ export default defineAPI({
 });
 
 ```
+
 Do not use fetch on frontend, use api instead like this instead:
 
 ```
@@ -73,11 +74,13 @@ const res = await api.auth_user({ username: username! });
 If you import a type, not a variable, then it must be imported using a type-only import when 'verbatimModuleSyntax' is enabled. For example:
 
 This is wrong
+
 ```
 import { User } from "better-auth/types";
 ```
 
 This is correct
+
 ```
 import type { User } from "better-auth/types";
 ```
@@ -118,3 +121,4 @@ import { EForm } from "@/components/ext/eform/EForm";
       );
     }}
   </EForm>
+```

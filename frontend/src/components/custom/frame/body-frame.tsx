@@ -9,7 +9,7 @@ export const BodyFrame = (opt: {
   return (
     <div
       className={cn(
-        "flex min-h-screen bg-white items-stretch",
+        "flex min-h-screen bg-white items-stretch flex-col",
 
         css`
           background-image: url("/img/onboard/ilustr.png");
@@ -20,7 +20,11 @@ export const BodyFrame = (opt: {
         `
       )}
     >
-      {/* Right Content Area */}
+      {opt.header && (
+        <div className="border-b h-[50px] flex items-center justify-between px-2 relative">
+          {opt.header}
+        </div>
+      )}
       <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden">
         {/* Background Illustration */}
         <img

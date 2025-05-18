@@ -4,6 +4,8 @@ import { PrismaClient } from "shared/models";
 import { createAgentBrowser } from "./agents/agent-browser";
 import type { ClientId } from "./client";
 import type { TaskId } from "./task-main";
+import type { Return } from "shared/models/runtime/library";
+import { createOneShotAgent } from "./agents/agent-oneshot";
 
 // Generic progress state. Each worker will define its own specific ProgressState.
 export type ProgressState<T extends object> = {
@@ -164,6 +166,7 @@ export const taskWorker = <
     db: PrismaClient;
     agent: {
       browser: ReturnType<typeof createAgentBrowser>;
+      oneshot: ReturnType<typeof createOneShotAgent>;
     };
   }) => Promise<OutputParams>;
   // getCallbacksProvider removed
@@ -304,6 +307,7 @@ export const taskWorker = <
           ) as any,
           agent: {
             browser: createAgentBrowser(),
+            oneshot: createOneShotAgent(),
           },
         });
         postCompletion(clientId, taskId, result);

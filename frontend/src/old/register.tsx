@@ -1,4 +1,4 @@
-import { RegisterForm } from "@/components/custom/register-form";
+import { RegisterForm } from "@/components/custom/auth/register-form";
 
 export default () => {
   return (

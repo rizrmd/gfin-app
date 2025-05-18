@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/custom/login-form";
+import { LoginForm } from "@/components/custom/auth/login-form";
 
 export default () => {
   return (

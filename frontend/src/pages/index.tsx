@@ -1,6 +1,6 @@
 import { AppLogo } from "@/components/app/logo";
-import { BodyFrame } from "@/components/custom/body-frame";
-import { RegisterForm } from "@/components/custom/register-form";
+import { BodyFrame } from "@/components/custom/frame/body-frame";
+import { RegisterForm } from "@/components/custom/auth/register-form";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
 import { useAI } from "@/lib/ai/use-ai";
@@ -21,7 +21,7 @@ export default () => {
                 if (res.client && res.organization) {
                   user.init(res);
                   form.loading = false;
-                  navigate("/onboard/welcome");
+                  navigate("/onboard/");
                 }
               } catch (e) {
                 await Alert.info(e.message);

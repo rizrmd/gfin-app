@@ -14,7 +14,7 @@ model clients {
   email         String
   password      String?
   profile       Json?           @default("{}")
-  deleted_at    DateTime?        @db.Timestamptz(6)
+  deleted_at    DateTime?       @db.Timestamptz(6)
   ai_task       ai_task[]
   organizations organizations[]
 }
@@ -26,6 +26,7 @@ model organizations {
   data       Json
   questions  Json
   deleted_at DateTime? @db.Timestamptz(6)
+  onboard    Json      @default("\"{ qa: false, profile: false }\"")
   client     clients   @relation(fields: [id_client], references: [id], onDelete: Cascade)
 }
 

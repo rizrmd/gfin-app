@@ -3,15 +3,36 @@ import type { FC } from "react";
 
 export const AppLogo: FC<{
   text?: boolean;
-  small?: boolean;
+  large?: boolean;
   className?: string;
-}> = ({ text, small, className }) => {
+}> = ({ text, large, className }) => {
   return (
-    <div className={cn("flex items-center gap-2 font-medium select-none", className)}>
-      <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg">
-        <img draggable={false} src={"/img/logo-gram.svg"} alt="" className="h-full w-full" />
+    <div
+      className={cn(
+        "flex items-center font-medium select-none",
+        large ? "gap-1" : "gap-2",
+        className
+      )}
+    >
+      <div
+        className={cn(
+          "flex  items-center justify-center rounded-lg",
+          large ? "h-[30px] w-[30px]" : "h-[25px] w-[25px]"
+        )}
+      >
+        <img
+          draggable={false}
+          src={"/img/logo-gram.svg"}
+          alt=""
+          className="h-full w-full"
+        />
       </div>
-      <span className="bg-gradient-to-r from-[#9747FF] to-[#0A0A89] bg-clip-text text-2xl font-extrabold text-transparent">
+      <span
+        className={cn(
+          "bg-gradient-to-r from-[#9747FF] to-[#0A0A89] bg-clip-text  font-extrabold text-transparent",
+          !large ? "text-base" : "text-2xl"
+        )}
+      >
         GoFundItNow
       </span>
     </div>
