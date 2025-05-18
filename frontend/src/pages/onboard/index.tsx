@@ -22,7 +22,7 @@ export default () => {
         header={
           <>
             <AppLogo className="hidden md:flex" />
-            <div className="md:absolute inset-0 flex items-center justify-center">
+            <div className="md:absolute pointer-events-none inset-0 flex items-center justify-center">
               <Badge variant={"outline"} className="text-base font-semibold">
                 {user.organization.name}
               </Badge>

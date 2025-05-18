@@ -23,7 +23,6 @@ export const AiConversationBox: FC<{
     recorder.startRecording();
   }, []);
 
-  console.log(recorder.mediaRecorder);
   return (
     <>
       <div
