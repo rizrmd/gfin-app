@@ -4,13 +4,6 @@ import { TaskProgress } from "@/components/custom/ai/task-progress";
 import { TextShimmer } from "@/components/custom/ai/text-shimmer";
 import { BodyFrame } from "@/components/custom/frame/body-frame";
 import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
@@ -20,9 +13,7 @@ import {
   ArrowRight,
   Bot,
   ChevronRight,
-  Mic,
-  Scroll,
-  Slash,
+  Mic
 } from "lucide-react";
 export default () => {
   const ai = aiOnboard();
