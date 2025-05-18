@@ -1,12 +1,11 @@
 import { useConversation } from "@11labs/react";
 import { useEffect } from "react";
+import { api } from "../gen/api";
 import { useLocal } from "../hooks/use-local";
 import { user } from "../user";
-import { localzip } from "./localzip";
-import { useAI } from "./use-ai";
-import { api } from "../gen/api";
 import { aiOnboardLocal } from "./onboard/local";
 import { onboardQA } from "./onboard/qa";
+import { useAI } from "./use-ai";
 
 const questions = [
   "What sets your company apart from others in the same field? Any unique qualifications, proprietary technologies, or differentiators that make your company stand out",
@@ -26,6 +25,11 @@ export const aiOnboard = () => {
 
   useEffect(() => {
     const start = async () => {
+      const res = await api.ai_onboard({
+        mode: "status",
+        id: user.organization!.id!,
+      });
+
       if (local.permission !== "granted") {
         const timeout = setTimeout(() => {
           local.permission = "requesting";
@@ -48,11 +52,6 @@ export const aiOnboard = () => {
         return;
       }
 
-      const res = await api.ai_onboard({
-        mode: "status",
-        id: user.organization!.id!,
-      });
-
       if (res?.organization?.onboard) {
         local.phase = res?.organization?.onboard;
         local.render();
@@ -74,5 +73,6 @@ export const aiOnboard = () => {
     messages: local.messages,
     permission: local.permission,
     restart: () => local.start(),
+    phase: local.phase,
   };
 };

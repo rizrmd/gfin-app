@@ -20,7 +20,6 @@ export const onboardQA = async ({
     for (const question in qa_session) {
       local.qa_session[question] = qa_session[question];
     }
-    console.log("QA session loaded", local.qa_session);
   }
 
   const gfin_msgs = localzip.get("gfin-ai-msgs");
@@ -65,44 +64,40 @@ Do your best to summarize our last conversation in a single sentence, ignore chi
     .map((e, idx) => `${idx + 1}. ${e.replace(/"/g, "'")}`)
     .join("\n ");
 
-  conv
-    .startSession({
-      agentId: "agent_01jvcrfcp1ere9ys6m72dejez9",
-      dynamicVariables: {
-        user_name,
-        org_name: user.organization.data!.entityInformation.entityName,
-        state: user.organization.data!.filingInformation.state,
-        questions: textQuestions,
-      },
-      overrides: firstMessage
-        ? {
-            agent: {
-              firstMessage,
-            },
-          }
-        : undefined,
-      clientTools: {
-        answer: async (params) => {
-          local.qa_session[params.question] = params.answer;
-          localzip.set("gfin-ai-qa-session", local.qa_session);
-          local.render();
-        },
-      },
-      onMessage(props) {
-        local.messages.push({ ...props, ts: Date.now() });
-        local.render();
-        if (local.messages.find((e) => e.source === "user")) {
-          localzip.set("gfin-ai-msgs", local.messages);
+  conv.startSession({
+    agentId: "agent_01jvcrfcp1ere9ys6m72dejez9",
+    dynamicVariables: {
+      user_name,
+      org_name: user.organization.data!.entityInformation.entityName,
+      state: user.organization.data!.filingInformation.state,
+      questions: textQuestions,
+    },
+    overrides: firstMessage
+      ? {
+          agent: {
+            firstMessage,
+          },
         }
+      : undefined,
+    clientTools: {
+      answer: async (params) => {
+        local.qa_session[params.question] = params.answer;
+        localzip.set("gfin-ai-qa-session", local.qa_session);
+        local.render();
       },
-      onError(message, context) {
-        console.error("Error in conversation", message, context);
-      },
-      onDisconnect() {
-        local.storeQA(true);
-      },
-    })
-    .then((id) => {
-      console.log("Session started", id);
-    });
+    },
+    onMessage(props) {
+      local.messages.push({ ...props, ts: Date.now() });
+      local.render();
+      if (local.messages.find((e) => e.source === "user")) {
+        localzip.set("gfin-ai-msgs", local.messages);
+      }
+    },
+    onError(message, context) {
+      console.error("Error in conversation", message, context);
+    },
+    onDisconnect() {
+      local.storeQA(true);
+    },
+  });
 };

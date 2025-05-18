@@ -4,12 +4,19 @@ import { TaskProgress } from "@/components/custom/ai/task-progress";
 import { TextShimmer } from "@/components/custom/ai/text-shimmer";
 import { BodyFrame } from "@/components/custom/frame/body-frame";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
 import { aiOnboard } from "@/lib/ai/onboard";
 import { Protected, user } from "@/lib/user";
-import { ArrowRight, Mic } from "lucide-react";
+import { ArrowRight, ChevronRight, Mic, Scroll, Slash } from "lucide-react";
 export default () => {
   const ai = aiOnboard();
 
@@ -29,8 +36,33 @@ export default () => {
           </>
         }
       >
-        <Card className="flex items-center justify-center p-2 relative  min-h-[400px] h-[60vh] w-[400px]  border-0">
-          {ai.permission === "granted" && <AiConversationBox ai={ai} />}
+        <Card className="flex flex-col justify-center p-2 relative  min-h-[400px] h-[60vh] w-[400px]  border-0">
+          <div className="absolute -top-7 -ml-2 select-none items-start flex w-full justify-between">
+            <div className="flex gap-2">
+              <span className="font-extrabold">Onboard</span>
+              {ai.permission === "granted" ? (
+                <span className="font-light">
+                  {!ai.phase.qa ? "Q/A" : "Profile"}{" "}
+                </span>
+              ) : (
+                <span className="font-light">Starting...</span>
+              )}
+            </div>
+
+            {ai.permission === "granted" && (
+              <Button size={"xs"} variant="ghost">
+                Summary
+                <ChevronRight />
+              </Button>
+            )}
+          </div>
+          {ai.permission === "granted" && (
+            <>
+              {!ai.phase.qa && !ai.phase.profile && (
+                <AiConversationBox ai={ai} />
+              )}
+            </>
+          )}
           {ai.permission === "requesting" && (
             <div className="flex flex-col items-stretch px-10 justify-center gap-10">
               <div className="text-3xl font-bold">

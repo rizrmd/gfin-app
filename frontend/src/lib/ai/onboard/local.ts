@@ -43,6 +43,10 @@ export const aiOnboardLocal = ({
         local.render();
 
         if (user.organization.id) {
+          if (isDone) {
+            local.phase.qa = true;
+          }
+
           api.ai_onboard({
             mode: "update",
             id: user.organization.id,
