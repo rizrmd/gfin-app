@@ -30,7 +30,7 @@ export default defineAPI({
           // If mode is "get", fetch the organization
           const organization = await db.organizations.findUnique({
             where: { id: org.id },
-            select: { onboard: true },
+            select: { onboard: true, questions: true },
           });
 
           if (!organization) {

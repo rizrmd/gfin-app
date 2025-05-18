@@ -7,17 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
-import { aiOnboard } from "@/lib/ai/onboard";
+import { aiOnboard, questions } from "@/lib/ai/onboard";
 import { Protected, user } from "@/lib/user";
-import {
-  ArrowRight,
-  Bot,
-  ChevronRight,
-  Mic
-} from "lucide-react";
+import { ArrowRight, Bot, Mic } from "lucide-react";
 export default () => {
   const ai = aiOnboard();
+  const { permission, phase, qa_final: qa_session, start, messages } = ai.local;
 
+  const qa_len = Object.keys(qa_session).length;
   return (
     <Protected>
       <BodyFrame
@@ -35,41 +32,45 @@ export default () => {
         }
       >
         <Card className="flex flex-col justify-center p-2 relative  w-[94%] h-[calc(100vh-120px)] mt-10 md:mt-0 md:min-h-[400px] md:h-[60vh] md:w-[400px]  border-0">
-          <div className="absolute -top-7 -ml-2 select-none items-start flex w-full justify-between">
+          <div className="absolute -top-9 -ml-2 select-none items-start flex w-full justify-between">
             <div className="flex gap-2">
               <span className="font-extrabold">Onboard</span>
-              {ai.permission === "granted" ? (
-                <span className="font-light">
-                  {!ai.phase.qa ? "Q/A" : "Profile"}{" "}
-                </span>
+              {permission === "granted" ? (
+                <div className="font-light">
+                  {!phase.qa ? <span>Q&A</span> : "Profile"}{" "}
+                </div>
               ) : (
                 <span className="font-light">Starting...</span>
               )}
             </div>
 
-            {ai.permission === "granted" && (
-              <Button size={"xs"} variant="ghost">
-                Summary
-                <ChevronRight />
-              </Button>
+            {permission === "granted" && (
+              <>
+                {!phase.qa ? (
+                  <Badge
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-indigo-800 hover:text-white transition-all"
+                  >
+                    {!qa_len ? "~" : qa_len} of {questions.length} questions
+                  </Badge>
+                ) : (
+                  <></>
+                )}
+              </>
             )}
           </div>
-          {ai.permission === "granted" && (
-            <>
-              {!ai.phase.qa && !ai.phase.profile && (
-                <AiConversationBox ai={ai} />
-              )}
-            </>
+          {permission === "granted" && (
+            <>{!phase.qa && !phase.profile && <AiConversationBox ai={ai} />}</>
           )}
-          {ai.permission === "pending" && (
-            <div className="flex items-center flex-1 justify-center">
+          {(permission === "pending" || messages.length === 0) && (
+            <div className="flex items-center flex-1 justify-center select-none">
               <div className="flex items-bottom gap-2">
                 <Bot />
                 <TextShimmer>Initializing...</TextShimmer>
               </div>
             </div>
           )}
-          {ai.permission === "requesting" && (
+          {permission === "requesting" && (
             <div className="flex flex-col items-stretch px-10 justify-center gap-10">
               <div className="text-3xl font-bold">
                 Hello <span className="font-light">{user.fullName}</span>,
@@ -86,7 +87,7 @@ export default () => {
               </Badge>
             </div>
           )}
-          {ai.permission === "denied" && (
+          {permission === "denied" && (
             <div className="flex flex-col items-stretch px-10 justify-center gap-10">
               <div className="text-3xl font-bold">
                 Hello <span className="font-light">{user.fullName}</span>,
@@ -101,9 +102,9 @@ export default () => {
                 <Button
                   className="flex flex-col h-auto items-start"
                   onClick={() => {
-                    ai.restart();
+                    start();
 
-                    if (ai.permission === "denied") {
+                    if (permission === "denied") {
                       Alert.info(
                         "You may need to reset permission in your browser to access your microphone."
                       );

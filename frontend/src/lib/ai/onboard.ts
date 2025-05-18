@@ -7,7 +7,7 @@ import { aiOnboardLocal } from "./onboard/local";
 import { onboardQA } from "./onboard/qa";
 import { useAI } from "./use-ai";
 
-const questions = [
+export const questions = [
   "What sets your company apart from others in the same field? Any unique qualifications, proprietary technologies, or differentiators that make your company stand out",
   "Have you worked with government agencies, grant officers or contractors before? If so, can you give an example of a successful project or partnership?",
   "Are there any specific types of contracts or grants that interest you the most (e.g., sole-source, competitive, teaming agreements)?",
@@ -57,6 +57,11 @@ export const aiOnboard = () => {
         local.render();
       }
 
+      if (res?.organization?.questions) {
+        local.qa_final = res?.organization?.questions;
+        local.render();
+      }
+
       if (!local.phase.qa) {
         await onboardQA({ questions, local, conv, ai });
       }
@@ -70,9 +75,6 @@ export const aiOnboard = () => {
 
   return {
     conv,
-    messages: local.messages,
-    permission: local.permission,
-    restart: () => local.start(),
-    phase: local.phase,
+    local,
   };
 };

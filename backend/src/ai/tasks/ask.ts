@@ -19,6 +19,6 @@ export default taskWorker<
     try {
       return JSON.parse(res.content);
     } catch (e) {}
-    return { answer: "failed to get answer" };
+    return res;
   },
 });

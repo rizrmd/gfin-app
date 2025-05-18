@@ -9,7 +9,8 @@ import TypeWriter from "typewriter-effect";
 export const AiConversationBox: FC<{
   ai: ReturnType<typeof aiOnboard>;
 }> = ({ ai }) => {
-  const { conv, messages } = ai;
+  const { conv, local } = ai;
+  const { messages } = local;
   const lastAi = messages.findLast((e) => e.source === "ai");
   const lastUser = messages.findLast((e) => e.source === "user");
   const last = messages.length > 0 ? messages[messages.length - 1] : undefined;
@@ -59,7 +60,7 @@ export const AiConversationBox: FC<{
             </div>
 
             {!last && (
-              <div className="my-5 flex gap-2 items-center">  
+              <div className="my-5 flex gap-2 items-center">
                 <Sparkle size={14} />
                 <TextShimmer className="text-sm">Thinking...</TextShimmer>
               </div>
