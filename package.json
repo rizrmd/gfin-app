@@ -7,13 +7,15 @@
     "db": "bun run --silent node_modules/rlib/server/db/cli.ts",
     "prisma": "cd shared && bun prisma",
     "ui": "cd frontend && bunx --bun shadcn@latest",
-    "link-rlib": "bun run --silent node_modules/rlib/utils/link-rlib.ts"
+    "link-rlib": "bun run --silent node_modules/rlib/utils/link-rlib.ts",
+    "link-ragent": "rm -rf node_modules/r-agent && ln -s /Users/riz/Developer/gfin-app/r-agent node_modules/r-agent"
   },
   "dependencies": {
     "bun-plugin-tailwind": "^0.0.15",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
     "msgpackr": "^1.11.3",
+    "r-agent": "https://github.com/rizrmd/r-agent",
     "rlib": "https://github.com/rizrmd/rlib.git",
     "valtio": "^2.1.4"
   },
