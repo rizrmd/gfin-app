@@ -5,7 +5,7 @@ import { api } from "@/lib/gen/api";
 import { useLocal } from "@/lib/hooks/use-local";
 import { user } from "@/lib/user";
 
-export const TaskProgress = () => {
+export const HeaderRight = () => {
   const ai = useAI();
 
   return (

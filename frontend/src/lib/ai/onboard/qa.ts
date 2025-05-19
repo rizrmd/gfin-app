@@ -235,7 +235,11 @@ ${JSON.stringify(local.qa_final)}
 
   if (typeof res === "object" && !res.content) {
     for (const q in res) {
-      if (!!res[q] && q.length > "Are you ready to start?".length) {
+      if (
+        !!res[q] &&
+        res[q] !== "null" &&
+        q.length > "Are you ready to start?".length
+      ) {
         local.qa_final[q] = res[q];
       }
     }

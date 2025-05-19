@@ -59,6 +59,15 @@ export const aiOnboard = () => {
 
       if (res?.organization?.questions) {
         local.qa_final = res?.organization?.questions;
+        for (const q in local.qa_final) {
+          if (
+            !local.qa_final[q] ||
+            local.qa_final[q] === "null" ||
+            q.length <= "Are you ready to get started?".length
+          ) {
+            delete local.qa_final[q];
+          }
+        }
         local.render();
       }
 
