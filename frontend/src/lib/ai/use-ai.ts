@@ -31,9 +31,13 @@ const aiClient = () => {
         console.error("Task init message without init_id", msg);
         return;
       } else {
-        taskPromises[msg.init_id!].id = msg.task_id;
-        taskPromises[msg.task_id] = taskPromises[msg.init_id!];
-        delete taskPromises[msg.init_id!];
+        if (taskPromises[msg.init_id]) {
+          taskPromises[msg.init_id].id = msg.task_id;
+          taskPromises[msg.task_id] = taskPromises[msg.init_id!];
+          delete taskPromises[msg.init_id!];
+        } else {
+          console.error("Task promises without init_id", msg, taskPromises);
+        }
       }
     } else if (msg.type === "taskProgress") {
       for (const callback of onProgress[msg.name] || []) {
