@@ -59,7 +59,11 @@ export const ConversationQA: FC<{
       {permission === "granted" && (
         <>
           {!summary && (
-            <>{!phase.qa && !phase.profile && <AiConversationBox ai={ai} />}</>
+            <>
+              {!phase.qa && !phase.profile && (
+                <AiConversationBox ai={ai} len={messages.length} />
+              )}
+            </>
           )}
         </>
       )}

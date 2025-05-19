@@ -10,6 +10,7 @@ import { LiveAudioVisualizer } from "./audio/live-audio";
 
 export const AiConversationBox: FC<{
   ai: ReturnType<typeof aiOnboard>;
+  len: number;
 }> = ({ ai }) => {
   const recorder = useAudioRecorder();
 
@@ -75,7 +76,7 @@ export const AiConversationBox: FC<{
                 <TextShimmer className="text-sm">Thinking...</TextShimmer>
               </div>
             )}
-            {last?.source === "ai" ? (
+            {last?.source === "ai" && last?.message ? (
               <TypeWriter
                 onInit={(typewriter) => {
                   typewriter.typeString(last.message).start();
@@ -109,7 +110,7 @@ export const AiConversationBox: FC<{
                   You
                 </Badge>
                 <div className="mt-2">
-                  {last?.source === "user" ? (
+                  {last?.source === "user" && last.message ? (
                     <TypeWriter
                       onInit={(typewriter) => {
                         typewriter.typeString(last.message).start();
