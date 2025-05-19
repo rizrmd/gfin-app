@@ -31,7 +31,11 @@ export default () => {
           </>
         }
       >
-        {ai.local.summary ? <SummaryQA ai={ai} /> : <ConversationQA ai={ai} />}
+        {ai.local.summary ? (
+          <SummaryQA ai={ai} len={ai.local.messages.length} />
+        ) : (
+          <ConversationQA ai={ai} />
+        )}
       </BodyFrame>
     </Protected>
   );

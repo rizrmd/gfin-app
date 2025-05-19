@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 export const SummaryQA: FC<{
   ai: ReturnType<typeof aiOnboard>;
+  len: number;
 }> = ({ ai }) => {
   const qa_final = { ...ai.local.qa_final };
   for (const q of questions) {
