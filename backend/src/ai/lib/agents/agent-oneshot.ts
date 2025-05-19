@@ -1,10 +1,15 @@
-import { BaseMessage, ChatGroqAI, HumanMessage, SystemMessage } from "r-agent";
+import {
+  BaseMessage,
+  ChatOpenRouterAI,
+  HumanMessage,
+  SystemMessage,
+} from "r-agent";
 
 export const createOneShotAgent = () => {
   return async <T extends object>(opt: { prompt: string; system?: string }) => {
-    const llm = new ChatGroqAI({
-      modelName: "meta-llama/llama-4-scout-17b-16e-instruct",
-      apiKey: process.env.GROQ_API_KEY,
+    const llm = new ChatOpenRouterAI({
+      modelName: "meta-llama/llama-4-scout",
+      apiKey: process.env.OPENROUTER_API_KEY,
     });
 
     const messages: BaseMessage[] = [

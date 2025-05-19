@@ -1,4 +1,4 @@
-import { BrowserAgent, ChatGroqAI } from "r-agent";
+import { BrowserAgent, ChatOpenRouterAI } from "r-agent";
 import type { SerializableAgentState } from "r-agent/browser_use/agent/serializable_views";
 import { AgentState } from "r-agent/browser_use/agent/views";
 
@@ -20,9 +20,9 @@ export const createAgentBrowser = () => {
     const { prompt, onStep } = opt;
     const maxSteps = opt.maxSteps || 10; // default 10
     return new Promise<T>((resolve, reject) => {
-      const llm = new ChatGroqAI({
-        modelName: "meta-llama/llama-4-scout-17b-16e-instruct",
-        apiKey: process.env.GROQ_API_KEY,
+      const llm = new ChatOpenRouterAI({
+        modelName: "meta-llama/llama-4-scout",
+        apiKey: process.env.OPENROUTER_API_KEY,
       });
 
       let agentState = opt.restore
