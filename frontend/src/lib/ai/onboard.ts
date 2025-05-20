@@ -33,7 +33,7 @@ export const aiOnboard = () => {
       if (local.mode === "") {
         return;
       }
-      
+
       local.queried = false;
       local.render();
       const res = await api.ai_onboard({
@@ -83,10 +83,10 @@ export const aiOnboard = () => {
         if (local.permission === "denied") {
           return;
         }
-      }
 
-      if (!local.phase.qa) {
-        await onboardQA({ questions, local, conv, ai });
+        if (!local.phase.qa) {
+          await onboardQA({ questions, local, conv, ai });
+        }
       }
     };
 
