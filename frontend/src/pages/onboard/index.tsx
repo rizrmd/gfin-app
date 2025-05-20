@@ -1,17 +1,12 @@
 import { AppLogo } from "@/components/app/logo";
-import { AiConversationBox } from "@/components/custom/ai/conv-box";
-import { ConversationQA } from "@/components/custom/ai/onboard/conversation-qa";
-import { SummaryQA } from "@/components/custom/ai/onboard/summary-qa";
 import { HeaderRight } from "@/components/custom/ai/header-right";
-import { TextShimmer } from "@/components/custom/ai/text-shimmer";
+import { ConversationQA } from "@/components/custom/ai/onboard/conversation-qa";
+import { PickMode } from "@/components/custom/ai/onboard/pick-mode";
+import { SummaryQA } from "@/components/custom/ai/onboard/summary-qa";
 import { BodyFrame } from "@/components/custom/frame/body-frame";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Alert } from "@/components/ui/global-alert";
-import { aiOnboard, questions } from "@/lib/ai/onboard";
+import { aiOnboard } from "@/lib/ai/onboard";
 import { Protected, user } from "@/lib/user";
-import { ArrowRight, Bot, Mic } from "lucide-react";
 
 export default () => {
   const ai = aiOnboard();
@@ -31,10 +26,26 @@ export default () => {
           </>
         }
       >
-        {ai.local.summary ? (
-          <SummaryQA ai={ai} len={ai.local.messages.length} />
+        {ai.local.mode === "" ? (
+          <>
+            <PickMode ai={ai} />
+          </>
         ) : (
-          <ConversationQA ai={ai} />
+          <>
+            {ai.local.mode === "auto" && (
+              <>
+                {ai.local.summary ? (
+                  <SummaryQA ai={ai} len={ai.local.messages.length} />
+                ) : (
+                  <ConversationQA ai={ai} />
+                )}
+              </>
+            )}
+
+            {ai.local.mode === "manual" && (
+              <SummaryQA ai={ai} len={ai.local.messages.length} />
+            )}
+          </>
         )}
       </BodyFrame>
     </Protected>

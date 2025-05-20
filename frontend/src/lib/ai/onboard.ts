@@ -30,26 +30,36 @@ export const aiOnboard = () => {
         id: user.organization!.id!,
       });
 
-      if (local.permission !== "granted") {
-        const timeout = setTimeout(() => {
-          local.permission = "requesting";
-          local.render();
-        }, 1000);
-
-        try {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
-          local.permission = "granted";
-          local.render();
-        } catch (e) {
-          console.error("Error requesting microphone access", e);
-          local.permission = "denied";
-          local.render();
-        }
-        clearTimeout(timeout);
+      if (local.mode === "") {
+        await new Promise<void>((resolve) => {
+          local.chooseMode = (mode) => {
+            local.mode = mode;
+            resolve();
+          };
+        });
       }
+      if (local.mode === "auto") {
+        if (local.permission !== "granted") {
+          const timeout = setTimeout(() => {
+            local.permission = "requesting";
+            local.render();
+          }, 1000);
 
-      if (local.permission === "denied") {
-        return;
+          try {
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            local.permission = "granted";
+            local.render();
+          } catch (e) {
+            console.error("Error requesting microphone access", e);
+            local.permission = "denied";
+            local.render();
+          }
+          clearTimeout(timeout);
+        }
+
+        if (local.permission === "denied") {
+          return;
+        }
       }
 
       if (res?.organization?.onboard) {

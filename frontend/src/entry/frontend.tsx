@@ -1,10 +1,4 @@
-/**
- * This file is the entry point for the React app, it sets up the root
- * element and renders the App component to the DOM.
- *
- * It is included in `src/index.html`.
- */
-
+import "./globals.css";
 import { css } from "goober";
 import { cn } from "../lib/utils";
 
@@ -13,7 +7,6 @@ import { cn } from "../lib/utils";
 
 import { Root } from "@/components/app/root";
 import { createRoot } from "react-dom/client";
-import "./globals.css";
 
 const elem = document.getElementById("root")!;
 const app = <Root />;

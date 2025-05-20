@@ -17,6 +17,8 @@ export const aiOnboardLocal = ({
     qa_user: {} as Record<string, string>,
     qa_final: {} as Record<string, string>,
     qa_done: false,
+    mode: "" as "" | "manual" | "auto",
+    chooseMode: (mode: "manual" | "auto") => {},
     phase: {
       qa: false,
       profile: false,

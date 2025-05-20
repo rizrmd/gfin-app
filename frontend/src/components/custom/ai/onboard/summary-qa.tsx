@@ -35,23 +35,29 @@ export const SummaryQA: FC<{
         )}
       ></div>
       <div className="absolute -top-7 select-none items-start flex w-full justify-between">
-        <Badge
-          variant="default"
-          onClick={() => {
-            ai.local.summary = false;
-            ai.local.render();
-          }}
-          className="cursor-pointer"
-        >
-          <ChevronLeft />
-          Back
-        </Badge>
+        {ai.local.mode === "auto" && (
+          <Badge
+            variant="default"
+            onClick={() => {
+              ai.local.summary = false;
+              ai.local.render();
+            }}
+            className="cursor-pointer"
+          >
+            <ChevronLeft />
+            Back
+          </Badge>
+        )}
 
         <div className="flex gap-2">
           <span className="font-extrabold">Summary</span>
           <div className="font-light">
             <span>Q&A</span>
           </div>
+          <Badge variant={"outline"}>
+            {Object.keys(ai.local.qa_final).length} of {questions.length}{" "}
+            questions
+          </Badge>
         </div>
 
         {local.saving && <Badge variant="secondary">Saving... </Badge>}
@@ -103,14 +109,27 @@ export const SummaryQA: FC<{
         )}
       </div>
       <div className="flex flex-col items-stretch overflow-auto bg-white absolute inset-0 z-10">
-        {Object.entries(qa_final).map(([q, a], idx) => {
+        {questions.map((q, idx) => {
+          let a = "";
+          if (!!qa_final[q]) {
+            a = qa_final[q] || "";
+          }
+
           return (
             <div
               key={q}
-              className={cn("flex flex-row", idx > 0 && " border-t")}
+              className={cn(
+                "flex flex-row",
+                idx > 0 && " border-t",
+                a.trim() && "bg-green-50"
+              )}
             >
               <div className="select-none border-r w-[50px] text-lg flex items-center justify-center">
-                {idx + 1}
+                {a.trim() ? (
+                  <CheckCircle size={20} className="text-green-700" />
+                ) : (
+                  <div>{idx + 1}</div>
+                )}
               </div>
               <div className="flex flex-col flex-1">
                 <div className="flex gap-2">
@@ -119,14 +138,14 @@ export const SummaryQA: FC<{
 
                 <TextareaAutosize
                   value={a}
-                  className="border p-3 m-2 hover:bg-blue-50 outline-none focus:bg-blue-50 focus:border-blue-600 rounded-md disabled:bg-white disabled:border-transparent"
+                  className="border p-3 m-2 bg-white hover:bg-blue-50 outline-none focus:bg-blue-50 focus:border-blue-600 rounded-md disabled:bg-white disabled:border-transparent"
                   disabled={local.saving}
                   onChange={(e) => {
                     ai.local.qa_final[q] = e.currentTarget.value;
+                    qa_final[q] = e.currentTarget.value;
                     local.changed = true;
                     ai.local.render();
                   }}
-                  onBlur={() => {}}
                 />
               </div>
             </div>
