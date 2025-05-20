@@ -8,7 +8,7 @@ export const AppLoading = () => {
       <AppLogo />
       <div className="flex items-center text-sm space-x-1">
         <Spinner className="w-[17px] h-[17px] opacity-50" />
-        <TextShimmer>Finding Opportunities</TextShimmer>
+        <TextShimmer>Please wait</TextShimmer>
       </div>
     </div>
   );

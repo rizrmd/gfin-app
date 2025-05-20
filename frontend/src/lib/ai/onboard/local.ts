@@ -14,6 +14,7 @@ export const aiOnboardLocal = ({
     messages: [] as { message: string; source: "user" | "ai"; ts: number }[],
     permission: "pending" as "pending" | "requesting" | "granted" | "denied",
     start: () => {},
+    queried: false,
     qa_user: {} as Record<string, string>,
     qa_final: {} as Record<string, string>,
     qa_done: false,

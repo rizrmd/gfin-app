@@ -28,7 +28,7 @@ export default () => {
       >
         {ai.local.mode === "" ? (
           <>
-            <PickMode ai={ai} />
+            <PickMode ai={ai} len={ai.local.messages.length} />
           </>
         ) : (
           <>

@@ -67,15 +67,15 @@ export const ConversationQA: FC<{
           )}
         </>
       )}
-      {permission !== "requesting" &&
-        (permission === "pending" || messages.length === 0) && (
-          <div className="flex items-center flex-1 justify-center select-none">
-            <div className="flex items-bottom gap-2">
-              <Bot />
-              <TextShimmer>Initializing...</TextShimmer>
-            </div>
+      {((messages.length === 0 && permission !== "denied") ||
+        permission === "pending") && (
+        <div className="flex items-center flex-1 justify-center select-none">
+          <div className="flex items-bottom gap-2">
+            <Bot />
+            <TextShimmer>Initializing...</TextShimmer>
           </div>
-        )}
+        </div>
+      )}
       {permission === "requesting" && (
         <div className="flex flex-col items-stretch px-10 justify-center gap-10">
           <div className="text-3xl font-bold">
@@ -126,7 +126,13 @@ export const ConversationQA: FC<{
               </div>
             </Button>
 
-            <Button variant={"secondary"}>
+            <Button
+              variant={"secondary"}
+              onClick={() => {
+                ai.local.chooseMode("manual");
+                ai.local.render();
+              }}
+            >
               <ArrowRight />
               <span>Continue Manually</span>
             </Button>

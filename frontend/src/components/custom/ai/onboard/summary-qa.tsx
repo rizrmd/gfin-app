@@ -1,3 +1,4 @@
+import { AppLoading } from "@/components/app/loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { api } from "@/lib/gen/api";
 import { useLocal } from "@/lib/hooks/use-local";
 import { user } from "@/lib/user";
 import { CheckCircle, ChevronLeft, Save } from "lucide-react";
-import { type FC } from "react";
+import { useEffect, type FC } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
@@ -24,12 +25,13 @@ export const SummaryQA: FC<{
     saving: false,
     changed: false,
   });
+
   return (
     <Card className="flex rounded-none relative flex-col justify-center max-w-[800px] w-[90%] h-[80vh] ">
       <div
         className={cn(
           "absolute -inset-1 z-0 rounded-lg blur transition-all pointer-events-none",
-          !local.saving
+          !local.saving && ai.local.queried
             ? "opacity-0 duration-[2s]"
             : "opacity-25  animate-pulse bg-gradient-to-r from-red-600 to-violet-600 "
         )}
@@ -109,48 +111,56 @@ export const SummaryQA: FC<{
         )}
       </div>
       <div className="flex flex-col items-stretch overflow-auto bg-white absolute inset-0 z-10">
-        {questions.map((q, idx) => {
-          let a = "";
-          if (!!qa_final[q]) {
-            a = qa_final[q] || "";
-          }
+        {!ai.local.queried ? (
+          <AppLoading />
+        ) : (
+          <>
+            {questions.map((q, idx) => {
+              let a = "";
+              if (!!qa_final[q]) {
+                a = qa_final[q] || "";
+              }
 
-          return (
-            <div
-              key={q}
-              className={cn(
-                "flex flex-row",
-                idx > 0 && " border-t",
-                a.trim() && "bg-green-50"
-              )}
-            >
-              <div className="select-none border-r w-[50px] text-lg flex items-center justify-center">
-                {a.trim() ? (
-                  <CheckCircle size={20} className="text-green-700" />
-                ) : (
-                  <div>{idx + 1}</div>
-                )}
-              </div>
-              <div className="flex flex-col flex-1">
-                <div className="flex gap-2">
-                  <span className="font-semibold text-lg p-3 pb-0">{q}</span>
+              return (
+                <div
+                  key={q}
+                  className={cn(
+                    "flex flex-row",
+                    idx > 0 && " border-t",
+                    a.trim() && "bg-green-50"
+                  )}
+                >
+                  <div className="select-none border-r w-[50px] text-lg flex items-center justify-center">
+                    {a.trim() ? (
+                      <CheckCircle size={20} className="text-green-700" />
+                    ) : (
+                      <div>{idx + 1}</div>
+                    )}
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex gap-2">
+                      <span className="font-semibold text-lg p-3 pb-0">
+                        {q}
+                      </span>
+                    </div>
+
+                    <TextareaAutosize
+                      value={a}
+                      className="border p-3 m-2 bg-white hover:bg-blue-50 outline-none focus:bg-blue-50 focus:border-blue-600 rounded-md disabled:bg-white disabled:border-transparent"
+                      disabled={local.saving}
+                      onChange={(e) => {
+                        ai.local.qa_final[q] = e.currentTarget.value;
+                        qa_final[q] = e.currentTarget.value;
+                        local.changed = true;
+                        ai.local.render();
+                      }}
+                    />
+                  </div>
                 </div>
-
-                <TextareaAutosize
-                  value={a}
-                  className="border p-3 m-2 bg-white hover:bg-blue-50 outline-none focus:bg-blue-50 focus:border-blue-600 rounded-md disabled:bg-white disabled:border-transparent"
-                  disabled={local.saving}
-                  onChange={(e) => {
-                    ai.local.qa_final[q] = e.currentTarget.value;
-                    qa_final[q] = e.currentTarget.value;
-                    local.changed = true;
-                    ai.local.render();
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
+          </>
+        )}
       </div>
     </Card>
   );

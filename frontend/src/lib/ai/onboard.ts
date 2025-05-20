@@ -25,19 +25,42 @@ export const aiOnboard = () => {
 
   useEffect(() => {
     const start = async () => {
+      local.chooseMode = (mode) => {
+        local.mode = mode;
+        local.render();
+        start();
+      };
+      if (local.mode === "") {
+        return;
+      }
+      
+      local.queried = false;
+      local.render();
       const res = await api.ai_onboard({
         mode: "status",
         id: user.organization!.id!,
       });
 
-      if (local.mode === "") {
-        await new Promise<void>((resolve) => {
-          local.chooseMode = (mode) => {
-            local.mode = mode;
-            resolve();
-          };
-        });
+      if (res?.organization?.onboard) {
+        local.phase = res?.organization?.onboard;
+        local.render();
       }
+      if (res?.organization?.questions) {
+        local.qa_final = res?.organization?.questions;
+        for (const q in local.qa_final) {
+          if (
+            !local.qa_final[q] ||
+            local.qa_final[q] === "null" ||
+            q.length <= "Are you ready to get started?".length
+          ) {
+            delete local.qa_final[q];
+          }
+        }
+        local.render();
+      }
+      local.queried = true;
+      local.render();
+
       if (local.mode === "auto") {
         if (local.permission !== "granted") {
           const timeout = setTimeout(() => {
@@ -60,25 +83,6 @@ export const aiOnboard = () => {
         if (local.permission === "denied") {
           return;
         }
-      }
-
-      if (res?.organization?.onboard) {
-        local.phase = res?.organization?.onboard;
-        local.render();
-      }
-
-      if (res?.organization?.questions) {
-        local.qa_final = res?.organization?.questions;
-        for (const q in local.qa_final) {
-          if (
-            !local.qa_final[q] ||
-            local.qa_final[q] === "null" ||
-            q.length <= "Are you ready to get started?".length
-          ) {
-            delete local.qa_final[q];
-          }
-        }
-        local.render();
       }
 
       if (!local.phase.qa) {
