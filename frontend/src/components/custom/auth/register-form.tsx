@@ -1,8 +1,6 @@
 import { EForm } from "@/components/ext/eform/EForm";
 import { Button } from "@/components/ui/button";
 import { useLocal } from "@/lib/hooks/use-local";
-import { navigate } from "@/lib/router";
-import { Wand2 } from "lucide-react";
 import type { FC } from "react";
 import { usBizUrl } from "shared/lib/biz_url";
 
@@ -12,6 +10,7 @@ const emptyForm = {
   lastName: "",
   workEmail: "",
   orgName: "",
+  orgWebsite: "",
   state: "",
 };
 
@@ -29,7 +28,7 @@ export const RegisterForm: FC<{
       }}
       className="space-y-4"
     >
-      {({ Field, read, submit, write }) => {
+      {({ Field, read, submit }) => {
         return (
           <>
             <Field
@@ -53,7 +52,12 @@ export const RegisterForm: FC<{
             <Field
               name="orgName"
               disabled={read.loading}
-              label="Organization Name"
+              label="Company Name"
+            />
+            <Field
+              name="orgWebsite"
+              disabled={read.loading}
+              label="Company Website"
             />
             <Field
               name="state"
@@ -66,7 +70,7 @@ export const RegisterForm: FC<{
               label="State"
             />
             <div className="flex gap-2">
-              <Button
+              {/* <Button
                 variant={"secondary"}
                 onClick={(e) => {
                   const fill = {
@@ -83,7 +87,7 @@ export const RegisterForm: FC<{
                 }}
               >
                 <Wand2 />
-              </Button>
+              </Button> */}
               <Button
                 type="submit"
                 className="flex-1"

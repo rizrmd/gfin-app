@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { user } from "@/lib/user";
+import { navigate } from "@/lib/router";
 
 export function NavUser({}) {
   return (
@@ -75,7 +76,12 @@ export function NavUser({}) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            user.logout();
+            navigate("/");
+          }}
+        >
           <LogOut />
           Log out
         </DropdownMenuItem>
