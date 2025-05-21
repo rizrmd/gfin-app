@@ -22,15 +22,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { user } from "@/lib/user";
 import { navigate } from "@/lib/router";
+import { useLocal } from "@/lib/hooks/use-local";
+import { useEffect } from "react";
 
 export function NavUser({}) {
+  const local = useLocal({});
+
+  useEffect(() => {
+    local.render();
+  }, []);
+
+  if (user.status !== "logged-in") return <></>;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <Button variant="outline" className="shadow-none px-0 min-w-0">
+        <div className="shadow-none px-0 min-w-0">
           <div className="font-semibold"> {user.initials}</div>
           <ChevronDown />
-        </Button>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"

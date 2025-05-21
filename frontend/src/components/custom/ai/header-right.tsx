@@ -1,14 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/global-alert";
 import { useAI } from "@/lib/ai/use-ai";
-import { api } from "@/lib/gen/api";
-import { useLocal } from "@/lib/hooks/use-local";
-import { user } from "@/lib/user";
 import { NavUser } from "../auth/nav-user";
 
 export const HeaderRight = () => {
-  const ai = useAI();
-
   return (
     <>
       <NavUser />

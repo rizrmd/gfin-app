@@ -10,25 +10,21 @@ import { Link, navigate } from "@/lib/router";
 import { PublicOnly, user } from "@/lib/user";
 
 export default () => {
-  const local = useLocal(
-    {
-      email: "",
-      showOtpModal: false,
+  const local = useLocal({
+    showOtpModal: false,
+    form: {
       loading: false,
+      email: "",
     },
-    async () => {
-      // async init function if needed
-    }
-  );
+  });
 
-  const handleLogin = async (form: any) => {
-    local.loading = true;
-    local.email = form.email;
+  const handleLogin = async () => {
+    // Set loading state from the form
+    local.form.loading = true;
     local.render();
-
     try {
       // Call the login API which will send an OTP
-      const loginResponse = await api.auth_login({ email: form.email });
+      const loginResponse = await api.auth_login({ email: local.form.email });
 
       if (loginResponse.success) {
         // Show OTP input dialog
@@ -42,19 +38,19 @@ export default () => {
     } catch (error: any) {
       Alert.info("Login failed", error.message);
     } finally {
-      local.loading = false;
+      local.form.loading = false;
       local.render();
     }
   };
 
   const handleVerifyOtp = async (otp: string) => {
-    local.loading = true;
+    local.form.loading = true;
     local.render();
 
     try {
       // Verify the OTP
       const verifyResponse = await api.auth_verify_otp({
-        email: local.email,
+        email: local.form.email,
         otp,
         userAgent: navigator.userAgent,
         ipAddress: "", // The server will get this from the request
@@ -70,7 +66,7 @@ export default () => {
           user: verifyResponse.user,
         });
 
-        navigate("/onboard/");
+        location.href = "/onboard/";
       } else {
         Alert.info(
           "Verification failed:" +
@@ -80,19 +76,25 @@ export default () => {
     } catch (error: any) {
       Alert.info("Verification failed", error.message);
     } finally {
-      local.loading = false;
+      local.form.loading = false;
       local.render();
     }
   };
 
   const handleResendOtp = async () => {
+    local.form.loading = true;
+    local.render();
+
     try {
-      await api.auth_resend_otp({ email: local.email });
+      await api.auth_resend_otp({ email: local.form.email });
       Alert.info(
         "Success:" + "A new verification code has been sent to your email."
       );
     } catch (error: any) {
       Alert.info("Failed to resend code", error.message);
+    } finally {
+      local.form.loading = false;
+      local.render();
     }
   };
 
@@ -116,20 +118,35 @@ export default () => {
             </div>
           </div>
 
-          <LoginForm onSubmit={handleLogin} />
+          <LoginForm
+            onSubmit={handleLogin}
+            form={local.form}
+            onInit={(form) => {
+              local.form = form;
+            }}
+          />
 
           <div className="text-sm mb-3">
-            Don't have an account?{" "}
-            <Link href="/auth/register" className="underline text-blue-500">
-              Sign up Now
-            </Link>
+            {local.form.loading ? (
+              <div className="flex items-center text-slate-500">
+                Do not refresh this page...
+              </div>
+            ) : (
+              <>
+                Don't have an account?{" "}
+                <Link href="/auth/register" className="underline text-blue-500">
+                  Sign up Now
+                </Link>
+              </>
+            )}
           </div>
         </Card>
 
         {/* OTP Verification Dialog */}
         <OtpInput
-          email={local.email}
+          email={local.form.email}
           isOpen={local.showOtpModal}
+          loading={local.form.loading}
           onSubmit={handleVerifyOtp}
           onCancel={() => {
             local.showOtpModal = false;

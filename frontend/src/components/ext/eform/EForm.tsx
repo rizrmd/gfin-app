@@ -11,6 +11,7 @@ export const EForm = <
   data: T;
   children: (opt: EFormChildren<T, K>) => ReactNode;
   onSubmit?: (opt: { read: DeepReadonly<T>; write: T }) => void;
+  onInit?: (opt: { read: DeepReadonly<T>; write: T }) => void;
   className?: string;
 }) => {
   const write = useRef(
@@ -21,6 +22,12 @@ export const EForm = <
     })
   ).current;
   const read = useSnapshot(write);
+
+  useEffect(() => {
+    if (opt.onInit) {
+      opt.onInit({ read: snapshot(write.data) as any, write: write.data });
+    }
+  }, []);
 
   const f = useRef(null as any);
   useEffect(() => {
@@ -47,7 +54,9 @@ export const EForm = <
         read: read.data as any,
         write: write.data as any,
       })}
-      <button type="submit" className="opacity-0 w-0 h-0 overflow-hidden">x</button>
+      <button type="submit" className="opacity-0 w-0 h-0 overflow-hidden">
+        x
+      </button>
     </form>
   );
 };

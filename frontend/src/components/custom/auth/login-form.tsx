@@ -1,8 +1,5 @@
 import { EForm } from "@/components/ext/eform/EForm";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/global-alert";
-import { useLocal } from "@/lib/hooks/use-local";
-import { navigate } from "@/lib/router";
 import { cn } from "@/lib/utils";
 import { css } from "goober";
 import type { FC } from "react";
@@ -10,19 +7,19 @@ import type { FC } from "react";
 const emptyForm = {
   loading: false,
   email: "",
-  password: "",
 };
 
-export const LoginForm: FC<{ onSubmit: (form: typeof emptyForm) => void }> = ({
-  onSubmit,
-}) => {
-  const local = useLocal(emptyForm, async () => {
-    // async init if needed
-  });
-
+export const LoginForm: FC<{
+  onSubmit: (form: typeof emptyForm) => void;
+  onInit: (form: typeof emptyForm) => void;
+  form: typeof emptyForm;
+}> = ({ onSubmit, form, onInit }) => {
   return (
     <EForm
-      data={local}
+      data={form}
+      onInit={({ write }) => {
+        onInit(write);
+      }}
       onSubmit={async ({ write, read }) => {
         onSubmit(write);
       }}
@@ -53,7 +50,7 @@ export const LoginForm: FC<{ onSubmit: (form: typeof emptyForm) => void }> = ({
               disabled={read.loading}
               onClick={submit}
             >
-              {read.loading ? "Logging in..." : "Sign In"}
+              {read.loading ? "Sending verification code..." : "Sign In"}
             </Button>
           </>
         );

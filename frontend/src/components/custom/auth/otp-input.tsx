@@ -23,6 +23,7 @@ interface OtpInputProps {
   onSubmit: (otp: string) => void;
   onCancel: () => void;
   onResend: () => void;
+  loading?: boolean;
 }
 
 export const OtpInput: FC<OtpInputProps> = ({
@@ -31,6 +32,7 @@ export const OtpInput: FC<OtpInputProps> = ({
   onSubmit,
   onCancel,
   onResend,
+  loading: externalLoading,
 }) => {
   const local = useLocal({
     otp: "",
@@ -53,13 +55,14 @@ export const OtpInput: FC<OtpInputProps> = ({
             write.loading = true;
             onSubmit(read.otp);
           }}
-          className="space-y-4 py-4"
+          className="space-y-4 py-4 flex items-center justify-center"
         >
           {({ Field, read, write, submit }) => (
             <>
               <InputOTP
                 maxLength={6}
                 value={read.otp}
+                className="flex items-center justify-center gap-2"
                 onChange={(value) => {
                   write.otp = value;
                 }}
@@ -80,14 +83,16 @@ export const OtpInput: FC<OtpInputProps> = ({
                 <Button
                   variant="outline"
                   onClick={onResend}
-                  disabled={read.loading}
+                  disabled={read.loading || externalLoading}
                   type="button"
                 >
-                  Resend Code
+                  {externalLoading ? "Sending..." : "Resend Code"}
                 </Button>
                 <Button
                   type="submit"
-                  disabled={read.loading || !read.otp?.length}
+                  disabled={
+                    read.loading || externalLoading || !read.otp?.length
+                  }
                   onClick={submit}
                 >
                   {read.loading ? "Verifying..." : "Verify"}
