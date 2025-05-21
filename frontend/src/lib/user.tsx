@@ -8,6 +8,11 @@ export const user = {
   get fullName() {
     return `${this.client.profile?.firstName} ${this.client.profile?.lastName}`;
   },
+  get initials() {
+    return `${this.client.profile?.firstName?.charAt(
+      0
+    )}${this.client.profile?.lastName?.charAt(0)}`;
+  },
   client: {} as Partial<
     Omit<clients, "profile"> & { profile: typeof blankProfile }
   >,
