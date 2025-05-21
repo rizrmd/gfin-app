@@ -60,7 +60,7 @@ export const RegisterForm: FC<{
               disabled={read.loading}
               label="Company Website"
             />
-            <Field
+            {/* <Field
               name="state"
               disabled={read.loading}
               dropdown={{
@@ -69,7 +69,7 @@ export const RegisterForm: FC<{
                 }),
               }}
               label="State"
-            />
+            /> */}
             <div className="text-sm mt-3">Already have an account? <Link href="/auth/login" className="underline text-blue-500">Sign in Here</Link></div>
             <div className="flex gap-2 my-3">
               {/* <Button

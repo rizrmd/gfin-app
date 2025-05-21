@@ -71,3 +71,26 @@ export async function sendOTPEmail(email: string, otp: string): Promise<boolean>
     return false;
   }
 }
+
+/**
+ * Send welcome email to newly registered users
+ */
+export async function sendWelcomeEmail(email: string, name: string): Promise<boolean> {
+  try {
+    // Read HTML template
+    const templatePath = path.join(process.cwd(), 'src/template/email/welcome-email.html');
+    let htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
+    
+    // Replace name placeholder
+    htmlTemplate = htmlTemplate.replace('[[name]]', name);
+    
+    return await sendEmail({
+      to: email,
+      subject: "Welcome to GoFundItNow!",
+      html: htmlTemplate
+    });
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+    return false;
+  }
+}

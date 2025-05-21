@@ -1,5 +1,7 @@
 import { defineAPI } from "rlib/server";
 import type { blankOrg } from "shared/lib/client_state";
+import { generateSecureToken } from "../../lib/utils/generate-token";
+import { sendWelcomeEmail } from "../../utils/email-sender";
 
 export default defineAPI({
   name: "register",
@@ -75,9 +77,36 @@ export default defineAPI({
         },
       });
 
+      // Generate a secure random token for automatic login
+      const token = generateSecureToken(48);
+      
+      // Set session expiration (7 days from now)
+      const sessionExpiresAt = new Date();
+      sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 7);
+      
+      // Get user agent safely
+      const req = this.req!;
+      const userAgent = req.headers.get("user-agent") || null;
+      
+      // Create a new session for automatic login
+      const session = await db.sessions.create({
+        data: {
+          client_id: newClient.id,
+          token,
+          expires_at: sessionExpiresAt,
+          user_agent: userAgent,
+        }
+      });
+
+      // Send welcome email asynchronously (don't await to speed up response)
+      sendWelcomeEmail(workEmail, firstName).catch(err => {
+        console.error("Error sending welcome email:", err);
+      });
+
       return {
         success: true,
         message: "Client and organization registered successfully.",
+        token: session.token, // Include the session token for automatic login
         client: {
           id: newClient.id,
           email: newClient.email,
