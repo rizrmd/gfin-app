@@ -11,6 +11,11 @@ import { Input } from "@/components/ui/input";
 import { EForm } from "@/components/ext/eform/EForm";
 import { useLocal } from "@/lib/hooks/use-local";
 import type { FC } from "react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 interface OtpInputProps {
   email: string;
@@ -50,18 +55,26 @@ export const OtpInput: FC<OtpInputProps> = ({
           }}
           className="space-y-4 py-4"
         >
-          {({ Field, read, submit }) => (
+          {({ Field, read, write, submit }) => (
             <>
-              <Field
-                name="otp"
-                disabled={read.loading}
-                label="Verification Code"
-                input={{
-                  placeholder: "Enter code",
-                  maxLength: 6,
-                  className: "text-center text-lg tracking-widest",
+              <InputOTP
+                maxLength={6}
+                value={read.otp}
+                onChange={(value) => {
+                  write.otp = value;
                 }}
-              />
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                </InputOTPGroup>
+                <InputOTPGroup>
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
 
               <DialogFooter className="flex flex-col sm:flex-row gap-2">
                 <Button

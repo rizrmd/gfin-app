@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/global-alert";
 import { useLocal } from "@/lib/hooks/use-local";
 import { navigate } from "@/lib/router";
+import { cn } from "@/lib/utils";
+import { css } from "goober";
 import type { FC } from "react";
 
 const emptyForm = {
@@ -14,7 +16,9 @@ const emptyForm = {
 export const LoginForm: FC<{ onSubmit: (form: typeof emptyForm) => void }> = ({
   onSubmit,
 }) => {
-  const local = useLocal(emptyForm);
+  const local = useLocal(emptyForm, async () => {
+    // async init if needed
+  });
 
   return (
     <EForm
