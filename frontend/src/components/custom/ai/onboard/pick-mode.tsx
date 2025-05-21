@@ -8,6 +8,7 @@ export const PickMode: FC<{
   ai: ReturnType<typeof aiOnboard>;
   len: number;
 }> = ({ ai }) => {
+  
   return (
     <Card className="flex relative flex-col justify-center w-[400px] h-[400px] ">
       <div

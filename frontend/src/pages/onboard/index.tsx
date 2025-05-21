@@ -10,6 +10,7 @@ import { Protected, user } from "@/lib/user";
 
 export default () => {
   const ai = aiOnboard();
+
   return (
     <Protected>
       <BodyFrame
@@ -43,7 +44,13 @@ export default () => {
             )}
 
             {ai.local.mode === "manual" && (
-              <SummaryQA ai={ai} len={ai.local.messages.length} />
+              <>
+                {!ai.local.phase.qa ? (
+                  <SummaryQA ai={ai} len={ai.local.messages.length} />
+                ) : (
+                  <></>
+                )}
+              </>
             )}
           </>
         )}

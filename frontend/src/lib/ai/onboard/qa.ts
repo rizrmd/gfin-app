@@ -65,7 +65,7 @@ there are ${
     dynamicVariables: {
       user_name: user.fullName,
       org_name: user.organization.data!.entityInformation.entityName,
-      state: user.organization.data!.filingInformation.state,
+      state: user.organization.data!.filingInformation?.state,
       questions: textQuestions,
     },
     overrides: firstMessage

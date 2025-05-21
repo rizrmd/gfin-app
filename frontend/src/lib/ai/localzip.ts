@@ -24,7 +24,7 @@ export const localzip = {
   },
 };
 
-function uint8ArrayToBase64(bytes: Uint8Array): string {
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
   let binary = "";
   const len = bytes.length;
   for (let i = 0; i < len; i++) {
@@ -38,7 +38,7 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
  * @param base64 The Base64 string to decode.
  * @returns The decoded Uint8Array.
  */
-function base64ToUint8Array(base64: string): Uint8Array {
+export function base64ToUint8Array(base64: string): Uint8Array {
   const binary_string = atob(base64);
   const len = binary_string.length;
   const bytes = new Uint8Array(len);

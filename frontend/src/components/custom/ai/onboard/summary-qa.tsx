@@ -6,8 +6,8 @@ import { questions, type aiOnboard } from "@/lib/ai/onboard";
 import { api } from "@/lib/gen/api";
 import { useLocal } from "@/lib/hooks/use-local";
 import { user } from "@/lib/user";
-import { CheckCircle, ChevronLeft, Save } from "lucide-react";
-import { useEffect, type FC } from "react";
+import { CheckCircle, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { type FC } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
@@ -37,7 +37,7 @@ export const SummaryQA: FC<{
         )}
       ></div>
       <div className="absolute -top-7 select-none items-start flex w-full justify-between">
-        {ai.local.mode === "auto" && (
+        {ai.local.mode === "auto" && !ai.local.phase.qa && (
           <Badge
             variant="default"
             onClick={() => {
@@ -63,6 +63,28 @@ export const SummaryQA: FC<{
         </div>
 
         {local.saving && <Badge variant="secondary">Saving... </Badge>}
+        {!local.changed &&
+          !local.saving &&
+          Object.keys(ai.local.qa_final).length >= questions.length && (
+            <>
+              <Button
+                variant="default"
+                className="-mt-[10px]"
+                size="sm"
+                onClick={async () => {
+                  if (ai.conv.getId()) {
+                    await ai.conv.endSession();
+                  }
+                  ai.local.summary = false;
+                  ai.local.phase.qa = true;
+                  ai.local.render();
+                }}
+              >
+                <span>Next</span>
+                <ChevronRight />
+              </Button>
+            </>
+          )}
         {local.changed && !local.saving && (
           <Button
             size="xs"
@@ -106,7 +128,7 @@ export const SummaryQA: FC<{
             }}
           >
             <Save />
-            Save{" "}
+            Save
           </Button>
         )}
       </div>
