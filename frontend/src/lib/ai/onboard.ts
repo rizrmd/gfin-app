@@ -25,6 +25,10 @@ export const aiOnboard = () => {
 
   useEffect(() => {
     const start = async () => {
+      if (!user.organization) {
+        await user.init();
+      }
+
       local.chooseMode = (mode) => {
         local.mode = mode;
         local.render();

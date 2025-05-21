@@ -54,16 +54,7 @@ export const user = {
         if (sessionResponse?.success && sessionResponse.user) {
           user.status = "logged-in";
           user.client = sessionResponse.user as any;
-
-          // If we have organization data from a previous session
-          const orgData = localStorage.getItem("gfin_org");
-          if (orgData) {
-            try {
-              user.organization = JSON.parse(orgData);
-            } catch (e) {
-              console.error("Failed to parse organization data", e);
-            }
-          }
+          user.organization = sessionResponse.organization as any;
         } else {
           // Invalid session, clean up
           user.status = "logged-out";

@@ -10,14 +10,13 @@ import { useEffect } from "react";
 
 export default () => {
   useEffect(() => {
-    user.init();
-
-    console.log(user.status)
-    if (user.status === "logged-in") {
-      navigate("/onboard/");
-    } else if (user.status === "logged-out") {
-      navigate("/auth/login/");
-    }
+    user.init().then(() => {
+      if (user.status === "logged-in") {
+        navigate("/onboard/");
+      } else if (user.status === "logged-out") {
+        navigate("/auth/login/");
+      }
+    });
   }, []);
 
   return (

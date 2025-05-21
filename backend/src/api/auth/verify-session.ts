@@ -14,8 +14,10 @@ export default defineAPI({
     const session = await db.sessions.findFirst({
       where: { token },
       include: {
-        client: true
-      }
+        client: {
+          include: { organizations: true },
+        },
+      },
     });
 
     if (!session) {
@@ -26,7 +28,7 @@ export default defineAPI({
     if (new Date(session.expires_at) < new Date()) {
       // Delete the expired session
       await db.sessions.delete({
-        where: { id: session.id }
+        where: { id: session.id },
       });
       throw new Error("Session has expired");
     }
@@ -40,8 +42,8 @@ export default defineAPI({
       where: { id: session.id },
       data: {
         expires_at: newExpiresAt,
-        updated_at: new Date()
-      }
+        updated_at: new Date(),
+      },
     });
 
     // Return user data
@@ -51,8 +53,9 @@ export default defineAPI({
       user: {
         id: client.id,
         email: client.email,
-        profile: client.profile
-      }
+        profile: client.profile,
+      },
+      organization: client.organizations[0],
     };
   },
 });

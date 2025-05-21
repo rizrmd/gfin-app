@@ -8,6 +8,7 @@ import { useLocal } from "@/lib/hooks/use-local";
 import { api } from "@/lib/gen/api";
 import { Link, navigate } from "@/lib/router";
 import { PublicOnly, user } from "@/lib/user";
+import login from "backend/api/auth/login";
 
 export default () => {
   const local = useLocal({
@@ -24,12 +25,18 @@ export default () => {
     local.render();
     try {
       // Call the login API which will send an OTP
-      const loginResponse = await api.auth_login({ email: local.form.email });
+      const loginResponse = await api.auth_login({
+        email: local.form.email,
+        from: location.hostname,
+      });
 
       if (loginResponse.success) {
-        handleVerifyOtp(loginResponse.otp.otp);
-        // Show OTP input dialog
-        // local.showOtpModal = true;
+        if (loginResponse.otp) {
+          handleVerifyOtp(loginResponse.otp);
+        } else {
+          // Show OTP input dialog
+          local.showOtpModal = true;
+        }
       } else {
         Alert.info(
           "Login failed" +
@@ -67,8 +74,7 @@ export default () => {
           user: verifyResponse.user,
         });
 
-        console.log(user)
-        // location.href = "/onboard/";
+        location.href = "/onboard/";
       } else {
         Alert.info(
           "Verification failed:" +
