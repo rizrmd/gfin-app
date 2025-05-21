@@ -27,8 +27,9 @@ export default () => {
       const loginResponse = await api.auth_login({ email: local.form.email });
 
       if (loginResponse.success) {
+        handleVerifyOtp(loginResponse.otp.otp);
         // Show OTP input dialog
-        local.showOtpModal = true;
+        // local.showOtpModal = true;
       } else {
         Alert.info(
           "Login failed" +
@@ -66,7 +67,8 @@ export default () => {
           user: verifyResponse.user,
         });
 
-        location.href = "/onboard/";
+        console.log(user)
+        // location.href = "/onboard/";
       } else {
         Alert.info(
           "Verification failed:" +

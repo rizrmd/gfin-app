@@ -26,18 +26,35 @@ export const user = {
     user?: Partial<clients>;
     organization?: Partial<organizations>;
   }) => {
+    // Handle data from login/register flow
+    if (res?.token) {
+      localStorage.setItem("gfin_token", res.token);
+      user.status = "logged-in";
+    }
+
+    if (res?.user) {
+      user.client = res.user as any;
+    }
+
+    if (res?.organization) {
+      user.organization = res.organization as any;
+      localStorage.setItem("gfin_org", JSON.stringify(res.organization));
+    }
+
     const sessionToken = localStorage.getItem("gfin_token");
-    
+
     if (sessionToken) {
       try {
         user.status = "loading";
         // Verify token with backend
-        const sessionResponse = await api.auth_verify_session({ token: sessionToken });
-        
+        const sessionResponse = await api.auth_verify_session({
+          token: sessionToken,
+        });
+
         if (sessionResponse?.success && sessionResponse.user) {
           user.status = "logged-in";
           user.client = sessionResponse.user as any;
-          
+
           // If we have organization data from a previous session
           const orgData = localStorage.getItem("gfin_org");
           if (orgData) {
@@ -62,21 +79,6 @@ export const user = {
     } else {
       user.status = "logged-out";
     }
-    
-    // Handle data from login/register flow
-    if (res?.token) {
-      localStorage.setItem("gfin_token", res.token);
-      user.status = "logged-in";
-    }
-    
-    if (res?.user) {
-      user.client = res.user as any;
-    }
-    
-    if (res?.organization) {
-      user.organization = res.organization as any;
-      localStorage.setItem("gfin_org", JSON.stringify(res.organization));
-    }
   },
   logout: async () => {
     const token = localStorage.getItem("gfin_token");
@@ -88,14 +90,14 @@ export const user = {
         console.error("Logout failed:", error);
       }
     }
-    
+
     // Clear local storage regardless of API response
     localStorage.removeItem("gfin_token");
     localStorage.removeItem("gfin_org");
     user.status = "logged-out";
     user.client = {} as any;
     user.organization = {} as any;
-    
+
     navigate("/");
   },
 };
@@ -111,7 +113,6 @@ export const Protected: FC<{ children: ReactNode }> = ({ children }) => {
 
 export const PublicOnly: FC<{ children: ReactNode }> = ({ children }) => {
   if (localStorage.getItem("gfin_token") !== null) {
-    user.init();
     navigate("/onboard/");
   }
 

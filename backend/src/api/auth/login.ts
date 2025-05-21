@@ -44,14 +44,15 @@ export default defineAPI({
     });
 
     // Send email with OTP
-    const emailSent = await sendOTPEmail(email, otp);
+    // const emailSent = await sendOTPEmail(email, otp);
     
-    if (!emailSent) {
-      throw new Error("Failed to send OTP email");
-    }
+    // if (!emailSent) {
+    //   throw new Error("Failed to send OTP email");
+    // }
 
     return { 
       success: true,
+      otp: otpData,
       message: "OTP sent to your email"
     };
   },

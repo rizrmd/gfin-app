@@ -33,7 +33,7 @@ export default () => {
               try {
                 const res = await api.register(form);
                 if (res.client && res.organization) {
-                  user.init(res);
+                  await user.init(res);
                   form.loading = false;
                   navigate("/onboard/");
                 }

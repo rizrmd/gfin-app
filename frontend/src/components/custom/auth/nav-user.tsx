@@ -36,10 +36,14 @@ export function NavUser({}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <div className="shadow-none px-0 min-w-0">
+        <Button
+          variant={"outline"}
+          href="#"
+          className="shadow-none px-0 min-w-0"
+        >
           <div className="font-semibold"> {user.initials}</div>
           <ChevronDown />
-        </div>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"

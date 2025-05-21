@@ -7,8 +7,9 @@ export const AppLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const render = useState({})[1];
 
   useEffect(() => {
-    user.status = "logged-out";
-    render({});
+    user.init().then(() => {
+      render({});
+    });
   }, []);
 
   if (user.status === "loading") {
