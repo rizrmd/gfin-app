@@ -17,6 +17,19 @@ model clients {
   deleted_at    DateTime?       @db.Timestamptz(6)
   ai_task       ai_task[]
   organizations organizations[]
+  sessions      sessions[]
+}
+
+model sessions {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_id   String    @db.Uuid
+  token       String    @unique
+  expires_at  DateTime  @db.Timestamptz(6)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @updatedAt @db.Timestamptz(6)
+  user_agent  String?
+  ip_address  String?
+  client      clients   @relation(fields: [client_id], references: [id], onDelete: Cascade)
 }
 
 model organizations {

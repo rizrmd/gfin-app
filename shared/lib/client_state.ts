@@ -17,6 +17,7 @@ export const blankOrg = {
     entityNumber: "",
     feiNumber: "",
     status: "",
+    entityWebsite: "",
     legalStructure: {
       type: "",
       yearEstablished: "",

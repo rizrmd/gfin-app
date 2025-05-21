@@ -1,5 +1,4 @@
 import { defineAPI } from "rlib/server";
-import { PrismaClient } from "../../../shared/models"; // Adjusted path
 import type { blankOrg } from "shared/lib/client_state";
 
 export default defineAPI({
@@ -12,11 +11,12 @@ export default defineAPI({
     workEmail: string;
     password?: string; // Added password field
     orgName: string;
-    state: string;
+    orgWebsite: string; // Added orgWebsite field
   }) {
-    const { workEmail, firstName, lastName, orgName, state, password } = data;
+    const { workEmail, firstName, lastName, orgName, password, orgWebsite } =
+      data;
 
-    if (!workEmail || !firstName || !lastName || !orgName || !state) {
+    if (!workEmail || !firstName || !lastName || !orgName) {
       throw new Error("All fields are required.");
     }
 
@@ -26,7 +26,7 @@ export default defineAPI({
         organizations: true,
       },
     });
-    if (exists) { 
+    if (exists) {
       return {
         success: true,
         message: "Client and organization loaded successfully.",
@@ -66,8 +66,10 @@ export default defineAPI({
           id_client: newClient.id,
           name: orgName,
           data: {
-            entityInformation: { entityName: orgName },
-            filingInformation: { state: state },
+            entityInformation: {
+              entityName: orgName,
+              entityWebsite: orgWebsite,
+            },
           } as typeof blankOrg, // Default empty data
           questions: {}, // Default empty questions
         },
