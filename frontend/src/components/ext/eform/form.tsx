@@ -48,9 +48,6 @@ export const EForm = <
 
   useEffect(() => {
     opt.onInit?.({ read: read.data as any, write: write.data });
-  }, []);
-
-  useEffect(() => {
     write.Input = ref(InputField.bind(write));
     write.SingleSelect = ref(SingleSelect.bind(write));
     write.MultipleSelect = ref(MultipleSelect.bind(write));
@@ -58,6 +55,9 @@ export const EForm = <
     write.MonthYearSelect = ref(MonthYearSelect.bind(write));
     write.Checkbox = ref(CheckboxLabel.bind(write));
     write.UploadFile = ref(UploadFile.bind(write));
+  }, []);
+
+  useEffect(() => {
     write.submit = ref(() => {
       opt.onSubmit?.({ read: read.data as any, write: write.data });
     });
