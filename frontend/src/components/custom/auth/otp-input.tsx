@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { EForm } from "@/components/ext/eform/EForm";
+import { EForm } from "@/components/ext/eform/form";
 import { useLocal } from "@/lib/hooks/use-local";
 import type { FC } from "react";
 import {

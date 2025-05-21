@@ -1,4 +1,4 @@
-import { EForm } from "@/components/ext/eform/EForm";
+import { EForm } from "@/components/ext/eform/form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { css } from "goober";
@@ -38,10 +38,8 @@ export const LoginForm: FC<{
             <Field
               name="email"
               disabled={read.loading}
-              input={{
-                type: "email",
-                placeholder: "Email",
-              }}
+              type={"email"}
+              placeholder="Email"
               label=""
             />
             <Button

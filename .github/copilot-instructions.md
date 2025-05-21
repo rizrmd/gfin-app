@@ -85,7 +85,7 @@ import type { User } from "better-auth/types";
 If you need to create form, use this example:
 
 ```
-import { EForm } from "@/components/ext/eform/EForm";
+import { EForm } from "@/components/ext/eform/form";
  <EForm
     data={{ username: username || "", password: "", loading: false }}
     onSubmit={async ({ write, read }) => {

@@ -1,4 +1,4 @@
-import { EForm } from "@/components/ext/eform/EForm";
+import { EForm } from "@/components/ext/eform/form";
 import { Button } from "@/components/ui/button";
 import { useLocal } from "@/lib/hooks/use-local";
 import { Link } from "@/lib/router";
@@ -42,14 +42,8 @@ export const RegisterForm: FC<{
               name="workEmail"
               disabled={read.loading}
               label="Work Email"
-              input={{ type: "email" }}
+              type="email"
             />
-            {/* <Field
-              name="password"
-              disabled={read.loading}
-              label="Password"
-              input={{ type: "password" }}
-            /> */}
             <Field
               name="orgName"
               disabled={read.loading}
@@ -70,7 +64,12 @@ export const RegisterForm: FC<{
               }}
               label="State"
             /> */}
-            <div className="text-sm mt-3">Already have an account? <Link href="/auth/login" className="underline text-blue-500">Sign in Here</Link></div>
+            <div className="text-sm mt-3">
+              Already have an account?{" "}
+              <Link href="/auth/login" className="underline text-blue-500">
+                Sign in Here
+              </Link>
+            </div>
             <div className="flex gap-2 my-3">
               {/* <Button
                 variant={"secondary"}
