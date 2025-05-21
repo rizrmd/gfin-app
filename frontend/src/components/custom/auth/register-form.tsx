@@ -1,6 +1,7 @@
 import { EForm } from "@/components/ext/eform/EForm";
 import { Button } from "@/components/ui/button";
 import { useLocal } from "@/lib/hooks/use-local";
+import { Link } from "@/lib/router";
 import type { FC } from "react";
 import { usBizUrl } from "shared/lib/biz_url";
 
@@ -69,7 +70,8 @@ export const RegisterForm: FC<{
               }}
               label="State"
             />
-            <div className="flex gap-2">
+            <div className="text-sm mt-3">Already have an account? <Link href="/auth/login" className="underline text-blue-500">Sign in Here</Link></div>
+            <div className="flex gap-2 my-3">
               {/* <Button
                 variant={"secondary"}
                 onClick={(e) => {
@@ -97,6 +99,10 @@ export const RegisterForm: FC<{
                 {read.loading ? "Creating Account..." : "Create Account"}
               </Button>
             </div>
+            <div className=" text-slate-500 text-sm text-center ">
+              By registering, you agree to our
+              <br /> terms of service and privacy policy.
+            </div>{" "}
           </>
         );
       }}

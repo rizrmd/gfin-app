@@ -6,30 +6,22 @@ import { Alert } from "@/components/ui/global-alert";
 import { api } from "@/lib/gen/api";
 import { navigate } from "@/lib/router";
 import { PublicOnly, user } from "@/lib/user";
+import { useEffect } from "react";
 
 export default () => {
+  useEffect(() => {
+    user.init();
+
+    if (user.status === "logged-in") {
+      navigate("/onboard/");
+    } else if (user.status === "logged-out") {
+      navigate("/auth/login/");
+    }
+  }, []);
+
   return (
     <BodyFrame className="flex flex-col items-center justify-center">
       <AppLogo large />
-      <Card className="min-w-[400px] mt-10 p-7 pb-2">
-        <PublicOnly>
-          <RegisterForm
-            onSubmit={async (form) => {
-              try {
-                const res = await api.register(form);
-                if (res.client && res.organization) {
-                  user.init(res);
-                  form.loading = false;
-                  navigate("/onboard/");
-                }
-              } catch (e) {
-                await Alert.info(e.message);
-                form.loading = false;
-              }
-            }}
-          />
-        </PublicOnly>
-      </Card>
     </BodyFrame>
   );
 };
