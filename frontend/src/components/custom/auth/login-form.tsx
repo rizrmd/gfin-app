@@ -39,7 +39,6 @@ export const LoginForm: FC<{
               name="email"
               disabled={read.loading}
               type={"email"}
-              placeholder="Email"
               label=""
             />
             <Button
