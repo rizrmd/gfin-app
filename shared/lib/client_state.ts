@@ -11,6 +11,7 @@ export const blankProfile = {
   password: "",
 };
 
+export type OrganizationData = typeof blankOrg;
 export const blankOrg = {
   entityInformation: {
     entityName: "",
