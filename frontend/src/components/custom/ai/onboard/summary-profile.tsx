@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { EForm } from "@/components/ext/eform/form";
+import { Form } from "@/components/ext/eform/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocal } from "@/lib/hooks/use-local";
 import type { OrganizationData } from 'shared/lib/client_state';
@@ -65,7 +65,7 @@ export const SummaryProfile = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <EForm
+        <Form
           data={{
             // Using spread to create a new copy of the blank organization data
             ...blankOrg,
@@ -461,7 +461,7 @@ export const SummaryProfile = () => {
               </>
             );
           }}
-        </EForm>
+        </Form>
       </CardContent>
     </Card>
   );

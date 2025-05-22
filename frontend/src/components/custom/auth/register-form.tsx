@@ -1,4 +1,4 @@
-import { EForm } from "@/components/ext/eform/form";
+import { Form } from "@/components/ext/eform/form";
 import { Button } from "@/components/ui/button";
 import { useLocal } from "@/lib/hooks/use-local";
 import { Link } from "@/lib/router";
@@ -21,7 +21,7 @@ export const RegisterForm: FC<{
   const local = useLocal(emptyForm);
 
   return (
-    <EForm
+    <Form
       data={local}
       onSubmit={async ({ write, read }) => {
         write.loading = true;
@@ -105,6 +105,6 @@ export const RegisterForm: FC<{
           </>
         );
       }}
-    </EForm>
+    </Form>
   );
 };

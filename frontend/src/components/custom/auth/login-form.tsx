@@ -1,4 +1,4 @@
-import { EForm } from "@/components/ext/eform/form";
+import { Form } from "@/components/ext/eform/form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { css } from "goober";
@@ -15,7 +15,7 @@ export const LoginForm: FC<{
   form: typeof emptyForm;
 }> = ({ onSubmit, form, onInit }) => {
   return (
-    <EForm
+    <Form
       data={form}
       onInit={({ write }) => {
         onInit(write);
@@ -53,6 +53,6 @@ export const LoginForm: FC<{
           </>
         );
       }}
-    </EForm>
+    </Form>
   );
 };

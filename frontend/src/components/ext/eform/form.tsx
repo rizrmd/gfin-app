@@ -20,7 +20,7 @@ import { MonthYearSelect } from "./fields/month-year-select";
 import { CheckboxLabel } from "./fields/checkbox-label";
 import { UploadFile } from "./fields/upload-file";
 
-export const EForm = <
+export const Form = <
   T extends Record<string, any>,
   K extends Exclude<keyof T, number | symbol>
 >(opt: {

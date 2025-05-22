@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { EForm } from "@/components/ext/eform/form";
+import { Form } from "@/components/ext/eform/form";
 import { useLocal } from "@/lib/hooks/use-local";
 import type { FC } from "react";
 import {
@@ -49,7 +49,7 @@ export const OtpInput: FC<OtpInputProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <EForm
+        <Form
           data={local}
           onSubmit={async ({ write, read }) => {
             write.loading = true;
@@ -100,7 +100,7 @@ export const OtpInput: FC<OtpInputProps> = ({
               </DialogFooter>
             </>
           )}
-        </EForm>
+        </Form>
       </DialogContent>
     </Dialog>
   );
