@@ -200,129 +200,122 @@ export const UploadFile = function <
   };
 
   return (
-    <div className={cn("grid w-full items-center gap-2", containerClassName)}>
-      {label && (
-        <Label className={cn("flex", labelClassName)}>
-          <p className="text-sm text-black">{label}</p>
-          {required && <div className="text-red-500">*</div>}
-        </Label>
-      )}
-      <Card className="shadow-md">
-        <CardContent className="p-6">
-          <div
-            {...getRootProps()}
-            className={`
+    <Card className="shadow-md">
+      <CardContent className="p-6">
+        <div
+          {...getRootProps()}
+          className={`
               border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition
               ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"}
               ${disabled ? "opacity-50 cursor-not-allowed" : ""}
             `}
-          >
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center gap-2">
-              <UploadCloud
-                className={`w-8 h-8 ${
-                  dragActive ? "text-blue-600" : "text-gray-500"
-                }`}
-              />
-              <p
-                className={`text-sm font-medium ${
-                  dragActive ? "text-blue-600" : "text-gray-600"
-                }`}
-              >
-                {uploadText}
-              </p>
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center gap-2">
+            <UploadCloud
+              className={`w-8 h-8 ${
+                dragActive ? "text-blue-600" : "text-gray-500"
+              }`}
+            />
+            <p
+              className={`text-sm font-medium ${
+                dragActive ? "text-blue-600" : "text-gray-600"
+              }`}
+            >
+              {uploadText}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {uploadHint} — max {maxSize}MB
+            </p>
+            {multiple && maxFiles && (
               <p className="text-xs text-muted-foreground">
-                {uploadHint} — max {maxSize}MB
+                Max {maxFiles} file{maxFiles > 1 ? "s" : ""}
               </p>
-              {multiple && maxFiles && (
-                <p className="text-xs text-muted-foreground">
-                  Max {maxFiles} file{maxFiles > 1 ? "s" : ""}
-                </p>
+            )}
+          </div>
+        </div>
+
+        {showPreviews && files.length > 0 && (
+          <div className="mt-4 space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-semibold text-gray-700">
+                Selected {multiple ? "files" : "file"} ({files.length})
+              </h4>
+              {showClearButton && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  Clear all
+                </Button>
               )}
             </div>
-          </div>
 
-          {showPreviews && files.length > 0 && (
-            <div className="mt-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-semibold text-gray-700">
-                  Selected {multiple ? "files" : "file"} ({files.length})
-                </h4>
-                {showClearButton && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearAll}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Clear all
-                  </Button>
-                )}
-              </div>
-
-              {displayMode === "text" || displayMode === "list" ? (
-                <ul className="space-y-2">
-                  {files.map((file, index) => (
-                    <li
-                      key={`${file.name}-${index}`}
-                      className={`
+            {displayMode === "text" || displayMode === "list" ? (
+              <ul className="space-y-2">
+                {files.map((file, index) => (
+                  <li
+                    key={`${file.name}-${index}`}
+                    className={`
                         flex items-center justify-between p-2 rounded-md
                         ${file.status === "error" ? "bg-red-50" : "bg-gray-50"}
                       `}
-                    >
-                      <div className="flex items-center gap-3">
-                        {displayMode === "list" && getFileIcon(file.type)}
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenPreview(file)}
-                            className={`text-left text-sm font-medium ${
-                              file.status === "error"
-                                ? "text-red-600"
-                                : "text-blue-600 hover:text-blue-800"
-                            }`}
-                          >
-                            {file.name}
-                          </button>
-                          {showFileSize && (
-                            <p className="text-xs text-muted-foreground">
-                              {formatFileSize(file.size)}
-                              {file.status === "error" && file.error && (
-                                <span className="text-red-500 ml-2">
-                                  {" "}
-                                  - {file.error}
-                                </span>
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {file.status === "uploading" &&
-                          file.uploadProgress !== undefined && (
-                            <Progress
-                              value={file.uploadProgress}
-                              className="w-24 h-2"
-                            />
-                          )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveFile(index)}
-                          className="w-6 h-6 text-gray-500 hover:text-red-500"
+                  >
+                    <div className="flex items-center gap-3">
+                      {displayMode === "list" && getFileIcon(file.type)}
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPreview(file)}
+                          className={`text-left text-sm font-medium ${
+                            file.status === "error"
+                              ? "text-red-600"
+                              : "text-blue-600 hover:text-blue-800"
+                          }`}
                         >
-                          <X className="w-4 h-4" />
-                        </Button>
+                          {file.name}
+                        </button>
+                        {showFileSize && (
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(file.size)}
+                            {file.status === "error" && file.error && (
+                              <span className="text-red-500 ml-2">
+                                {" "}
+                                - {file.error}
+                              </span>
+                            )}
+                          </p>
+                        )}
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {files.map((file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className={`
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {file.status === "uploading" &&
+                        file.uploadProgress !== undefined && (
+                          <Progress
+                            value={file.uploadProgress}
+                            className="w-24 h-2"
+                          />
+                        )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveFile(index)}
+                        className="w-6 h-6 text-gray-500 hover:text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {files.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className={`
                         relative rounded-md border overflow-hidden
                         ${
                           file.status === "error"
@@ -330,84 +323,83 @@ export const UploadFile = function <
                             : "border-gray-200"
                         }
                       `}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPreview(file)}
+                      className="w-full h-full flex flex-col items-center text-sm group"
                     >
-                      <button
-                        type="button"
-                        onClick={() => handleOpenPreview(file)}
-                        className="w-full h-full flex flex-col items-center text-sm group"
-                      >
-                        {file.type.startsWith("image/") && file.preview ? (
-                          <div className="relative w-full aspect-square">
-                            <img
-                              src={file.preview}
-                              alt={file.name}
-                              className="w-full h-full object-cover"
-                            />
-                            {file.status === "uploading" && (
-                              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                                <Loader2 className="w-6 h-6 text-white animate-spin" />
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="w-full aspect-square flex items-center justify-center bg-gray-100">
-                            {getFileIcon(file.type)}
-                            {file.status === "uploading" && (
-                              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                                <Loader2 className="w-6 h-6 text-white animate-spin" />
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <div className="p-2 w-full text-center truncate">
-                          <p
-                            className={`truncate ${
-                              file.status === "error"
-                                ? "text-red-600"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            {file.name}
-                          </p>
-                          {showFileSize && (
-                            <p className="text-xs text-muted-foreground truncate">
-                              {formatFileSize(file.size)}
-                            </p>
-                          )}
-                          {file.status === "error" && file.error && (
-                            <p className="text-xs text-red-500 truncate">
-                              {file.error}
-                            </p>
+                      {file.type.startsWith("image/") && file.preview ? (
+                        <div className="relative w-full aspect-square">
+                          <img
+                            src={file.preview}
+                            alt={file.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {file.status === "uploading" && (
+                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                              <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            </div>
                           )}
                         </div>
-                      </button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveFile(index);
-                        }}
-                        className="absolute top-1 right-1 w-6 h-6 bg-white/80 hover:bg-white text-gray-500 hover:text-red-500"
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                      {file.status === "uploading" &&
-                        file.uploadProgress !== undefined && (
-                          <Progress
-                            value={file.uploadProgress}
-                            className="absolute bottom-0 left-0 right-0 h-1 rounded-b-md"
-                          />
+                      ) : (
+                        <div className="w-full aspect-square flex items-center justify-center bg-gray-100">
+                          {getFileIcon(file.type)}
+                          {file.status === "uploading" && (
+                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                              <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="p-2 w-full text-center truncate">
+                        <p
+                          className={`truncate ${
+                            file.status === "error"
+                              ? "text-red-600"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {file.name}
+                        </p>
+                        {showFileSize && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {formatFileSize(file.size)}
+                          </p>
                         )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                        {file.status === "error" && file.error && (
+                          <p className="text-xs text-red-500 truncate">
+                            {file.error}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFile(index);
+                      }}
+                      className="absolute top-1 right-1 w-6 h-6 bg-white/80 hover:bg-white text-gray-500 hover:text-red-500"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                    {file.status === "uploading" &&
+                      file.uploadProgress !== undefined && (
+                        <Progress
+                          value={file.uploadProgress}
+                          className="absolute bottom-0 left-0 right-0 h-1 rounded-b-md"
+                        />
+                      )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

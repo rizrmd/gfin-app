@@ -45,33 +45,22 @@ export const CheckboxLabel = function <
   // value && console.log("checkbox", value);
 
   return (
-    <div
-      className={cn("grid w-[240px] items-center gap-2", containerClassName)}
-    >
-      {label && (
-        <Label htmlFor={String(name)} className={cn("flex", labelClassName)}>
-          <p className="text-sm text-black">{label}</p>
-          {required && <div className="text-red-500">*</div>}
-        </Label>
-      )}
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id={String(name)}
-          style={{
-            border: "1px solid #ccc",
-          }}
-          checked={value}
-          onCheckedChange={handleCheckedChange}
-          {...rest}
-        />
-        <label
-          htmlFor={String(name)}
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          {message}
-        </label>
-      </div>
+    <div className="flex items-center space-x-2">
+      <Checkbox
+        id={String(name)}
+        style={{
+          border: "1px solid #ccc",
+        }}
+        checked={value}
+        onCheckedChange={handleCheckedChange}
+        {...rest}
+      />
+      <label
+        htmlFor={String(name)}
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        {message}
+      </label>
     </div>
   );
 };

@@ -45,28 +45,17 @@ export const InputField = function <
   // value && console.log("input-field", value);
 
   return (
-    <div
-      className={cn("grid w-[240px] items-center gap-2", containerClassName)}
-    >
-      {label && (
-        <Label htmlFor={String(name)} className={cn("flex", labelClassName)}>
-          <p className="text-sm text-black">{label}</p>
-          {required && <div className="text-red-500">*</div>}
-        </Label>
-      )}
-
-      <Input
-        id={String(name)}
-        spellCheck={false}
-        value={value}
-        autoComplete={String(name)}
-        autoCorrect="off"
-        autoCapitalize="none"
-        onChange={handleChange}
-        {...rest}
-        className="bg-[#fff] rounded-md ring-0 shadow-2xs active:border-2 outline-none focus:border-2 focus:outline-none focus:border-primary focus:ring-0 focus:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none border-[#ccc] hover:border-[#999999]"
-        style={{ height: `${maxMenuHeight}px` }}
-      />
-    </div>
+    <Input
+      id={String(name)}
+      spellCheck={false}
+      value={value}
+      autoComplete={String(name)}
+      autoCorrect="off"
+      autoCapitalize="none"
+      onChange={handleChange}
+      {...rest}
+      className="bg-[#fff] rounded-md ring-0 shadow-2xs active:border-2 outline-none focus:border-2 focus:outline-none focus:border-primary focus:ring-0 focus:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none border-[#ccc] hover:border-[#999999]"
+      style={{ height: `${maxMenuHeight}px` }}
+    />
   );
 };

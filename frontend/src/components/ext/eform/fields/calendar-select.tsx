@@ -80,74 +80,54 @@ export const CalendarSelect = function <
   };
 
   return (
-    <div
-      className={cn("grid w-[240px] items-center gap-2", containerClassName)}
+    <Popover
+      open={openPopover}
+      onOpenChange={(e) => !isDisabled && setOpenPopover(e)}
     >
-      {label && (
-        <Label htmlFor={String(name)} className={cn("flex", labelClassName)}>
-          <p className="text-sm text-black">{label}</p>
-          {required && <div className="text-red-500">*</div>}
-        </Label>
-      )}
-
-      <Popover
-        open={openPopover}
-        onOpenChange={(e) => !isDisabled && setOpenPopover(e)}
-      >
-        <PopoverTrigger asChild>
-          <div className="flex w-full relative">
-            <Input
-              id={String(name)}
-              spellCheck={false}
-              value={value ? dayjs(value).format("YYYY-MM-DD") : ""}
-              onClick={() => !isDisabled && setOpenPopover(true)}
-              className={cn(
-                "pr-10 rounded-md box-border disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 min-h-[38px] bg-white focus-visible:border-2 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-0 focus:border-2 focus:border-primary focus:outline-none focus:ring-0",
-                openPopover && !isDisabled && "border-2 border-primary"
-              )}
-              readOnly
-              disabled={isDisabled}
-              placeholder={placeholder}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              <X
-                className={cn(
-                  "h-[15px] w-[15px] text-gray-400 cursor-pointer",
-                  !value && "hidden"
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearable();
-                }}
-              />
-              <CalendarDays className="h-[18px] w-[18px] text-gray-600" />
-            </div>
-          </div>
-        </PopoverTrigger>
-        {errorMessage && (
-          <p className="mt-0.5 text-xs text-red-500">{errorMessage}</p>
-        )}
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            className="rounded-md border shadow"
-            selected={value}
-            onSelect={handleDaySelect}
-            onDayBlur={onBlur}
-            disabled={disabledCalendar}
-            autoFocus
+      <PopoverTrigger asChild>
+        <div className="flex w-full relative">
+          <Input
+            id={String(name)}
+            spellCheck={false}
+            value={value ? dayjs(value).format("YYYY-MM-DD") : ""}
+            onClick={() => !isDisabled && setOpenPopover(true)}
+            className={cn(
+              "pr-10 rounded-md box-border disabled:bg-gray-200 disabled:text-gray-500 disabled:border-gray-300 min-h-[38px] bg-white focus-visible:border-2 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-0 focus:border-2 focus:border-primary focus:outline-none focus:ring-0",
+              openPopover && !isDisabled && "border-2 border-primary"
+            )}
+            readOnly
+            disabled={isDisabled}
+            placeholder={placeholder}
           />
-        </PopoverContent>
-      </Popover>
-
-      {helperText && !isError ? (
-        <p className="mt-0.5 text-xs font-light">{helperText}</p>
-      ) : null}
-
-      {errorMessage && isError ? (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <X
+              className={cn(
+                "h-[15px] w-[15px] text-gray-400 cursor-pointer",
+                !value && "hidden"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearable();
+              }}
+            />
+            <CalendarDays className="h-[18px] w-[18px] text-gray-600" />
+          </div>
+        </div>
+      </PopoverTrigger>
+      {errorMessage && (
         <p className="mt-0.5 text-xs text-red-500">{errorMessage}</p>
-      ) : null}
-    </div>
+      )}
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          className="rounded-md border shadow"
+          selected={value}
+          onSelect={handleDaySelect}
+          onDayBlur={onBlur}
+          disabled={disabledCalendar}
+        />
+      </PopoverContent>
+    </Popover>
   );
 };
 

@@ -65,7 +65,6 @@ export default () => {
       });
 
       if (verifyResponse.success) {
-        // Close the OTP modal
         local.showOtpModal = false;
 
         // Initialize user with the token and user data

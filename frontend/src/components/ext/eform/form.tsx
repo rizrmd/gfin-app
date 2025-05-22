@@ -1,24 +1,26 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, type ReactNode } from "react";
 import { proxy, ref, useSnapshot } from "valtio";
+import { Field } from "./field";
+import { CalendarSelect } from "./fields/calendar-select";
+import { CheckboxLabel } from "./fields/checkbox-label";
+import { InputField } from "./fields/input-field";
+import { MonthYearSelect } from "./fields/month-year-select";
+import { MultipleSelect } from "./fields/multiple-select";
+import { SingleSelect } from "./fields/single-select";
+import { UploadFile } from "./fields/upload-file";
 import type {
   DeepReadonly,
   EFormChildren,
   TCalendarSelect,
   TCheckboxLabel,
+  TField,
   TInputField,
   TMonthYearSelect,
   TMultipleSelect,
   TSingleSelect,
   TUploadFile,
 } from "./types";
-import { InputField } from "./fields/input-field";
-import { SingleSelect } from "./fields/single-select";
-import { MultipleSelect } from "./fields/multiple-select";
-import { CalendarSelect } from "./fields/calendar-select";
-import { MonthYearSelect } from "./fields/month-year-select";
-import { CheckboxLabel } from "./fields/checkbox-label";
-import { UploadFile } from "./fields/upload-file";
 
 export const Form = <
   T extends Record<string, any>,
@@ -33,7 +35,7 @@ export const Form = <
   const write = useRef(
     proxy({
       data: opt.data,
-      Field: ref(() => {}) as unknown as TInputField<K>,
+      Field: ref(() => {}) as unknown as TField<K>,
       Input: ref(() => {}) as unknown as TInputField<K>,
       SingleSelect: ref(() => {}) as unknown as TSingleSelect<K>,
       MultipleSelect: ref(() => {}) as unknown as TMultipleSelect<K>,
@@ -48,6 +50,7 @@ export const Form = <
 
   useEffect(() => {
     opt.onInit?.({ read: read.data as any, write: write.data });
+    write.Field = ref(Field.bind(write));
     write.Input = ref(InputField.bind(write));
     write.SingleSelect = ref(SingleSelect.bind(write));
     write.MultipleSelect = ref(MultipleSelect.bind(write));
@@ -72,14 +75,7 @@ export const Form = <
       }}
     >
       {opt.children({
-        Field: read.Input,
-        Input: read.Input,
-        SingleSelect: read.SingleSelect,
-        MultipleSelect: read.MultipleSelect,
-        CalendarSelect: read.CalendarSelect,
-        MonthYearSelect: read.MonthYearSelect,
-        Checkbox: read.Checkbox,
-        UploadFile: read.UploadFile,
+        Field: read.Field,
         submit: () => {
           read.submit();
         },

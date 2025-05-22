@@ -7,7 +7,7 @@ import type { BasicSelectOpt } from "@/lib/types";
 interface Props<
   K extends Exclude<keyof V, symbol | number>,
   V extends Record<string, any> = Record<string, any>
-> extends Omit<ReactSelectProps, "isMulti"> {
+> extends Omit<ReactSelectProps, "isMulti" | "disabled"> {
   name: K;
   containerClassName?: string;
   labelClassName?: string;
@@ -19,12 +19,12 @@ interface Props<
   errorMessage?: string;
   isSearchable?: boolean;
   isClearable?: boolean;
-  isDisabled?: boolean;
+  disabled?: boolean;
   isLoading?: boolean;
   isRtl?: boolean;
   closeMenuOnSelect?: boolean;
   maxMenuHeight?: number;
-  onChange?: (value: BasicSelectOpt<string | number>[]) => void;
+  onChange?: (value: BasicSelectOpt<string | number>) => void;
 }
 
 export const MultipleSelect = function <
@@ -58,68 +58,50 @@ export const MultipleSelect = function <
   const handleChange = (e: BasicSelectOpt<string | number>[]) => {
     const value = e;
     write[name] = value;
-    onChange?.(value);
+    onChange?.(value as any);
   };
 
   const value = (read as any)[name];
   // value && console.log("multiple-select", value);
 
   return (
-    <div
-      className={cn("grid w-[240px] items-center gap-2", containerClassName)}
-    >
-      {label && (
-        <Label htmlFor={String(name)} className={cn("flex", labelClassName)}>
-          <p className="text-sm text-black">{label}</p>
-          {required && <div className="text-red-500">*</div>}
-        </Label>
-      )}
-
-      <Select
-        id={String(name)}
-        className={cn("w-full", selectClassName)}
-        isSearchable={isSearchable}
-        isClearable={isClearable}
-        isRtl={isRtl}
-        isMulti={true}
-        closeMenuOnSelect={closeMenuOnSelect}
-        required={required}
-        maxMenuHeight={maxMenuHeight}
-        menuPosition="fixed"
-        value={value}
-        onChange={handleChange}
-        styles={{
-          multiValue: (base) => ({
-            ...base,
-            borderRadius: "6px",
-          }),
-          multiValueLabel: (base) => ({
-            ...base,
-          }),
-          control: (base, state) => ({
-            ...base,
-            borderRadius: "6px",
-            cursor: state.isDisabled ? "not-allowed" : "pointer",
-          }),
-          menu: (base) => ({
-            ...base,
-            borderRadius: "6px",
-          }),
-          option: (base, state) => ({
-            ...base,
-            cursor: state.isDisabled ? "not-allowed" : "pointer",
-          }),
-        }}
-        {...rest}
-      />
-
-      {helperText && !isError ? (
-        <p className="mt-0.5 text-xs font-light">{helperText}</p>
-      ) : null}
-
-      {errorMessage && isError ? (
-        <p className="mt-0.5 text-xs text-red-500">{errorMessage}</p>
-      ) : null}
-    </div>
+    <Select
+      id={String(name)}
+      className={cn("w-full", selectClassName)}
+      isSearchable={isSearchable}
+      isClearable={isClearable}
+      isRtl={isRtl}
+      isMulti={true}
+      closeMenuOnSelect={closeMenuOnSelect}
+      required={required}
+      maxMenuHeight={maxMenuHeight}
+      menuPosition="fixed"
+      value={value}
+      onChange={handleChange}
+      styles={{
+        multiValue: (base) => ({
+          ...base,
+          borderRadius: "6px",
+        }),
+        multiValueLabel: (base) => ({
+          ...base,
+        }),
+        control: (base, state) => ({
+          ...base,
+          borderRadius: "6px",
+          cursor: state.isDisabled ? "not-allowed" : "pointer",
+        }),
+        menu: (base) => ({
+          ...base,
+          borderRadius: "6px",
+        }),
+        option: (base, state) => ({
+          ...base,
+          cursor: state.isDisabled ? "not-allowed" : "pointer",
+        }),
+      }}
+      isDisabled={rest.disabled}
+      {...(rest as any)}
+    />
   );
 };
