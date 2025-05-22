@@ -14,7 +14,7 @@
     "bun-plugin-tailwind": "^0.0.15",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
-    "msgpackr": "^1.11.3",
+    "msgpackr": "^1.11.4",
     "r-agent": "https://github.com/rizrmd/r-agent",
     "rlib": "https://github.com/rizrmd/rlib.git",
     "valtio": "^2.1.4"

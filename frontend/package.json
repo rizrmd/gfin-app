@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@11labs/react": "^0.1.4",
+    "@emotion/css": "^11.13.5",
     "@fontsource/inter": "^5.2.5",
     "@hookform/resolvers": "^4.1.0",
     "@nivo/bar": "^0.88.0",
@@ -56,7 +57,7 @@
     "rlib": "^1.0.3",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.0.1",
-    "tailwindcss": "^4.0.6",
+    "tailwindcss": "^4.1.7",
     "tailwindcss-animate": "^1.0.7",
     "typewriter-effect": "^2.22.0",
     "uuid": "^11.1.0",
@@ -65,8 +66,10 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/bun": "latest",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/bun": "latest"
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3"
   }
 }
