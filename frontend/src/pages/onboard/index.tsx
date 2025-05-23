@@ -1,13 +1,10 @@
-import { AppLogo } from "@/components/app/logo";
-import { HeaderRight } from "@/components/custom/ai/header-right";
 import { ConversationQA } from "@/components/custom/ai/onboard/conversation-qa";
 import { PickMode } from "@/components/custom/ai/onboard/pick-mode";
 import SummaryProfile from "@/components/custom/ai/onboard/summary-profile";
 import { SummaryQA } from "@/components/custom/ai/onboard/summary-qa";
 import { BodyFrame } from "@/components/custom/frame/body-frame";
-import { Badge } from "@/components/ui/badge";
 import { aiOnboard } from "@/lib/ai/onboard";
-import { Protected, user } from "@/lib/user";
+import { Protected } from "@/lib/user";
 
 export default () => {
   const ai = aiOnboard();
