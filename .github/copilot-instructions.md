@@ -9,6 +9,8 @@ const local = useLocal({data: []}, async () => {
 })
 ```
 
+We are using css`` and cn() from global variable, do not import them again.
+
 useLocal can only be used in one component, when you need to share state between component, you should use valtio instead of useLocal. to use valtio, first create a valtio state file like this:
 
 ```
@@ -118,3 +120,4 @@ import { EForm } from "@/components/ext/eform/form";
       );
     }}
   </EForm>
+

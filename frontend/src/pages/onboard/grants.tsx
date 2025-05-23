@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { css } from "@emotion/css";
 import { useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { grantState } from "@/lib/states/grant-state";

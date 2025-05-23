@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@11labs/react": "^0.1.4",
-    "@emotion/css": "^11.13.5",
     "@fontsource/inter": "^5.2.5",
     "@hookform/resolvers": "^4.1.0",
     "@nivo/bar": "^0.88.0",
