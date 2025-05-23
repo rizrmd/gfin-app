@@ -1,10 +1,13 @@
+import { AppLogo } from "@/components/app/logo";
+import { Badge } from "@/components/ui/badge";
 import type React from "react";
+import { HeaderRight } from "../ai/header-right";
 import { DotPattern } from "./dot-pattern";
+import { user } from "@/lib/user";
 
 export const BodyFrame = (opt: {
   children: React.ReactNode;
   className?: string;
-  header?: React.ReactNode;
 }) => {
   return (
     <div
@@ -20,9 +23,17 @@ export const BodyFrame = (opt: {
         `
       )}
     >
-      {opt.header && (
+      {user.organization?.name && (
         <div className="border-b h-[50px] flex items-center justify-between px-2 relative">
-          {opt.header}
+          <>
+            <AppLogo className="hidden md:flex" />
+            <div className="md:absolute pointer-events-none inset-0 flex items-center justify-center">
+              <Badge variant={"outline"} className="text-base font-semibold">
+                bun {user.organization.name}
+              </Badge>
+            </div>
+            <HeaderRight />
+          </>
         </div>
       )}
       <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden">

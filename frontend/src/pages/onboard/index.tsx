@@ -14,20 +14,7 @@ export default () => {
 
   return (
     <Protected>
-      <BodyFrame
-        className="flex flex-col items-center justify-center gap-4"
-        header={
-          <>
-            <AppLogo className="hidden md:flex" />
-            <div className="md:absolute pointer-events-none inset-0 flex items-center justify-center">
-              <Badge variant={"outline"} className="text-base font-semibold">
-bun                {user.organization.name}
-              </Badge>
-            </div>
-            <HeaderRight />
-          </>
-        }
-      >
+      <BodyFrame className="flex flex-col items-center justify-center gap-4">
         {ai.local.mode === "" ? (
           <>
             <PickMode ai={ai} len={ai.local.messages.length} />
@@ -49,7 +36,7 @@ bun                {user.organization.name}
                 {!ai.local.phase.qa ? (
                   <SummaryQA ai={ai} len={ai.local.messages.length} />
                 ) : (
-                  <SummaryProfile/>
+                  <SummaryProfile />
                 )}
               </>
             )}
