@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ext/eform/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useLocal } from "@/lib/hooks/use-local";
-import type { OrganizationData } from 'shared/lib/client_state';
+import type { OrganizationData } from "shared/lib/client_state";
 import { orgState } from "@/lib/states/org-state";
 import { useSnapshot } from "valtio";
 import { api } from "@/lib/gen/api";
@@ -10,15 +16,19 @@ import { blankOrg } from "shared/lib/client_state";
 
 export const SummaryProfile = () => {
   const orgRead = useSnapshot(orgState.write);
-  
+
   const local = useLocal({ isSubmitting: false }, async () => {
     // Async initialization if needed
     local.render();
   });
 
-  const handleSubmit = async (
-    { write, read }: { write: any; read: OrganizationData & { loading: boolean } }
-  ) => {
+  const handleSubmit = async ({
+    write,
+    read,
+  }: {
+    write: any;
+    read: OrganizationData & { loading: boolean };
+  }) => {
     try {
       write.loading = true;
       local.isSubmitting = true;
@@ -35,13 +45,13 @@ export const SummaryProfile = () => {
           addresses: read.addresses,
           businessClassification: read.businessClassification,
           capabilities: read.capabilities,
-          previousContractsGrants: read.previousContractsGrants
-        }
+          previousContractsGrants: read.previousContractsGrants,
+        },
       });
 
       // Update onboarding state
       orgState.write.onboard.profile = true;
-      
+
       local.isSubmitting = false;
       write.loading = false;
       local.render();
@@ -54,10 +64,15 @@ export const SummaryProfile = () => {
   };
 
   // Get the organization data or use blank defaults
-  const orgData = orgRead.data as OrganizationData || blankOrg;
+  const orgData = (orgRead.data as OrganizationData) || blankOrg;
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
+    <Card
+      className={cn(
+        "w-full max-w-4xl mx-auto border-0 shadow-none mt-0 md:shadow-sm md:border-1",
+        "overflow-auto relative md:h-[calc(100vh-100px)] h-[calc(100vh-50px)] rounded-none md:rounded-lg"
+      )}
+    >
       <CardHeader>
         <CardTitle>Organization Profile</CardTitle>
         <CardDescription>
@@ -70,7 +85,7 @@ export const SummaryProfile = () => {
             // Using spread to create a new copy of the blank organization data
             ...blankOrg,
             // Merge in any existing data if available
-            ...(orgRead.data as OrganizationData || {}),
+            ...((orgRead.data as OrganizationData) || {}),
             loading: false,
           }}
           onSubmit={handleSubmit}
@@ -110,9 +125,11 @@ export const SummaryProfile = () => {
                       type="url"
                     />
                   </div>
-                  
+
                   <div className="pt-2">
-                    <h4 className="text-md font-medium mb-2">Legal Structure</h4>
+                    <h4 className="text-md font-medium mb-2">
+                      Legal Structure
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Field
                         name="entityInformation.legalStructure.type"
@@ -210,31 +227,35 @@ export const SummaryProfile = () => {
                       type="tel"
                     />
                   </div>
-                  
+
                   <div className="pt-2">
-                    <h4 className="text-md font-medium mb-2">Authorized Persons</h4>
-                    {read.contactInformation.authorizedPersons.map((_, index) => (
-                      <div key={index} className="border rounded-md p-3 mb-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Field
-                            name={`contactInformation.authorizedPersons.${index}.title`}
-                            disabled={read.loading}
-                            label="Title"
-                          />
-                          <Field
-                            name={`contactInformation.authorizedPersons.${index}.name`}
-                            disabled={read.loading}
-                            label="Name"
-                          />
-                          <Field
-                            name={`contactInformation.authorizedPersons.${index}.address`}
-                            disabled={read.loading}
-                            label="Address"
-                            className="md:col-span-2"
-                          />
+                    <h4 className="text-md font-medium mb-2">
+                      Authorized Persons
+                    </h4>
+                    {read.contactInformation.authorizedPersons.map(
+                      (_, index) => (
+                        <div key={index} className="border rounded-md p-3 mb-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Field
+                              name={`contactInformation.authorizedPersons.${index}.title`}
+                              disabled={read.loading}
+                              label="Title"
+                            />
+                            <Field
+                              name={`contactInformation.authorizedPersons.${index}.name`}
+                              disabled={read.loading}
+                              label="Name"
+                            />
+                            <Field
+                              name={`contactInformation.authorizedPersons.${index}.address`}
+                              disabled={read.loading}
+                              label="Address"
+                              className="md:col-span-2"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
 
@@ -253,9 +274,11 @@ export const SummaryProfile = () => {
                       label="Mailing Address"
                     />
                   </div>
-                  
+
                   <div className="pt-2">
-                    <h4 className="text-md font-medium mb-2">Primary Office Address</h4>
+                    <h4 className="text-md font-medium mb-2">
+                      Primary Office Address
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Field
                         name="addresses.primaryOfficeAddress.streetAddress"
@@ -285,9 +308,11 @@ export const SummaryProfile = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="pt-2">
-                    <h4 className="text-md font-medium mb-2">Registered Agent</h4>
+                    <h4 className="text-md font-medium mb-2">
+                      Registered Agent
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Field
                         name="addresses.registeredAgent.name"
@@ -305,7 +330,9 @@ export const SummaryProfile = () => {
 
                 {/* Business Classification Section */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Business Classification</h3>
+                  <h3 className="text-lg font-medium">
+                    Business Classification
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field
                       name="businessClassification.minorityOwned"
@@ -349,15 +376,21 @@ export const SummaryProfile = () => {
                   <h3 className="text-lg font-medium">Capabilities</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium">Capabilities Statement</label>
-                      <textarea 
+                      <label className="text-sm font-medium">
+                        Capabilities Statement
+                      </label>
+                      <textarea
                         value={read.capabilities.capabilitiesStatement}
                         onChange={(e) => {
-                          const form = document.querySelector('form');
-                          const field = form?.querySelector('[name="capabilities.capabilitiesStatement"]') as HTMLInputElement;
+                          const form = document.querySelector("form");
+                          const field = form?.querySelector(
+                            '[name="capabilities.capabilitiesStatement"]'
+                          ) as HTMLInputElement;
                           if (field) {
                             field.value = e.target.value;
-                            field.dispatchEvent(new Event('change', { bubbles: true }));
+                            field.dispatchEvent(
+                              new Event("change", { bubbles: true })
+                            );
                           }
                         }}
                         disabled={read.loading}
@@ -371,15 +404,21 @@ export const SummaryProfile = () => {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium">Core Services/Products</label>
-                      <textarea 
+                      <label className="text-sm font-medium">
+                        Core Services/Products
+                      </label>
+                      <textarea
                         value={read.capabilities.coreServicesProducts}
                         onChange={(e) => {
-                          const form = document.querySelector('form');
-                          const field = form?.querySelector('[name="capabilities.coreServicesProducts"]') as HTMLInputElement;
+                          const form = document.querySelector("form");
+                          const field = form?.querySelector(
+                            '[name="capabilities.coreServicesProducts"]'
+                          ) as HTMLInputElement;
                           if (field) {
                             field.value = e.target.value;
-                            field.dispatchEvent(new Event('change', { bubbles: true }));
+                            field.dispatchEvent(
+                              new Event("change", { bubbles: true })
+                            );
                           }
                         }}
                         disabled={read.loading}
@@ -397,7 +436,9 @@ export const SummaryProfile = () => {
 
                 {/* Previous Contracts/Grants Section */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Previous Contracts/Grants</h3>
+                  <h3 className="text-lg font-medium">
+                    Previous Contracts/Grants
+                  </h3>
                   {read.previousContractsGrants.map((_, index) => (
                     <div key={index} className="border rounded-md p-3 mb-2">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -423,15 +464,24 @@ export const SummaryProfile = () => {
                           type="date"
                         />
                         <div className="flex flex-col gap-2 md:col-span-2">
-                          <label className="text-sm font-medium">Performance Summary</label>
-                          <textarea 
-                            value={read.previousContractsGrants[index].performanceSummary}
+                          <label className="text-sm font-medium">
+                            Performance Summary
+                          </label>
+                          <textarea
+                            value={
+                              read.previousContractsGrants[index]
+                                .performanceSummary
+                            }
                             onChange={(e) => {
-                              const form = document.querySelector('form');
-                              const field = form?.querySelector(`[name="previousContractsGrants.${index}.performanceSummary"]`) as HTMLInputElement;
+                              const form = document.querySelector("form");
+                              const field = form?.querySelector(
+                                `[name="previousContractsGrants.${index}.performanceSummary"]`
+                              ) as HTMLInputElement;
                               if (field) {
                                 field.value = e.target.value;
-                                field.dispatchEvent(new Event('change', { bubbles: true }));
+                                field.dispatchEvent(
+                                  new Event("change", { bubbles: true })
+                                );
                               }
                             }}
                             disabled={read.loading}
@@ -455,7 +505,9 @@ export const SummaryProfile = () => {
                     className="w-full md:w-auto"
                     disabled={read.loading || local.isSubmitting}
                   >
-                    {read.loading || local.isSubmitting ? "Saving..." : "Save Profile"}
+                    {read.loading || local.isSubmitting
+                      ? "Saving..."
+                      : "Save Profile"}
                   </Button>
                 </div>
               </>
