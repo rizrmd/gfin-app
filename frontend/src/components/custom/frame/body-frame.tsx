@@ -13,7 +13,6 @@ export const BodyFrame = (opt: {
     <div
       className={cn(
         "flex min-h-screen bg-white items-stretch flex-col",
-
         css`
           background-image: url("/img/onboard/ilustr.png");
           background-position-x: center;
@@ -29,7 +28,7 @@ export const BodyFrame = (opt: {
             <AppLogo className="hidden md:flex" />
             <div className="md:absolute pointer-events-none inset-0 flex items-center justify-center">
               <Badge variant={"outline"} className="text-base font-semibold">
-                bun {user.organization.name}
+                {user.organization.name}
               </Badge>
             </div>
             <HeaderRight />
@@ -37,18 +36,15 @@ export const BodyFrame = (opt: {
         </div>
       )}
       <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden">
-        {/* Background Illustration */}
         <img
           src={"/img/onboard/circles.png"} // Use the new background SVG
           alt=""
           className="absolute bottom-0 left-0 w-full object-cover" // Changed to object-cover
         />
-        {/* Decorative Elements */}
         <DotPattern
           className="right-20 top-20 z-0 opacity-50"
           color="#FFD700"
         />{" "}
-        {/* Yellow dots top-right */}
         <DotPattern
           className="left-20 top-1/2 z-0 -translate-y-1/2 opacity-50"
           color="#9747FF"

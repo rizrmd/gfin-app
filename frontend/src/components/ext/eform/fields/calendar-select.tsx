@@ -11,9 +11,10 @@ import dayjs from "dayjs";
 import { CalendarDays, X } from "lucide-react";
 import { useState } from "react";
 import { useSnapshot } from "valtio";
+import { getNestedProperty, setNestedProperty } from "../utils";
 
 interface Props<
-  K extends Exclude<keyof V, symbol | number>,
+  K extends string,
   V extends Record<string, any> = Record<string, any>
 > {
   name: K;
@@ -36,7 +37,7 @@ interface Props<
 }
 
 export const CalendarSelect = function <
-  K extends Exclude<keyof V, symbol | number>,
+  K extends string,
   V extends Record<string, any> = Record<string, any>
 >(
   this: { data: V },

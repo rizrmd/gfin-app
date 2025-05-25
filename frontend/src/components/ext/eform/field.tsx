@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { InputField } from "./fields/input-field";
 import type {
   TCalendarSelect,
+  TCheckboxGroup,
   TCheckboxLabel,
   TInputField,
   TMonthYearSelect,
@@ -12,6 +13,8 @@ import type {
 import { capitalize } from "lodash";
 import { css } from "goober";
 import { cn } from "@/lib/utils";
+import type { CheckboxOption } from "./fields/checkbox-group";
+import { getNestedProperty, setNestedProperty } from "./utils";
 
 export const Field = function <K extends string>(
   this: {
@@ -21,7 +24,9 @@ export const Field = function <K extends string>(
     CalendarSelect: TCalendarSelect<K>;
     MonthYearSelect: TMonthYearSelect<K>;
     Checkbox: TCheckboxLabel<K>;
+    CheckboxGroup: TCheckboxGroup<K>;
     UploadFile: TUploadFile<K>;
+    data: Record<string, any>;
   },
   {
     name,
@@ -35,6 +40,7 @@ export const Field = function <K extends string>(
     calendarSelect,
     monthYearSelect,
     checkbox,
+    checkboxGroup,
     upload,
     className,
     helperText,
@@ -51,6 +57,9 @@ export const Field = function <K extends string>(
     calendarSelect?: Omit<Parameters<TCalendarSelect<K>>[0], "name">;
     monthYearSelect?: Omit<Parameters<TMonthYearSelect<K>>[0], "name">;
     checkbox?: Omit<Parameters<TCheckboxLabel<K>>[0], "name">;
+    checkboxGroup?: Omit<Parameters<TCheckboxGroup<K>>[0], "name"> & {
+      options: CheckboxOption[];
+    };
     upload?: Omit<Parameters<TUploadFile<K>>[0], "name">;
     className?: string;
 
@@ -64,6 +73,7 @@ export const Field = function <K extends string>(
   if (calendarSelect) current_type = "calendarSelect";
   if (monthYearSelect) current_type = "monthYearSelect";
   if (checkbox) current_type = "checkbox";
+  if (checkboxGroup) current_type = "checkboxGroup";
   if (upload) current_type = "upload";
 
   return (
@@ -78,7 +88,7 @@ export const Field = function <K extends string>(
         `
       )}
     >
-      <span>{label || capitalize(name)}</span>
+      <span>{typeof label === "string" ? label : capitalize(name)}</span>
       {current_type === "input" && (
         <this.Input
           name={name}
@@ -119,9 +129,12 @@ export const Field = function <K extends string>(
       {current_type === "checkbox" && (
         <this.Checkbox name={name} {...checkbox} />
       )}
+      {current_type === "checkboxGroup" && checkboxGroup && (
+        <this.CheckboxGroup name={name} {...checkboxGroup} />
+      )}
       {current_type === "upload" && <this.UploadFile name={name} {...upload} />}
 
-      {helperText && errorMessage ? (
+      {helperText && !errorMessage ? (
         <p className="mt-0.5 text-xs font-light">{helperText}</p>
       ) : null}
 

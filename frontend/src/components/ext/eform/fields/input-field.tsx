@@ -2,9 +2,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useSnapshot } from "valtio";
+import { getNestedProperty, setNestedProperty } from "../utils";
 
 type Props<
-  K extends Exclude<keyof V, symbol | number>,
+  K extends string,
   V extends Record<string, any> = Record<string, any>
 > = {
   name: K;
@@ -17,7 +18,7 @@ type Props<
 } & React.ComponentProps<"input">;
 
 export const InputField = function <
-  K extends Exclude<keyof V, symbol | number>,
+  K extends string,
   V extends Record<string, any> = Record<string, any>
 >(
   this: { data: V },
@@ -37,11 +38,11 @@ export const InputField = function <
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.currentTarget.value;
-    write[name] = value;
+    setNestedProperty(write, name, value);
     onChange?.(value);
   };
 
-  const value = (read as any)[name];
+  const value = getNestedProperty(read, name);
   // value && console.log("input-field", value);
 
   return (

@@ -2,7 +2,9 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, type ReactNode } from "react";
 import { proxy, ref, useSnapshot } from "valtio";
 import { Field } from "./field";
+import { Section } from "./section";
 import { CalendarSelect } from "./fields/calendar-select";
+import { CheckboxGroup } from "./fields/checkbox-group";
 import { CheckboxLabel } from "./fields/checkbox-label";
 import { InputField } from "./fields/input-field";
 import { MonthYearSelect } from "./fields/month-year-select";
@@ -11,20 +13,23 @@ import { SingleSelect } from "./fields/single-select";
 import { UploadFile } from "./fields/upload-file";
 import type {
   DeepReadonly,
+  DotNotationKeys,
   EFormChildren,
   TCalendarSelect,
+  TCheckboxGroup,
   TCheckboxLabel,
   TField,
   TInputField,
   TMonthYearSelect,
   TMultipleSelect,
+  TSection,
   TSingleSelect,
   TUploadFile,
 } from "./types";
 
 export const Form = <
   T extends Record<string, any>,
-  K extends Exclude<keyof T, number | symbol>
+  K extends DotNotationKeys<T> = DotNotationKeys<T>
 >(opt: {
   data: T;
   children: (opt: EFormChildren<T, K>) => ReactNode;
@@ -35,14 +40,16 @@ export const Form = <
   const write = useRef(
     proxy({
       data: opt.data,
-      Field: ref(() => {}) as unknown as TField<K>,
-      Input: ref(() => {}) as unknown as TInputField<K>,
-      SingleSelect: ref(() => {}) as unknown as TSingleSelect<K>,
-      MultipleSelect: ref(() => {}) as unknown as TMultipleSelect<K>,
-      CalendarSelect: ref(() => {}) as unknown as TCalendarSelect<K>,
-      MonthYearSelect: ref(() => {}) as unknown as TMonthYearSelect<K>,
-      Checkbox: ref(() => {}) as unknown as TCheckboxLabel<K>,
-      UploadFile: ref(() => {}) as unknown as TUploadFile<K>,
+      Field: ref(() => {}) as unknown as TField<string>,
+      Input: ref(() => {}) as unknown as TInputField<string>,
+      SingleSelect: ref(() => {}) as unknown as TSingleSelect<string>,
+      MultipleSelect: ref(() => {}) as unknown as TMultipleSelect<string>,
+      CalendarSelect: ref(() => {}) as unknown as TCalendarSelect<string>,
+      MonthYearSelect: ref(() => {}) as unknown as TMonthYearSelect<string>,
+      Checkbox: ref(() => {}) as unknown as TCheckboxLabel<string>,
+      CheckboxGroup: ref(() => {}) as unknown as TCheckboxGroup<string>,
+      UploadFile: ref(() => {}) as unknown as TUploadFile<string>,
+      Section: ref(() => {}) as unknown as TSection,
       submit: ref(() => {}),
     })
   ).current;
@@ -57,7 +64,9 @@ export const Form = <
     write.CalendarSelect = ref(CalendarSelect.bind(write));
     write.MonthYearSelect = ref(MonthYearSelect.bind(write));
     write.Checkbox = ref(CheckboxLabel.bind(write));
+    write.CheckboxGroup = ref(CheckboxGroup.bind(write));
     write.UploadFile = ref(UploadFile.bind(write));
+    write.Section = ref(Section.bind(write));
   }, []);
 
   useEffect(() => {
@@ -75,7 +84,8 @@ export const Form = <
       }}
     >
       {opt.children({
-        Field: read.Field,
+        Field: read.Field as unknown as TField<K>,
+        Section: read.Section,
         submit: () => {
           read.submit();
         },

@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 import { useSnapshot } from "valtio";
 import Select, { type Props as ReactSelectProps } from "react-select";
 import type { BasicSelectOpt } from "@/lib/types";
+import { getNestedProperty, setNestedProperty } from "../utils";
 
 interface Props<
-  K extends Exclude<keyof V, symbol | number>,
+  K extends string,
   V extends Record<string, any> = Record<string, any>
 > extends Omit<ReactSelectProps, "isMulti" | "disabled"> {
   name: K;
@@ -28,7 +29,7 @@ interface Props<
 }
 
 export const SingleSelect = function <
-  K extends Exclude<keyof V, symbol | number>,
+  K extends string,
   V extends Record<string, any> = Record<string, any>
 >(
   this: { data: V },
@@ -57,11 +58,11 @@ export const SingleSelect = function <
 
   const handleChange = (e: BasicSelectOpt<string | number>) => {
     const value = e;
-    write[name] = value;
+    setNestedProperty(write, name, value);
     onChange?.(value);
   };
 
-  const value = (read as any)[name];
+  const value = getNestedProperty(read, name);
   // value && console.log("single-select", value);
 
   return (

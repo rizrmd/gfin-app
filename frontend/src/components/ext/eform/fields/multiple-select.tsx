@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useSnapshot } from "valtio";
 import Select, { type Props as ReactSelectProps } from "react-select";
 import type { BasicSelectOpt } from "@/lib/types";
+import { getNestedProperty, setNestedProperty } from "../utils";
 
 interface Props<
   K extends Exclude<keyof V, symbol | number>,
@@ -57,11 +58,11 @@ export const MultipleSelect = function <
 
   const handleChange = (e: BasicSelectOpt<string | number>[]) => {
     const value = e;
-    write[name] = value;
+    setNestedProperty(write, name, value);
     onChange?.(value as any);
   };
 
-  const value = (read as any)[name];
+  const value = getNestedProperty(read, name);
   // value && console.log("multiple-select", value);
 
   return (
