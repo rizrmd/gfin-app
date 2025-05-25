@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { proxy, ref, useSnapshot } from "valtio";
+import { validateForm, hasErrors } from "./validation";
+import type { ValidationRule, ValidationErrors, FieldProps } from "./types";
 import { Field } from "./field";
 import { Section } from "./section";
 import { CalendarSelect } from "./fields/calendar-select";
@@ -34,9 +36,12 @@ export const Form = <
   data: T;
   children: (opt: EFormChildren<T, K>) => ReactNode;
   onInit?: (opt: { read: DeepReadonly<T>; write: T }) => void;
-  onSubmit?: (opt: { read: DeepReadonly<T>; write: T }) => void;
+  onSubmit?: (opt: { read: DeepReadonly<T>; write: T; isValid: boolean }) => void;
   className?: string;
+  validator?: Record<string, ValidationRule | ValidationRule[]>;
 }) => {
+  const [errors, setErrors] = useState<ValidationErrors<T>>({});
+  
   const write = useRef(
     proxy({
       data: opt.data,
@@ -57,7 +62,14 @@ export const Form = <
 
   useEffect(() => {
     opt.onInit?.({ read: read.data as any, write: write.data });
-    write.Field = ref(Field.bind(write));
+    write.Field = ref((props: FieldProps<K>) => {
+      if (!props) return null;
+      const boundField = Field.bind(write);
+      return boundField({
+        ...props,
+        errors: props.name ? errors[props.name] : undefined,
+      });
+    });
     write.Input = ref(InputField.bind(write));
     write.SingleSelect = ref(SingleSelect.bind(write));
     write.MultipleSelect = ref(MultipleSelect.bind(write));
@@ -67,13 +79,20 @@ export const Form = <
     write.CheckboxGroup = ref(CheckboxGroup.bind(write));
     write.UploadFile = ref(UploadFile.bind(write));
     write.Section = ref(Section.bind(write));
-  }, []);
+  }, [errors]);
 
   useEffect(() => {
     write.submit = ref(() => {
-      opt.onSubmit?.({ read: read.data as any, write: write.data });
+      if (opt.validator) {
+        const validationErrors = validateForm(write.data, opt.validator);
+        setErrors(validationErrors);
+        const isValid = !hasErrors(validationErrors);
+        opt.onSubmit?.({ read: read.data as any, write: write.data, isValid });
+      } else {
+        opt.onSubmit?.({ read: read.data as any, write: write.data, isValid: true });
+      }
     });
-  }, [opt.data]);
+  }, [opt.data, opt.validator]);
 
   return (
     <form
@@ -91,6 +110,7 @@ export const Form = <
         },
         read: read.data as any,
         write: write.data as any,
+        errors,
       })}
       <button type="submit" className="hidden"></button>
     </form>

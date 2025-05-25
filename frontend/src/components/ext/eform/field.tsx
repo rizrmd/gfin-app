@@ -9,6 +9,7 @@ import type {
   TMultipleSelect,
   TSingleSelect,
   TUploadFile,
+  FieldProps,
 } from "./types";
 import { capitalize } from "lodash";
 import { css } from "goober";
@@ -16,19 +17,23 @@ import { cn } from "@/lib/utils";
 import type { CheckboxOption } from "./fields/checkbox-group";
 import { getNestedProperty, setNestedProperty } from "./utils";
 
+type FieldContext<K extends string> = {
+  Input: TInputField<K>;
+  SingleSelect: TSingleSelect<K>;
+  MultipleSelect: TMultipleSelect<K>;
+  CalendarSelect: TCalendarSelect<K>;
+  MonthYearSelect: TMonthYearSelect<K>;
+  Checkbox: TCheckboxLabel<K>;
+  CheckboxGroup: TCheckboxGroup<K>;
+  UploadFile: TUploadFile<K>;
+  data: Record<string, any>;
+};
+
 export const Field = function <K extends string>(
-  this: {
-    Input: TInputField<K>;
-    SingleSelect: TSingleSelect<K>;
-    MultipleSelect: TMultipleSelect<K>;
-    CalendarSelect: TCalendarSelect<K>;
-    MonthYearSelect: TMonthYearSelect<K>;
-    Checkbox: TCheckboxLabel<K>;
-    CheckboxGroup: TCheckboxGroup<K>;
-    UploadFile: TUploadFile<K>;
-    data: Record<string, any>;
-  },
-  {
+  this: FieldContext<K>,
+  props: FieldProps<K>
+) {
+  const {
     name,
     placeholder,
     disabled,
@@ -45,28 +50,9 @@ export const Field = function <K extends string>(
     className,
     helperText,
     errorMessage,
-  }: {
-    name: K;
-    placeholder?: string;
-    disabled?: boolean;
-    type?: string;
-    label?: string;
-    input?: Omit<Parameters<TInputField<K>>[0], "name">;
-    singleSelect?: Omit<Parameters<TSingleSelect<K>>[0], "name">;
-    multiSelect?: Omit<Parameters<TMultipleSelect<K>>[0], "name">;
-    calendarSelect?: Omit<Parameters<TCalendarSelect<K>>[0], "name">;
-    monthYearSelect?: Omit<Parameters<TMonthYearSelect<K>>[0], "name">;
-    checkbox?: Omit<Parameters<TCheckboxLabel<K>>[0], "name">;
-    checkboxGroup?: Omit<Parameters<TCheckboxGroup<K>>[0], "name"> & {
-      options: CheckboxOption[];
-    };
-    upload?: Omit<Parameters<TUploadFile<K>>[0], "name">;
-    className?: string;
+    errors,
+  } = props;
 
-    helperText?: string;
-    errorMessage?: string;
-  }
-) {
   let current_type = "input";
   if (singleSelect) current_type = "singleSelect";
   if (multiSelect) current_type = "multiSelect";
@@ -138,7 +124,9 @@ export const Field = function <K extends string>(
         <p className="mt-0.5 text-xs font-light">{helperText}</p>
       ) : null}
 
-      {errorMessage ? (
+      {errors?.length ? (
+        <p className="mt-0.5 text-xs text-red-500">{errors[0]}</p>
+      ) : errorMessage ? (
         <p className="mt-0.5 text-xs text-red-500">{errorMessage}</p>
       ) : null}
     </Label>
