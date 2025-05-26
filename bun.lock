@@ -770,7 +770,7 @@
 
     "rimraf": ["rimraf@6.0.1", "", { "dependencies": { "glob": "^11.0.0", "package-json-from-dist": "^1.0.0" }, "bin": "dist/esm/bin.mjs" }, ""],
 
-    "rlib": ["rlib@git+ssh://git@github.com/rizrmd/rlib.git#df4a102671b93a43fa605a80f766afedf6fee5bc", { "dependencies": { "lodash": "^4.17.21", "oracledb": "^6.8.0", "pg": "^8.14.1", "postgrejs": "^2.22.4", "rimraf": "^6.0.1" }, "peerDependencies": { "typescript": "^5" } }, "df4a102671b93a43fa605a80f766afedf6fee5bc"],
+    "rlib": ["rlib@github:rizrmd/rlib#e88e38c", { "dependencies": { "bun-plugin-tailwind": "^0.0.15", "lodash": "^4.17.21", "oracledb": "^6.8.0", "pg": "^8.14.1", "postgrejs": "^2.22.4", "react": "^19.1.0", "react-dom": "^19.1.0", "rimraf": "^6.0.1" }, "peerDependencies": { "typescript": "^5" } }, "rizrmd-rlib-e88e38c"],
 
     "robust-predicates": ["robust-predicates@3.0.2", "", {}, "sha512-IXgzBWvWQwE6PrDI05OvmXUIruQTcoMDzRsOd5CDvHCVLcLHMTSYvOK5Cm46kWqlV3yAbuSpBZdJ5oP5OUoStg=="],
 
@@ -962,6 +962,10 @@
 
     "react-window/memoize-one": ["memoize-one@5.2.1", "", {}, ""],
 
+    "rlib/react": ["react@19.1.0", "", {}, "sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg=="],
+
+    "rlib/react-dom": ["react-dom@19.1.0", "", { "dependencies": { "scheduler": "^0.26.0" }, "peerDependencies": { "react": "^19.1.0" } }, "sha512-Xs1hdnE+DyKgeHJeJznQmYMIBG3TKIHJJT95Q58nHLSrElKlGQqDTR2HQ9fx5CN/Gk6Vh/kupBTDLU11/nDk/g=="],
+
     "string-width-cjs/emoji-regex": ["emoji-regex@8.0.0", "", {}, ""],
 
     "string-width-cjs/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, ""],
@@ -997,6 +1001,8 @@
     "pg/pg-types/postgres-date": ["postgres-date@1.0.7", "", {}, ""],
 
     "pg/pg-types/postgres-interval": ["postgres-interval@1.2.0", "", { "dependencies": { "xtend": "^4.0.0" } }, ""],
+
+    "rlib/react-dom/scheduler": ["scheduler@0.26.0", "", {}, "sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA=="],
 
     "string-width-cjs/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, ""],
 
