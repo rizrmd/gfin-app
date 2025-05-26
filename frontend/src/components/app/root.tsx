@@ -8,6 +8,7 @@ import { AppLayout } from "./layout";
 function AppRoot() {
   const { Page, currentPath, isLoading, params } = useRoot();
 
+
   if (isLoading) {
     return (
       <div className="flex w-screen h-screen items-center justify-center">

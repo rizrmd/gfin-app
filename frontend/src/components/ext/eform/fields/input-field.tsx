@@ -1,8 +1,9 @@
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { useSnapshot } from "valtio";
+import { proxy, useSnapshot } from "valtio";
 import { getNestedProperty, setNestedProperty } from "../utils";
+import { useLocal } from "@/lib/hooks/use-local";
 
 type Props<
   K extends string,
@@ -33,7 +34,7 @@ export const InputField = function <
     ...rest
   }: Props<K, V>
 ) {
-  const read = useSnapshot(this.data);
+  const read = useSnapshot(this.data, { sync: true });
   const write = this.data as any;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +44,6 @@ export const InputField = function <
   };
 
   const value = getNestedProperty(read, name);
-  // value && console.log("input-field", value);
 
   return (
     <Input

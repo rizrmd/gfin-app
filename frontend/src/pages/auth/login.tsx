@@ -4,11 +4,10 @@ import { OtpInput } from "@/components/custom/auth/otp-input";
 import { BodyFrame } from "@/components/custom/frame/body-frame";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
-import { useLocal } from "@/lib/hooks/use-local";
 import { api } from "@/lib/gen/api";
-import { Link, navigate } from "@/lib/router";
+import { useLocal } from "@/lib/hooks/use-local";
+import { Link } from "@/lib/router";
 import { PublicOnly, user } from "@/lib/user";
-import login from "backend/api/auth/login";
 
 export default () => {
   const local = useLocal({

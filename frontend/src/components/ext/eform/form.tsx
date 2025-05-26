@@ -1,10 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { proxy, ref, useSnapshot } from "valtio";
-import { validateForm, hasErrors } from "./validation";
-import type { ValidationRule, ValidationErrors, FieldProps } from "./types";
-import { Field } from "./field";
-import { Section } from "./section";
 import { CalendarSelect } from "./fields/calendar-select";
 import { CheckboxGroup } from "./fields/checkbox-group";
 import { CheckboxLabel } from "./fields/checkbox-label";
@@ -13,6 +9,7 @@ import { MonthYearSelect } from "./fields/month-year-select";
 import { MultipleSelect } from "./fields/multiple-select";
 import { SingleSelect } from "./fields/single-select";
 import { UploadFile } from "./fields/upload-file";
+import { Section } from "./section";
 import type {
   DeepReadonly,
   DotNotationKeys,
@@ -26,8 +23,9 @@ import type {
   TMultipleSelect,
   TSection,
   TSingleSelect,
-  TUploadFile,
+  TUploadFile, ValidationErrors, ValidationRule
 } from "./types";
+import { hasErrors, validateForm } from "./validation";
 
 export const Form = <
   T extends Record<string, any>,
@@ -36,12 +34,16 @@ export const Form = <
   data: T;
   children: (opt: EFormChildren<T, K>) => ReactNode;
   onInit?: (opt: { read: DeepReadonly<T>; write: T }) => void;
-  onSubmit?: (opt: { read: DeepReadonly<T>; write: T; isValid: boolean }) => void;
+  onSubmit?: (opt: {
+    read: DeepReadonly<T>;
+    write: T;
+    isValid: boolean;
+  }) => void;
   className?: string;
   validator?: Record<string, ValidationRule | ValidationRule[]>;
 }) => {
   const [errors, setErrors] = useState<ValidationErrors<T>>({});
-  
+
   const write = useRef(
     proxy({
       data: opt.data,
@@ -62,14 +64,8 @@ export const Form = <
 
   useEffect(() => {
     opt.onInit?.({ read: read.data as any, write: write.data });
-    write.Field = ref((props: FieldProps<K>) => {
-      if (!props) return null;
-      const boundField = Field.bind(write);
-      return boundField({
-        ...props,
-        errors: props.name ? errors[props.name] : undefined,
-      });
-    });
+    write.Field = ref(InputField.bind(write));
+    // write.Field = ref(Field.bind(write));
     write.Input = ref(InputField.bind(write));
     write.SingleSelect = ref(SingleSelect.bind(write));
     write.MultipleSelect = ref(MultipleSelect.bind(write));
@@ -79,7 +75,7 @@ export const Form = <
     write.CheckboxGroup = ref(CheckboxGroup.bind(write));
     write.UploadFile = ref(UploadFile.bind(write));
     write.Section = ref(Section.bind(write));
-  }, [errors]);
+  }, []);
 
   useEffect(() => {
     write.submit = ref(() => {
@@ -89,7 +85,11 @@ export const Form = <
         const isValid = !hasErrors(validationErrors);
         opt.onSubmit?.({ read: read.data as any, write: write.data, isValid });
       } else {
-        opt.onSubmit?.({ read: read.data as any, write: write.data, isValid: true });
+        opt.onSubmit?.({
+          read: read.data as any,
+          write: write.data,
+          isValid: true,
+        });
       }
     });
   }, [opt.data, opt.validator]);
