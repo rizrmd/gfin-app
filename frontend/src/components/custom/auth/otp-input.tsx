@@ -51,9 +51,9 @@ export const OtpInput: FC<OtpInputProps> = ({
 
         <Form
           data={local}
-          onSubmit={async ({ write, read }) => {
+          onSubmit={async ({ write }) => {
             write.loading = true;
-            onSubmit(read.otp);
+            onSubmit(write.otp);
           }}
           className="space-y-4 py-4 flex items-center justify-center"
         >
