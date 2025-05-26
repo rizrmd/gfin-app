@@ -28,7 +28,7 @@ export const user = {
   }) => {
     // Handle data from login/register flow
     if (res?.token) {
-      localStorage.setItem("gfin_token", res.token);
+      localStorage.setItem("gfin-token", res.token);
       user.status = "logged-in";
     }
 
@@ -41,7 +41,7 @@ export const user = {
       localStorage.setItem("gfin_org", JSON.stringify(res.organization));
     }
 
-    const sessionToken = localStorage.getItem("gfin_token");
+    const sessionToken = localStorage.getItem("gfin-token");
 
     if (sessionToken) {
       try {
@@ -58,13 +58,13 @@ export const user = {
         } else {
           // Invalid session, clean up
           user.status = "logged-out";
-          localStorage.removeItem("gfin_token");
+          localStorage.removeItem("gfin-token");
           localStorage.removeItem("gfin_org");
         }
       } catch (error) {
         console.error("Session verification failed:", error);
         user.status = "logged-out";
-        localStorage.removeItem("gfin_token");
+        localStorage.removeItem("gfin-token");
         localStorage.removeItem("gfin_org");
       }
     } else {
@@ -72,7 +72,7 @@ export const user = {
     }
   },
   logout: async () => {
-    const token = localStorage.getItem("gfin_token");
+    const token = localStorage.getItem("gfin-token");
     if (token) {
       try {
         // Call logout API to invalidate the session on the server
@@ -83,7 +83,7 @@ export const user = {
     }
 
     // Clear local storage regardless of API response
-    localStorage.removeItem("gfin_token");
+    localStorage.removeItem("gfin-token");
     localStorage.removeItem("gfin_org");
     user.status = "logged-out";
     user.client = {} as any;
@@ -94,7 +94,7 @@ export const user = {
 };
 
 export const Protected: FC<{ children: ReactNode }> = ({ children }) => {
-  if (localStorage.getItem("gfin_token") === null) {
+  if (localStorage.getItem("gfin-token") === null) {
     user.status = "logged-out";
     navigate("/");
   }
@@ -103,7 +103,7 @@ export const Protected: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export const PublicOnly: FC<{ children: ReactNode }> = ({ children }) => {
-  if (localStorage.getItem("gfin_token") !== null) {
+  if (localStorage.getItem("gfin-token") !== null) {
     navigate("/onboard/");
   }
 
