@@ -1,15 +1,13 @@
-import { Button } from "@/components/ui/button";
 import { EForm } from "@/components/ext/eform";
-import { Section } from "@/components/ext/eform/section";
-import { useLocal } from "@/lib/hooks/use-local";
-import type { OrganizationData } from "shared/lib/client_state";
-import { orgState } from "@/lib/states/org-state";
-import { useSnapshot } from "valtio";
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/gen/api";
+import { useLocal } from "@/lib/hooks/use-local";
+import { orgState } from "@/lib/states/org-state";
+import type { OrganizationData } from "shared/lib/client_state";
 import { blankOrg } from "shared/lib/client_state";
-import { cn } from "@/lib/utils";
+import { useSnapshot } from "valtio";
 
-export const ProfileForm = () => {
+export const SummaryProfile = () => {
   const orgRead = useSnapshot(orgState.write);
 
   const local = useLocal({ isSubmitting: false }, async () => {
@@ -175,4 +173,4 @@ export const ProfileForm = () => {
   );
 };
 
-export default ProfileForm;
+export default SummaryProfile;
