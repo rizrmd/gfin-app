@@ -38,7 +38,7 @@ export const user = {
 
     if (res?.organization) {
       user.organization = res.organization as any;
-      localStorage.setItem("gfin_org", JSON.stringify(res.organization));
+      localStorage.setItem("gfin-org", JSON.stringify(res.organization));
     }
 
     const sessionToken = localStorage.getItem("gfin-token");
@@ -59,13 +59,13 @@ export const user = {
           // Invalid session, clean up
           user.status = "logged-out";
           localStorage.removeItem("gfin-token");
-          localStorage.removeItem("gfin_org");
+          localStorage.removeItem("gfin-org");
         }
       } catch (error) {
         console.error("Session verification failed:", error);
         user.status = "logged-out";
         localStorage.removeItem("gfin-token");
-        localStorage.removeItem("gfin_org");
+        localStorage.removeItem("gfin-org");
       }
     } else {
       user.status = "logged-out";
@@ -84,7 +84,7 @@ export const user = {
 
     // Clear local storage regardless of API response
     localStorage.removeItem("gfin-token");
-    localStorage.removeItem("gfin_org");
+    localStorage.removeItem("gfin-org");
     user.status = "logged-out";
     user.client = {} as any;
     user.organization = {} as any;
