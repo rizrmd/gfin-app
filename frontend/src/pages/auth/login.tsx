@@ -35,6 +35,7 @@ export default () => {
         } else {
           // Show OTP input dialog
           local.showOtpModal = true;
+          
         }
       } else {
         Alert.info(
@@ -46,7 +47,6 @@ export default () => {
       }
     } catch (error: any) {
       await Alert.info("Login failed", error.message);
-    } finally {
       local.form.loading = false;
       local.render();
     }
@@ -76,14 +76,17 @@ export default () => {
 
         location.href = "/onboard/";
       } else {
-        Alert.info(
+        await Alert.info(
           "Verification failed:" +
             "Invalid verification code. Please try again."
         );
+
+        local.form.loading = false;
+        local.render();
       }
     } catch (error: any) {
-      Alert.info("Verification failed", error.message);
-    } finally {
+      await Alert.info("Verification failed", error.message);
+
       local.form.loading = false;
       local.render();
     }
