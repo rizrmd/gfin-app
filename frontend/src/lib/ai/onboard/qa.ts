@@ -90,6 +90,10 @@ there are ${
           conv.sendContextualUpdate("All questions have been answered");
         }
       },
+      pause: () => {
+        local.pause();
+        conv.endSession();
+      },
     },
     onMessage(props) {
       if (Object.keys(local.qa_final).length === questions.length) {
@@ -105,6 +109,8 @@ there are ${
       console.error("Error in conversation", message, context);
     },
     async onDisconnect() {
+      if (local.paused) return;
+
       if (local.qa_done) {
         local.phase.qa = true;
         local.render();
@@ -134,6 +140,8 @@ const defineFirstMessage = async ({
 }) => {
   let firstMessage: undefined | string = undefined;
   const gfin_msgs = localzip.get("gfin-ai-qa-msgs") || [];
+
+  
   if (gfin_msgs.length >= 2 || Object.keys(local.qa_final).length > 0) {
     const res = await ai.task.do("ask", {
       prompt: `\

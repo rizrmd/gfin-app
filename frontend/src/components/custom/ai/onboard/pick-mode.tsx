@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { aiOnboard } from "@/lib/ai/onboard";
+import type { useAiOnboard } from "@/lib/ai/onboard";
 import { user } from "@/lib/user";
 import type { FC } from "react";
 
-export const PickMode: FC<{
-  ai: ReturnType<typeof aiOnboard>;
+type PickModeProps = FC<{
+  ai: ReturnType<typeof useAiOnboard>;
   len: number;
-}> = ({ ai }) => {
-  
+}>;
+export const PickMode: PickModeProps = ({ ai }) => {
   return (
     <Card className="flex relative flex-col justify-center w-[400px] h-[400px] ">
       <div

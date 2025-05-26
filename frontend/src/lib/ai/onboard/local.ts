@@ -24,6 +24,15 @@ export const aiOnboardLocal = ({
       qa: false,
       profile: false,
     },
+    paused: false,
+    resume: () => {
+      local.paused = false;
+      local.render();
+    },
+    pause: () => {
+      local.paused = true;
+      local.render();
+    },
     summary: false,
     render: () => {},
   };

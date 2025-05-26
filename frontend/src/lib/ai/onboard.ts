@@ -18,7 +18,7 @@ export const questions = [
   "Do you have any existing certifications (e.g., HUBZone, SDVOSB, WOSB) that may be relevant to the funding opportunity?",
 ];
 
-export const aiOnboard = () => {
+export const useAiOnboard = () => {
   const ai = useAI();
   const conv = useConversation();
   const local = useLocal(aiOnboardLocal({ questions, ai }));

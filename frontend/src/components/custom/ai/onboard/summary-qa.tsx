@@ -2,7 +2,7 @@ import { AppLoading } from "@/components/app/loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { questions, type aiOnboard } from "@/lib/ai/onboard";
+import { questions, type useAiOnboard } from "@/lib/ai/onboard";
 import { api } from "@/lib/gen/api";
 import { useLocal } from "@/lib/hooks/use-local";
 import { user } from "@/lib/user";
@@ -12,7 +12,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
 export const SummaryQA: FC<{
-  ai: ReturnType<typeof aiOnboard>;
+  ai: ReturnType<typeof useAiOnboard>;
   len: number;
 }> = ({ ai }) => {
   const qa_final = { ...ai.local.qa_final };

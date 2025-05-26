@@ -4,14 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/global-alert";
-import type { aiOnboard } from "@/lib/ai/onboard";
+import type { useAiOnboard } from "@/lib/ai/onboard";
 import { questions } from "@/lib/ai/onboard";
 import { user } from "@/lib/user";
-import { ArrowRight, Bot, Mic } from "lucide-react";
+import { ArrowRight, Bot, Mic, Pause, Play } from "lucide-react";
 import { type FC } from "react";
 
 export const ConversationQA: FC<{
-  ai: ReturnType<typeof aiOnboard>;
+  ai: ReturnType<typeof useAiOnboard>;
 }> = ({ ai }) => {
   const {
     permission,
@@ -39,6 +39,31 @@ export const ConversationQA: FC<{
 
         {permission === "granted" && (
           <>
+            {ai.conv.status === "connected" ? (
+              <Button
+                variant={!ai.local.paused ? "outline" : "default"}
+                size="xs"
+                className={cn(ai.local.paused && "bg-black text-white")}
+                onClick={async () => {
+                  ai.conv.endSession();
+                  ai.local.pause();
+                }}
+              >
+                <>
+                  <Pause />
+                  Pause
+                </>
+              </Button>
+            ) : (
+              <>
+                {!ai.local.paused && (
+                  <div className="text-xs text-slate-500 mt-1">
+                    Gathering thought...
+                  </div>
+                )}
+              </>
+            )}
+
             {!phase.qa ? (
               <Badge
                 variant="secondary"
@@ -67,7 +92,8 @@ export const ConversationQA: FC<{
           )}
         </>
       )}
-      {((messages.length === 0 && permission !== "denied") ||
+      {((messages.length === 0 &&
+        !["denied", "requesting"].includes(permission)) ||
         permission === "pending") && (
         <div className="flex items-center flex-1 justify-center select-none">
           <div className="flex items-bottom gap-2">

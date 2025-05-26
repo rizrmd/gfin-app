@@ -26,6 +26,7 @@ import type {
   TUploadFile, ValidationErrors, ValidationRule
 } from "./types";
 import { hasErrors, validateForm } from "./validation";
+import { Field } from "./field";
 
 export const Form = <
   T extends Record<string, any>,
@@ -64,8 +65,7 @@ export const Form = <
 
   useEffect(() => {
     opt.onInit?.({ read: read.data as any, write: write.data });
-    write.Field = ref(InputField.bind(write));
-    // write.Field = ref(Field.bind(write));
+    write.Field = ref(Field.bind(write));
     write.Input = ref(InputField.bind(write));
     write.SingleSelect = ref(SingleSelect.bind(write));
     write.MultipleSelect = ref(MultipleSelect.bind(write));

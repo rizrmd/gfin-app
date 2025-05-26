@@ -1,7 +1,4 @@
-import type { SerializableAgentState } from "r-agent/browser_use/agent/serializable_views";
 import { taskWorker } from "../lib/task-worker";
-import { usBizUrl } from "shared/lib/biz_url";
-import { blankOrg } from "shared/lib/client_state";
 
 export default taskWorker<
   {},

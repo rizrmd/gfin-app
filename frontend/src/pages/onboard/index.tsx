@@ -3,11 +3,11 @@ import { PickMode } from "@/components/custom/ai/onboard/pick-mode";
 import SummaryProfile from "@/components/custom/ai/onboard/summary-profile";
 import { SummaryQA } from "@/components/custom/ai/onboard/summary-qa";
 import { BodyFrame } from "@/components/custom/frame/body-frame";
-import { aiOnboard } from "@/lib/ai/onboard";
+import { useAiOnboard } from "@/lib/ai/onboard";
 import { Protected } from "@/lib/user";
 
 export default () => {
-  const ai = aiOnboard();
+  const ai = useAiOnboard();
 
   return (
     <Protected>
