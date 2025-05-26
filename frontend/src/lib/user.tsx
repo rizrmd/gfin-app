@@ -43,7 +43,7 @@ export const user = {
 
     const sessionToken = localStorage.getItem("gfin-token");
 
-    if (sessionToken) {
+    if (!!sessionToken) {
       try {
         user.status = "loading";
         // Verify token with backend
