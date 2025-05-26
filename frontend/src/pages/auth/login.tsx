@@ -41,9 +41,11 @@ export default () => {
           "Login failed" +
             (loginResponse.message || "Could not send verification code")
         );
+        local.form.loading = false;
+        local.render();
       }
     } catch (error: any) {
-      Alert.info("Login failed", error.message);
+      await Alert.info("Login failed", error.message);
     } finally {
       local.form.loading = false;
       local.render();
