@@ -14,7 +14,8 @@ export default taskWorker<
     });
 
     try {
-      return JSON.parse(res.content);
+      const parsed = JSON.parse(res.content);
+      return parsed;
     } catch (e) {}
     return res;
   },

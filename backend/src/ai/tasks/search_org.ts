@@ -26,6 +26,7 @@ export default taskWorker<
         `;
 
     const maxSteps = 10;
+    
     const res = await agent.browser({
       prompt,
       restore: resumeFrom?.data.step,

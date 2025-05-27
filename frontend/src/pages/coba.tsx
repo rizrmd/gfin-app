@@ -11,9 +11,10 @@ export default () => {
         <Button
           onClick={async () => {
             await user.init();
-            const res = await ai.task.do("perplexity", {
+            const res = await ai.task.do("ask", {
               prompt: "hello tell me the cutest animal",
             });
+            console.log(res);
           }}
         >
           Mantap jiwa
