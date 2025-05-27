@@ -10,7 +10,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@ai-sdk/perplexity": "^1.1.9",
     "@types/bcrypt": "^5.0.2",
     "@types/lodash": "^4.17.16",
     "@types/nodemailer": "^6.4.17",

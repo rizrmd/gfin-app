@@ -8,8 +8,8 @@ import {
 export const createOneShotAgent = () => {
   return async <T extends object>(opt: { prompt: string; system?: string }) => {
     const llm = new ChatOpenRouterAI({
-      modelName: "meta-llama/llama-4-scout",
-      apiKey: process.env.OPENROUTER_API_KEY,
+      modelName: "meta-llama/llama-4-scout-17b-16e-instruct",
+      apiKey: process.env.GROQ_API_KEY,
     });
 
     const messages: BaseMessage[] = [
