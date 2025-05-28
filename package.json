@@ -17,6 +17,7 @@
     "lodash": "^4.17.21",
     "msgpackr": "^1.11.4",
     "patchright": "^1.52.4",
+    "prisma": "^6.8.2",
     "r-agent": "https://github.com/rizrmd/r-agent",
     "rlib": "https://github.com/rizrmd/rlib.git",
     "valtio": "^2.1.4"
