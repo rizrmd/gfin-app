@@ -10,14 +10,16 @@ export default () => {
       <div>
         <Button
           onClick={async () => {
+            console.log("Initializing user...");
             await user.init();
-            const res = await ai.task.do("ask", {
-              prompt: "hello tell me the cutest animal",
+            const res = await ai.task.do("sam_gov", {
+              prompt:      
+              `user prompt : Find opportunities for grant "cloud computing" posted from 01/01/2025 until now`,
             });
             console.log(res);
           }}
         >
-          Mantap jiwa
+          SAM.GOV
         </Button>
       </div>
     </>
