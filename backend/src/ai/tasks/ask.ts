@@ -9,8 +9,8 @@ export default taskWorker<
   desc: "Asking",
   async execute({ agent, progress, resumeFrom, db, input }) {
     const res = await agent.oneshot({
-      system: `You are an assistant that will generate a message in this json format: { answer: string }`,
-      ...input,
+      system: input.system ? input.system : `You are an assistant that will generate a message in this json format: { answer: string }`,
+      prompt: input.prompt,
     });
 
     try {
