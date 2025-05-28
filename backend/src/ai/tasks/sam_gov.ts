@@ -25,7 +25,19 @@ export default taskWorker<{}, SamGovInput, SamGovOutput>({
   desc: "LLM-powered search for SAM.gov",
   async execute({ agent, input }) {
     const res = await agent.oneshot({
-      system: `You are an assistant whose sole job is to extract from the user’s prompt to query the SAM.gov API for contracts and grants, please adhere to SAM.gov json template.`,
+      system: `
+        You are an assistant whose SOLE JOB is to prepare a query for the SAM.gov API (endpoint: https://api.sam.gov/opportunities/v2/search). 
+        You understand that:
+        - The API uses dates in MM/DD/YYYY format.
+        - The “title” parameter is the full-text search on the opportunity title.
+        From the user’s prompt, extract exactly these three fields:
+        {
+          "query":     "<search keywords as a single string>",
+          "postedFrom": "MM/DD/YYYY",
+          "postedTo":   "MM/DD/YYYY"
+        }
+        If the user says “now” for postedTo, substitute today’s date (05/28/2025). 
+        **Output strictly valid JSON**—no comments, no extra keys, no markdown.`,
       ...input,
     });
 

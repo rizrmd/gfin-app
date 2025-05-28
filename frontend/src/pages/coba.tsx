@@ -14,7 +14,7 @@ export default () => {
             await user.init();
             const res = await ai.task.do("sam_gov", {
               prompt:      
-              `user prompt : Find opportunities for grant "cloud computing" posted from 01/01/2025 until now`,
+              `user prompt : Find opportunities for any grants posted from 01/01/2025 until now`,
             });
             console.log(res);
           }}
