@@ -61,7 +61,7 @@ export default defineAPI({
     sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 7);
 
     // Create a new session
-    const session = await db.sessions.create({
+    const session = await db.auth_tokens.create({
       data: {
         client_id: client.id,
         token,

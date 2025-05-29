@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { v6 } from "uuid";
 import { aiState } from "./state";
 import { aiSync } from "./sync";
+
 const aiClient = () => {
   const state = aiState();
   const sync = aiSync();
@@ -59,6 +60,9 @@ const aiClient = () => {
   return {
     state,
     sync,
+    session: {
+      async create() {},
+    },
     task: {
       active: {} as Record<string, any>,
       do: async <Name extends TaskName>(

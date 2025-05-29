@@ -12,7 +12,7 @@ export default defineAPI({
 
     // Find and delete the session
     try {
-      await db.sessions.deleteMany({
+      await db.auth_tokens.deleteMany({
         where: { token }
       });
 

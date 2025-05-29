@@ -11,7 +11,7 @@ export default defineAPI({
     }
 
     // Find the session with the given token
-    const session = await db.sessions.findFirst({
+    const session = await db.auth_tokens.findFirst({
       where: { token },
       include: {
         client: {
@@ -27,7 +27,7 @@ export default defineAPI({
     // Check if session is expired
     if (new Date(session.expires_at) < new Date()) {
       // Delete the expired session
-      await db.sessions.delete({
+      await db.auth_tokens.delete({
         where: { id: session.id },
       });
       throw new Error("Session has expired");
@@ -38,7 +38,7 @@ export default defineAPI({
     newExpiresAt.setDate(newExpiresAt.getDate() + 7);
 
     // Update the session expiration
-    await db.sessions.update({
+    await db.auth_tokens.update({
       where: { id: session.id },
       data: {
         expires_at: newExpiresAt,

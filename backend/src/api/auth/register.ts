@@ -89,7 +89,7 @@ export default defineAPI({
       const userAgent = req.headers.get("user-agent") || null;
       
       // Create a new session for automatic login
-      const session = await db.sessions.create({
+      const session = await db.auth_tokens.create({
         data: {
           client_id: newClient.id,
           token,
