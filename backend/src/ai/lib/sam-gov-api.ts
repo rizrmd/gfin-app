@@ -1,3 +1,84 @@
+interface Location {
+  city: {
+    code: string;
+    name: string;
+  };
+  state: {
+    code: string;
+    name: string;
+  };
+  zip: string;
+  country: {
+    code: string;
+    name: string;
+  };
+}
+
+interface Awardee {
+  name: string;
+  location: Location;
+  ueiSAM: string;
+  cageCode: string;
+}
+
+interface Award {
+  date: string;
+  number: string;
+  amount: string;
+  awardee: Awardee;
+}
+
+interface PointOfContact {
+  fax: string | null;
+  type: string;
+  email: string;
+  phone: string;
+  title: string | null;
+  fullName: string;
+}
+
+interface OfficeAddress {
+  zipcode: string;
+  city: string;
+  countryCode: string;
+  state: string;
+}
+
+interface Link {
+  rel: string;
+  href: string;
+}
+
+interface OpportunityResponse {
+  noticeId: string;
+  title: string;
+  solicitationNumber: string;
+  fullParentPathName: string;
+  fullParentPathCode: string;
+  postedDate: string;
+  type: string;
+  baseType: string;
+  archiveType: string;
+  archiveDate: string;
+  typeOfSetAsideDescription: string;
+  typeOfSetAside: string;
+  responseDeadLine: string | null;
+  naicsCode: string;
+  naicsCodes: string[];
+  classificationCode: string;
+  active: string;
+  award: Award;
+  pointOfContact: PointOfContact[];
+  description: string;
+  organizationType: string;
+  officeAddress: OfficeAddress;
+  placeOfPerformance: Location;
+  additionalInfoLink: string | null;
+  uiLink: string;
+  links: Link[];
+  resourceLinks: any | null;
+}
+
 export class SamGovAPI {
   private apiKey: string;
   private baseUrl: string;
@@ -22,8 +103,8 @@ export class SamGovAPI {
    * @param options    Required date range + optional filters
    */
   async searchOpportunities(
-    title: string,
     options: {
+      query: string,
       postedFrom: string;                // MM/dd/yyyy (required)
       postedTo: string;                // MM/dd/yyyy (required)
       limit?: number;                // defaults to 5, max 1000
@@ -47,7 +128,7 @@ export class SamGovAPI {
     const url = new URL(this.baseUrl);
     url.searchParams.set("api_key", this.apiKey);
     // full-text search on title
-    url.searchParams.set("title", title);
+    url.searchParams.set("title", options.query || "contracts");
     // required date range
     url.searchParams.set("postedFrom", options.postedFrom);
     url.searchParams.set("postedTo", options.postedTo);
@@ -76,6 +157,7 @@ export class SamGovAPI {
     if (options.status) url.searchParams.set("status", options.status);
     if (options.organizationCode) url.searchParams.set("organizationCode", options.organizationCode);
     if (options.organizationName) url.searchParams.set("organizationName", options.organizationName);
+      console.log(options)
 
     // abort controller for timeout
     const controller = new AbortController();
@@ -99,7 +181,7 @@ export class SamGovAPI {
 
       const json = await res.json();
       // v2 returns under "opportunitiesData"
-      return json.opportunitiesData as any[];
+      return json.opportunitiesData as OpportunityResponse[];
     } catch (err) {
       console.error("Error fetching SAM.gov data:", err);
       throw err;

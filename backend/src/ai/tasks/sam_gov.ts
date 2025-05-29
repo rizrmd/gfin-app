@@ -9,14 +9,14 @@ type SamGovInput = {
 };
 
 // Semua parameter request API, dipakai sebagai hasil parse LLM
-interface LlmParsed {                  
-  ptype: string[];                       // kosong [] kalau tidak disebut
+interface LlmParsed {
+  ptype: string[]; // kosong [] kalau tidak disebut
   solnum: string;
   noticeid: string;
   title: string;
   query: string;
-  postedFrom: string;  // MM/DD/YYYY
-  postedTo: string;    // MM/DD/YYYY
+  postedFrom: string; // MM/DD/YYYY
+  postedTo: string; // MM/DD/YYYY
   deptname: string;
   subtier: string;
   state: string;
@@ -35,14 +35,13 @@ interface LlmParsed {
 }
 
 // Output juga menambahkan results, plus semua parameter
-type SamGovOutput = 
-// LlmParsed & 
-{
-  results: any[];
-};
+type SamGovOutput =
+  // LlmParsed &
+  {
+    results: any[];
+  };
 
-const system = 
-  `You are an assistant whose SOLE JOB is to prepare a query for the SAM.gov Opportunities Search API (endpoint: https://api.sam.gov/opportunities/v2/search).
+const system = `You are an assistant whose SOLE JOB is to prepare a query for the SAM.gov Opportunities Search API (endpoint: https://api.sam.gov/opportunities/v2/search).
   You understand that:
   - All dates must be in MM/DD/YYYY format.
   - “title” corresponds to a full-text search on the opportunity title.
@@ -79,21 +78,17 @@ const system =
 
   Return a single JSON object with all keys exactly as listed above. **No comments, no extra keys, no markdown.**`;
 
-
 export default taskWorker<{}, SamGovInput, SamGovOutput>({
   name: "sam_gov",
   desc: "LLM-powered search for SAM.gov",
   async execute({ agent, input }) {
     const res = await agent.oneshot({ system, ...input });
     const parsed = JSON.parse(res.content) as LlmParsed;
-    console.log("Parsed LLM response:", parsed);
 
+    console.log(parsed);
     // panggil API
     const sam = new SamGovAPI({ apiKey: process.env.SAM_API_KEY! });
-    const results = await sam.searchOpportunities(parsed.query, {
-      postedFrom: parsed.postedFrom,
-      postedTo: parsed.postedTo,
-    });
+    const results = await sam.searchOpportunities(parsed);
     return {
       // ...parsed,
       results,
@@ -102,5 +97,5 @@ export default taskWorker<{}, SamGovInput, SamGovOutput>({
 });
 
 // "Error: LLM response missing required fields: {"query":"","postedFrom":"01/01/2025","postedTo":"05/28/2025"}
-    // at execute (C:\Users\Asus\Documents\New folder\gfin-app\backend\src\ai\tasks\sam_gov.ts:66:17)
-    // at processTicksAndRejections (native:7:39)"
+// at execute (C:\Users\Asus\Documents\New folder\gfin-app\backend\src\ai\tasks\sam_gov.ts:66:17)
+// at processTicksAndRejections (native:7:39)"
