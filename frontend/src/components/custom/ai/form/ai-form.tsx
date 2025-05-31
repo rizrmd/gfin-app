@@ -1,13 +1,10 @@
-import { EForm } from "@/components/ext/eform";
-import {
-  getNestedProperty,
-  setNestedProperty,
-} from "@/components/ext/eform/utils";
-import { useSnapshot } from "valtio";
+import { EForm, Field } from "@/components/ext/eform";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { AIFormLayout, AIField, AIFormSection } from "./ai-form.types";
-import { Fragment } from "react/jsx-runtime";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { Fragment } from "react/jsx-runtime";
+import type { AIField, AIFormLayout, AIFormSection } from "./ai-form.types";
 
 interface AIFormProps<T extends object> {
   layout: AIFormLayout[];
@@ -30,24 +27,37 @@ export const AIForm = <T extends object>({
 }: AIFormProps<T>) => {
   const previousDataRef = useRef<T>();
 
-  const renderField = (field: AIField, fieldProps: any, hideLabel = false) => {
+  const renderField = (
+    field: AIField,
+    fieldProps: { Field: typeof Field },
+    hideLabel = false
+  ) => {
     const { Field } = fieldProps;
     const fieldLabel = hideLabel ? "" : field.title;
 
     switch (field.type) {
-      case "text":
+      case "text-input":
         return (
           <Field
             key={field.field}
             name={field.field}
             label={fieldLabel}
-            required={field.required}
             disabled={disabled}
           />
         );
 
-      case "multi-text":
-        return <Fragment key={field.field}></Fragment>;
+      case "text-area":
+        return (
+          <Field
+            key={field.field}
+            name={field.field}
+            label={fieldLabel}
+            disabled={disabled}
+            input={{
+              textarea: true,
+            }}
+          />
+        );
 
       case "checkbox":
         return (
@@ -55,11 +65,10 @@ export const AIForm = <T extends object>({
             key={field.field}
             name={field.field}
             label={fieldLabel}
-            required={field.required}
             disabled={disabled}
             checkboxGroup={{
               options: field.options,
-              mode: (field as any).mode || "array",
+              mode: field.mode === "array-string" ? "array" : field.mode || "array",
             }}
           />
         );
@@ -70,7 +79,6 @@ export const AIForm = <T extends object>({
             key={field.field}
             name={field.field}
             label={fieldLabel}
-            required={field.required}
             disabled={disabled}
             singleSelect={{
               options: field.options,
@@ -83,9 +91,155 @@ export const AIForm = <T extends object>({
     }
   };
 
+  // Helper function to get nested value from object
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  };
+
+  // Helper function to set nested value in object
+  const setNestedValue = (obj: any, path: string, value: any) => {
+    const keys = path.split('.');
+    const lastKey = keys.pop()!;
+    const target = keys.reduce((current, key) => {
+      if (!current[key]) current[key] = {};
+      return current[key];
+    }, obj);
+    target[lastKey] = value;
+  };
+
+  // Helper function to create default item for array section
+  const createDefaultItem = (section: AIFormSection) => {
+    const item: any = {};
+    section.childs.forEach((child) => {
+      const fieldName = child.field.split('.').pop()!; // Get the last part of the field path
+      switch (child.type) {
+        case 'text-input':
+        case 'text-area':
+          item[fieldName] = '';
+          break;
+        case 'checkbox':
+          if (child.mode === 'array-string') {
+            item[fieldName] = [];
+          } else {
+            item[fieldName] = {};
+          }
+          break;
+        case 'dropdown':
+          item[fieldName] = '';
+          break;
+        default:
+          item[fieldName] = '';
+      }
+    });
+    return item;
+  };
+
   const renderSection = (section: AIFormSection, fieldProps: any) => {
-    const { Section } = fieldProps;
+    const { Section, read, write } = fieldProps;
     const shouldHideLabels = section.childs.length === 1;
+
+    if (section.array) {
+      // Get the base field path (common prefix for all fields in this section)
+      const firstField = section.childs[0]?.field;
+      if (!firstField) return null;
+      
+      // Extract the array path (everything before the last dot)
+      const fieldParts = firstField.split('.');
+      const arrayPath = fieldParts.slice(0, -1).join('.');
+      
+      // Get current array value
+      const arrayValue = getNestedValue(read, arrayPath) || [];
+      
+      const addItem = () => {
+        const newItem = createDefaultItem(section);
+        const newArray = [...arrayValue, newItem];
+        setNestedValue(write, arrayPath, newArray);
+      };
+
+      const removeItem = (index: number) => {
+        const newArray = arrayValue.filter((_: any, i: number) => i !== index);
+        setNestedValue(write, arrayPath, newArray);
+      };
+
+      const moveItem = (fromIndex: number, toIndex: number) => {
+        const newArray = [...arrayValue];
+        const [movedItem] = newArray.splice(fromIndex, 1);
+        newArray.splice(toIndex, 0, movedItem);
+        setNestedValue(write, arrayPath, newArray);
+      };
+
+      return (
+        <Section key={section.title} title={section.title} noGrid>
+          <div className="space-y-4">
+            {arrayValue.map((item: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4 space-y-4 relative">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-medium text-sm text-gray-700">
+                    {section.title} #{index + 1}
+                  </h4>
+                  <div className="flex gap-2">
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveItem(index, index - 1)}
+                        disabled={disabled}
+                        className="h-8 w-8 p-0"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {index < arrayValue.length - 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveItem(index, index + 1)}
+                        disabled={disabled}
+                        className="h-8 w-8 p-0"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeItem(index)}
+                      disabled={disabled}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                  {section.childs.map((child) => {
+                    // Modify the field path to include the array index
+                    const modifiedField = { 
+                      ...child, 
+                      field: `${arrayPath}.${index}.${child.field.split('.').pop()}`
+                    };
+                    return renderField(modifiedField, fieldProps, shouldHideLabels);
+                  })}
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addItem}
+              disabled={disabled}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add {section.title}
+            </Button>
+          </div>
+        </Section>
+      );
+    }
 
     return (
       <Section key={section.title} title={section.title}>

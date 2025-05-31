@@ -17,6 +17,7 @@ export default () => {
       const form = localStorage.getItem("form-layout");
       if (form) {
         local.form.layout = JSON.parse(form) as AIFormLayout[];
+        console.log(local.form.layout);
         local.form.data = blankOrg;
         local.render();
         return;
@@ -29,16 +30,9 @@ Please create an AIFormLayout configuration for this object ${JSON.stringify(
 
 
 This is the definition of AIFormLayout:
-export type AIFieldText = {
-  type: "text";
-  suggestions?: string[];
-  title?: string;
-  field: string;
-  required?: boolean;
-};
 
-export type AIFieldMultiText = {
-  type: "multi-text";
+export type AIFieldText = {
+  type: "text-input" | "text-area";
   suggestions?: string[];
   title?: string;
   field: string;
@@ -71,10 +65,10 @@ export type AIFormSection = {
 
 export type AIField =
   | AIFieldText
-  | AIFieldMultiText
   | AIFieldCheckbox
   | AIFieldDropdown;
 export type AIFormLayout = AIField | AIFormSection;
+
 `,
       });
 
