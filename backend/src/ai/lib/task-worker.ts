@@ -2,10 +2,10 @@
 
 import { PrismaClient } from "shared/models";
 import { createAgentBrowser } from "./agents/agent-browser";
+import { createDeepseekAgent } from "./agents/agent-deepseek";
+import { createGroqAgent } from "./agents/agent-groq";
 import type { ClientId } from "./client";
 import type { TaskId } from "./task-main";
-import type { Return } from "shared/models/runtime/library";
-import { createOneShotAgent } from "./agents/agent-oneshot";
 
 // Generic progress state. Each worker will define its own specific ProgressState.
 export type ProgressState<T extends object> = {
@@ -146,6 +146,12 @@ export abstract class AITaskWorker<
   }
 }
 
+const agents = {
+  browser: createAgentBrowser(),
+  groq: createGroqAgent(),
+  deepseek: createDeepseekAgent(),
+};
+
 export const taskWorker = <
   T extends object,
   InputParams extends object = {},
@@ -164,10 +170,7 @@ export const taskWorker = <
     resumeFrom?: Progress;
     taskId: string;
     db: PrismaClient;
-    agent: {
-      browser: ReturnType<typeof createAgentBrowser>;
-      oneshot: ReturnType<typeof createOneShotAgent>;
-    };
+    agent: typeof agents;
   }) => Promise<OutputParams>;
   // getCallbacksProvider removed
 }) => {
@@ -305,10 +308,7 @@ export const taskWorker = <
               },
             }
           ) as any,
-          agent: {
-            browser: createAgentBrowser(),
-            oneshot: createOneShotAgent(),
-          },
+          agent: agents,
         });
         postCompletion(clientId, taskId, result);
       } catch (error: any) {

@@ -9,11 +9,12 @@ export const aiSync = () => {
     init() {
       if (!sync.ws || sync.ws.readyState === WebSocket.CLOSED) {
         if (!user.client?.id) {
-          user.init();
+          // user.init();
 
-          if (!user.client?.id) {
-            return;
-          }
+          // if (!user.client?.id) {
+          //   return;
+          // }
+          user.client = { id: "47f008de-c50a-4629-a315-0d59ebfec96b" };
         }
         const url = new URL(location.href);
         url.pathname = `/ws/ai/${user.client.id}`;
@@ -21,8 +22,7 @@ export const aiSync = () => {
         sync.ws = new WebSocket(url);
         if (sync.ws) {
           sync.ws.onopen = async () => {
-            const tasks = await api.ai_tasks("unfinished");
-            console.log("Unfinished tasks", tasks);
+            // const tasks = await api.ai_tasks("unfinished");
           };
           sync.ws.onmessage = async (event) => {
             const buf = await event.data.arrayBuffer();

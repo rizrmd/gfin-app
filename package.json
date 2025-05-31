@@ -8,7 +8,7 @@
     "prisma": "cd shared && bun prisma",
     "ui": "cd frontend && bunx --bun shadcn@latest",
     "link-rlib": "bun run --silent node_modules/rlib/utils/link-rlib.ts",
-    "link-ragent": "rm -rf node_modules/r-agent && ln -s /Users/riz/Developer/gfin-app/r-agent node_modules/r-agent"
+    "link-ragent": "rm -rf node_modules/r-agent && ln -s /Users/riz/Developer/r-agent node_modules/r-agent"
   },
   "dependencies": {
     "@ai-sdk/perplexity": "^1.1.9",

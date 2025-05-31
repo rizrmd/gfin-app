@@ -157,7 +157,6 @@ export class SamGovAPI {
     if (options.status) url.searchParams.set("status", options.status);
     if (options.organizationCode) url.searchParams.set("organizationCode", options.organizationCode);
     if (options.organizationName) url.searchParams.set("organizationName", options.organizationName);
-      console.log(options)
 
     // abort controller for timeout
     const controller = new AbortController();

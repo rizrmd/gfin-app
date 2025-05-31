@@ -27,6 +27,7 @@ const aiClient = () => {
     output?: any;
     init_id?: string;
   }) => {
+    console.log(msg);
     if (msg.type === "taskInit") {
       if (!msg.init_id) {
         console.error("Task init message without init_id", msg);
