@@ -1,7 +1,8 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { useSnapshot } from "valtio";
+import { snapshot, useSnapshot } from "valtio";
+import { getNestedProperty, setNestedProperty } from "../utils";
 
 export type CheckboxOption = {
   label: string;
@@ -19,7 +20,10 @@ type Props<
   layout?: "vertical" | "horizontal";
   mode?: "array" | "object-boolean";
   onChange?: (values: string[]) => void;
-} & Omit<React.ComponentProps<typeof CheckboxPrimitive.Root>, "value" | "onChange">;
+} & Omit<
+  React.ComponentProps<typeof CheckboxPrimitive.Root>,
+  "value" | "onChange"
+>;
 
 export const CheckboxGroup = function <
   K extends Exclude<keyof V, symbol | number>,
@@ -40,23 +44,34 @@ export const CheckboxGroup = function <
   const read = useSnapshot(this.data);
   const write = this.data as any;
 
-  const handleCheckedChange = (value: string, checked: CheckboxPrimitive.CheckedState) => {
+  const handleCheckedChange = (
+    value: string,
+    checked: CheckboxPrimitive.CheckedState
+  ) => {
     if (mode === "object-boolean") {
-      // In object-boolean mode, each option updates a different property
-      write[name][value] = checked;
+      if (value === "true") {
+        setNestedProperty(write, name, checked);
+      } else {
+        const nameWithValue = `${String(name)}.${value}`;
+        setNestedProperty(write, nameWithValue, checked);
+      }
     } else {
       // In array mode, each option's value is added to or removed from an array
-      const currentValues: string[] = Array.isArray((read as any)[name]) ? [...(read as any)[name]] : [];
-      
+      const currentValues: string[] = Array.isArray(
+        getNestedProperty(read, String(name))
+      )
+        ? [...getNestedProperty(read, String(name))]
+        : [];
+
       if (checked) {
         if (!currentValues.includes(value)) {
           const newValues = [...currentValues, value];
-          write[name] = newValues;
+          setNestedProperty(write, String(name), newValues);
           onChange?.(newValues);
         }
       } else {
-        const newValues = currentValues.filter(v => v !== value);
-        write[name] = newValues;
+        const newValues = currentValues.filter((v) => v !== value);
+        setNestedProperty(write, String(name), newValues);
         onChange?.(newValues);
       }
     }
@@ -65,21 +80,35 @@ export const CheckboxGroup = function <
   return (
     <div className={cn("space-y-2", containerClassName)}>
       {label && <div className="text-sm font-medium">{label}</div>}
-      <div 
+      <div
         className={cn(
-          layout === "vertical" ? "flex flex-col space-y-2" : "flex flex-wrap gap-4"
+          layout === "vertical"
+            ? "flex flex-col space-y-2"
+            : "flex flex-wrap gap-4"
         )}
       >
         {options.map((option) => {
           // Determine checked state based on mode
-          let isChecked: boolean;
-          if (mode === "object-boolean") {
-            isChecked = Boolean((read as any)[name][option.value]);
-          } else {
-            const values: string[] = Array.isArray((read as any)[name]) ? (read as any)[name] : [];
-            isChecked = values.includes(option.value);
+          let isChecked = false;
+          try {
+            if (mode === "object-boolean") {
+              const nameWithValue = `${String(name)}.${option.value}`;
+              if (option.value === "true") {
+                isChecked = Boolean(getNestedProperty(read, name));
+              } else {
+                isChecked = Boolean(getNestedProperty(read, nameWithValue));
+              }
+            } else {
+              const values: string[] = Array.isArray(
+                getNestedProperty(read, String(name))
+              )
+                ? getNestedProperty(read, String(name))
+                : [];
+              isChecked = values.includes(option.value);
+            }
+          } catch (e) {
+            isChecked = false;
           }
-
           return (
             <div key={option.value} className="flex items-center space-x-2">
               <Checkbox
@@ -88,7 +117,9 @@ export const CheckboxGroup = function <
                   border: "1px solid #ccc",
                 }}
                 checked={isChecked}
-                onCheckedChange={(checked) => handleCheckedChange(option.value, checked)}
+                onCheckedChange={(checked) =>
+                  handleCheckedChange(option.value, checked)
+                }
                 {...rest}
               />
               <label

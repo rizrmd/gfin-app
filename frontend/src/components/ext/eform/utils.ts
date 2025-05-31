@@ -36,8 +36,8 @@ export function setNestedProperty(obj: any, path: string, value: any): void {
   // Navigate to the parent object of the property we want to set
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
-    if (current[key] === undefined || current[key] === null) {
-      // Create an empty object if the property doesn't exist
+    if (current[key] === undefined || current[key] === null || typeof current[key] !== 'object') {
+      // Create an empty object if the property doesn't exist or is not an object
       current[key] = {};
     }
     current = current[key];

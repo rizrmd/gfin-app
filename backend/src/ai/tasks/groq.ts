@@ -14,8 +14,6 @@ export default taskWorker<
         ? input.system
         : `You are an assistant that will generate a message in this json format: { answer: string }`,
       prompt: input.prompt,
-      tools: [samGovTool],
-      tool_choice: "auto",
     });
 
     try {

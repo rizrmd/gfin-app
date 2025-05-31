@@ -7,7 +7,7 @@ export default taskWorker<
 >({
   name: "deepseek",
   desc: "Asking",
-  async execute({ agent, progress, resumeFrom, db, input }) {
+  async execute({ agent, input }) {
     const res = await agent.deepseek({
       system: input.system
         ? input.system

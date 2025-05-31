@@ -1,13 +1,5 @@
 export type AIFieldText = {
-  type: "text";
-  suggestions?: string[];
-  title?: string;
-  field: string;
-  required?: boolean;
-};
-
-export type AIFieldMultiText = {
-  type: "multi-text";
+  type: "text-input" | "text-area";
   suggestions?: string[];
   title?: string;
   field: string;
@@ -36,11 +28,11 @@ export type AIFormSection = {
   type: "section";
   title: string;
   childs: AIField[];
+  array?: boolean; 
 };
 
 export type AIField =
   | AIFieldText
-  | AIFieldMultiText
   | AIFieldCheckbox
   | AIFieldDropdown;
 export type AIFormLayout = AIField | AIFormSection;
