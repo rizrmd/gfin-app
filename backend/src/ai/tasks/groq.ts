@@ -8,14 +8,14 @@ export default taskWorker<
 >({
   name: "groq",
   desc: "Asking",
-  async execute({ agent, progress, resumeFrom, db, input }) {
+  async execute({ agent, input }) {
     const res = await agent.groq({
       system: input.system
         ? input.system
         : `You are an assistant that will generate a message in this json format: { answer: string }`,
       prompt: input.prompt,
       tools: [samGovTool],
-      tool_choice: 'auto'
+      tool_choice: "auto",
     });
 
     try {

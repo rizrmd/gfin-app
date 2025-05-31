@@ -47,15 +47,15 @@ model ai_task {
 }
 
 model auth_tokens {
-  id         String   @id(map: "sessions_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  client_id  String   @db.Uuid
-  token      String   @unique(map: "sessions_token_key")
-  expires_at DateTime @db.Timestamptz(6)
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @db.Timestamptz(6)
+  id         String    @id(map: "sessions_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_id  String    @db.Uuid
+  token      String    @unique(map: "sessions_token_key")
+  expires_at DateTime  @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @db.Timestamptz(6)
   user_agent String?
   ip_address String?
-  clients    clients  @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "sessions_client_id_fkey")
+  clients    clients   @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "sessions_client_id_fkey")
 }
 
 /// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.

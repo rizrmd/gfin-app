@@ -19,6 +19,7 @@ export default () => {
   });
 
   const handleLogin = async () => {
+    
     // Set loading state from the form
     local.form.loading = true;
     local.render();
@@ -35,7 +36,8 @@ export default () => {
         } else {
           // Show OTP input dialog
           local.showOtpModal = true;
-          
+          local.form.loading = false;
+          local.render();
         }
       } else {
         Alert.info(

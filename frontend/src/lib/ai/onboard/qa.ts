@@ -143,7 +143,7 @@ const defineFirstMessage = async ({
 
   
   if (gfin_msgs.length >= 2 || Object.keys(local.qa_final).length > 0) {
-    const res = await ai.task.do("ask", {
+    const res = await ai.task.do("groq", {
       prompt: `\
 These are our last conversation: ${JSON.stringify(gfin_msgs)}. 
 
@@ -237,7 +237,7 @@ Existing sumarized Q&A pairs:
 ${JSON.stringify(local.qa_final)}
 
 `;
-  const res = (await ai.task.do("ask", {
+  const res = (await ai.task.do("groq", {
     prompt,
   })) as unknown as Record<string, string>;
 

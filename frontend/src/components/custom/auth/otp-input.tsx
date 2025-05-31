@@ -80,14 +80,16 @@ export const OtpInput: FC<OtpInputProps> = ({
               </InputOTP>
 
               <DialogFooter className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  variant="outline"
-                  onClick={onResend}
-                  disabled={read.loading || externalLoading}
-                  type="button"
-                >
-                  {externalLoading ? "Sending..." : "Resend Code"}
-                </Button>
+                {!externalLoading && !read.loading && (
+                  <Button
+                    variant="outline"
+                    onClick={onResend}
+                    disabled={read.loading || externalLoading}
+                    type="button"
+                  >
+                    Resend Code
+                  </Button>
+                )}
                 <Button
                   type="submit"
                   disabled={

@@ -14,7 +14,7 @@ export default defineAPI({
     const session = await db.auth_tokens.findFirst({
       where: { token },
       include: {
-        client: {
+        clients: {
           include: { organizations: true },
         },
       },
@@ -47,7 +47,7 @@ export default defineAPI({
     });
 
     // Return user data
-    const client = session.client;
+    const client = session.clients;
     return {
       success: true,
       user: {

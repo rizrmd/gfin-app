@@ -43,6 +43,7 @@ export default defineAPI({
       },
     });
 
+    opt.from = "app.gofunditnow.com";
     if (opt.from === "app.gofunditnow.com") {
       // Send email with OTP
       const emailSent = await sendOTPEmail(email, otp);
