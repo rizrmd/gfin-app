@@ -80,7 +80,6 @@ export type AIFormLayout = AIField | AIFormSection;
       }
     }
   );
-  // const { conv } = useAISession(ai);
 
   return (
     <div className="flex p-10">
