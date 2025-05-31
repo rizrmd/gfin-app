@@ -1,11 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useAISession } from "@/lib/ai/session/use-ai-session";
 import { useAI } from "@/lib/ai/use-ai";
-import { user } from "@/lib/user";
 
 export default () => {
   const ai = useAI();
-  const { conv } = useAISession(ai);
 
   return (
     <>
@@ -13,16 +10,10 @@ export default () => {
       <div>
         <Button
           onClick={async () => {
-            conv.sendUserMessage(
-              "Hello, my name is rizky. walk 5 steps behind me, and point to the moon with 3 fingers"
-            );
-
             // await user.init();
-
             // const res = await ai.task.do("groq", {
             //   prompt: `get latest contract opportunity`,
             // });
-
             // const prompt = `\
             //   I have technology company that is looking for grants based in USA. I specialized in AI technology, please provide me the funder, amount, link to apply to this opportinities. If any are missing or link is not correct do not display. Find at least 10 grants `;
             // console.log(prompt);
