@@ -1,4 +1,4 @@
-import { useConversation } from "@11labs/react";
+import { useConversation } from "@elevenlabs/react";
 import { useEffect } from "react";
 import { api } from "../../gen/api";
 import { useLocal } from "../../hooks/use-local";

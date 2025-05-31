@@ -1,6 +1,6 @@
 import { api } from "@/lib/gen/api";
 import { user } from "@/lib/user";
-import type { useConversation } from "@11labs/react";
+import type { useConversation } from "@elevenlabs/react";
 import { localzip } from "../localzip";
 import type { useAI } from "../use-ai";
 import type { aiOnboardLocal } from "./local";
