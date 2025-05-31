@@ -61,9 +61,6 @@ const aiClient = () => {
   return {
     state,
     sync,
-    session: {
-      async create() {},
-    },
     task: {
       active: {} as Record<string, any>,
       do: async <Name extends TaskName>(

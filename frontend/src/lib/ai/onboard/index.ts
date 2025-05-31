@@ -1,11 +1,11 @@
 import { useConversation } from "@11labs/react";
 import { useEffect } from "react";
-import { api } from "../gen/api";
-import { useLocal } from "../hooks/use-local";
-import { user } from "../user";
-import { aiOnboardLocal } from "./onboard/local";
-import { onboardQA } from "./onboard/qa";
-import { useAI } from "./use-ai";
+import { api } from "../../gen/api";
+import { useLocal } from "../../hooks/use-local";
+import { user } from "../../user";
+import { aiOnboardLocal } from "./local";
+import { onboardQA } from "./qa";
+import { useAI } from "../use-ai";
 
 export const questions = [
   "What sets your company apart from others in the same field? Any unique qualifications, proprietary technologies, or differentiators that make your company stand out",
@@ -34,6 +34,7 @@ export const useAiOnboard = () => {
         local.render();
         start();
       };
+
       if (local.mode === "") {
         return;
       }
