@@ -17,7 +17,6 @@ export default () => {
       const form = localStorage.getItem("form-layout");
       if (form) {
         local.form.layout = JSON.parse(form) as AIFormLayout[];
-        console.log(local.form.layout);
         local.form.data = blankOrg;
         local.render();
         return;
