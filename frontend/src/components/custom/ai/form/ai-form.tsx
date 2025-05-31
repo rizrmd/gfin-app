@@ -1,4 +1,4 @@
-import { EForm, Field } from "@/components/ext/eform";
+import { EForm, Field, Section } from "@/components/ext/eform";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
@@ -68,7 +68,8 @@ export const AIForm = <T extends object>({
             disabled={disabled}
             checkboxGroup={{
               options: field.options,
-              mode: field.mode === "array-string" ? "array" : field.mode || "array",
+              mode:
+                field.mode === "array-string" ? "array" : field.mode || "array",
             }}
           />
         );
@@ -93,12 +94,12 @@ export const AIForm = <T extends object>({
 
   // Helper function to get nested value from object
   const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split(".").reduce((current, key) => current?.[key], obj);
   };
 
   // Helper function to set nested value in object
   const setNestedValue = (obj: any, path: string, value: any) => {
-    const keys = path.split('.');
+    const keys = path.split(".");
     const lastKey = keys.pop()!;
     const target = keys.reduce((current, key) => {
       if (!current[key]) current[key] = {};
@@ -109,70 +110,88 @@ export const AIForm = <T extends object>({
 
   // Helper function to create default item for array section
   const createDefaultItem = (section: AIFormSection) => {
-    const item: any = {};
+    const item: any = {
+      _id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` // Unique ID for React key
+    };
     section.childs.forEach((child) => {
-      const fieldName = child.field.split('.').pop()!; // Get the last part of the field path
+      const fieldName = child.field.split(".").pop()!; // Get the last part of the field path
       switch (child.type) {
-        case 'text-input':
-        case 'text-area':
-          item[fieldName] = '';
+        case "text-input":
+        case "text-area":
+          item[fieldName] = "";
           break;
-        case 'checkbox':
-          if (child.mode === 'array-string') {
+        case "checkbox":
+          if (child.mode === "array-string") {
             item[fieldName] = [];
           } else {
             item[fieldName] = {};
           }
           break;
-        case 'dropdown':
-          item[fieldName] = '';
+        case "dropdown":
+          item[fieldName] = "";
           break;
         default:
-          item[fieldName] = '';
+          item[fieldName] = "";
       }
     });
     return item;
   };
 
   const renderSection = (section: AIFormSection, fieldProps: any) => {
-    const { Section, read, write } = fieldProps;
+    const { Section: EFormSection, read, write } = fieldProps;
+    const SectionComponent = EFormSection || Section;
     const shouldHideLabels = section.childs.length === 1;
 
-    if (section.array) {
+    console.log('Rendering section:', section.title, 'array:', section.isArray);
+
+    if (section.isArray) {
       // Get the base field path (common prefix for all fields in this section)
       const firstField = section.childs[0]?.field;
       if (!firstField) return null;
-      
+
       // Extract the array path (everything before the last dot)
-      const fieldParts = firstField.split('.');
-      const arrayPath = fieldParts.slice(0, -1).join('.');
-      
+      const fieldParts = firstField.split(".");
+      const arrayPath = fieldParts.slice(0, -1).join(".");
+
       // Get current array value
       const arrayValue = getNestedValue(read, arrayPath) || [];
       
+      // Ensure all items have unique IDs for React keys
+      const arrayValueWithIds = arrayValue.map((item: any, index: number) => {
+        if (!item._id) {
+          item._id = `item_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+        return item;
+      });
+
       const addItem = () => {
         const newItem = createDefaultItem(section);
-        const newArray = [...arrayValue, newItem];
+        const newArray = [...arrayValueWithIds, newItem];
         setNestedValue(write, arrayPath, newArray);
       };
 
       const removeItem = (index: number) => {
-        const newArray = arrayValue.filter((_: any, i: number) => i !== index);
+        const newArray = arrayValueWithIds.filter((_: any, i: number) => i !== index);
         setNestedValue(write, arrayPath, newArray);
       };
 
       const moveItem = (fromIndex: number, toIndex: number) => {
-        const newArray = [...arrayValue];
+        console.log('Moving item from', fromIndex, 'to', toIndex);
+        const newArray = [...arrayValueWithIds];
         const [movedItem] = newArray.splice(fromIndex, 1);
         newArray.splice(toIndex, 0, movedItem);
+        console.log('New array after move:', newArray.map(item => ({ _id: item._id, ...item })));
         setNestedValue(write, arrayPath, newArray);
       };
 
       return (
-        <Section key={section.title} title={section.title} noGrid>
+        <SectionComponent key={section.title} title={section.title} noGrid>
           <div className="space-y-4">
-            {arrayValue.map((item: any, index: number) => (
-              <div key={index} className="border rounded-lg p-4 space-y-4 relative">
+            {arrayValueWithIds.map((item: any, index: number) => (
+              <div
+                key={item._id || index}
+                className="border rounded-lg p-4 space-y-4 relative"
+              >
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="font-medium text-sm text-gray-700">
                     {section.title} #{index + 1}
@@ -190,7 +209,7 @@ export const AIForm = <T extends object>({
                         <ChevronUp className="h-4 w-4" />
                       </Button>
                     )}
-                    {index < arrayValue.length - 1 && (
+                    {index < arrayValueWithIds.length - 1 && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -217,11 +236,17 @@ export const AIForm = <T extends object>({
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                   {section.childs.map((child) => {
                     // Modify the field path to include the array index
-                    const modifiedField = { 
-                      ...child, 
-                      field: `${arrayPath}.${index}.${child.field.split('.').pop()}`
+                    const modifiedField = {
+                      ...child,
+                      field: `${arrayPath}.${index}.${child.field
+                        .split(".")
+                        .pop()}`,
                     };
-                    return renderField(modifiedField, fieldProps, shouldHideLabels);
+                    return renderField(
+                      modifiedField,
+                      fieldProps,
+                      shouldHideLabels
+                    );
                   })}
                 </div>
               </div>
@@ -237,16 +262,16 @@ export const AIForm = <T extends object>({
               Add {section.title}
             </Button>
           </div>
-        </Section>
+        </SectionComponent>
       );
     }
 
     return (
-      <Section key={section.title} title={section.title}>
+      <SectionComponent key={section.title} title={section.title}>
         {section.childs.map((child) =>
           renderField(child, fieldProps, shouldHideLabels)
         )}
-      </Section>
+      </SectionComponent>
     );
   };
 

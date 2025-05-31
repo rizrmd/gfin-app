@@ -30,7 +30,6 @@ Please create an AIFormLayout configuration for this object ${JSON.stringify(
 
 
 This is the definition of AIFormLayout:
-
 export type AIFieldText = {
   type: "text-input" | "text-area";
   suggestions?: string[];
@@ -61,6 +60,7 @@ export type AIFormSection = {
   type: "section";
   title: string;
   childs: AIField[];
+  isArray: boolean; 
 };
 
 export type AIField =
@@ -68,6 +68,7 @@ export type AIField =
   | AIFieldCheckbox
   | AIFieldDropdown;
 export type AIFormLayout = AIField | AIFormSection;
+
 
 `,
       });

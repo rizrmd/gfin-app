@@ -28,11 +28,8 @@ export type AIFormSection = {
   type: "section";
   title: string;
   childs: AIField[];
-  array?: boolean; 
+  isArray?: boolean;
 };
 
-export type AIField =
-  | AIFieldText
-  | AIFieldCheckbox
-  | AIFieldDropdown;
+export type AIField = AIFieldText | AIFieldCheckbox | AIFieldDropdown;
 export type AIFormLayout = AIField | AIFormSection;
