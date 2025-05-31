@@ -64,10 +64,10 @@ export const blankOrg = {
     },
   },
   businessClassification: {
-    minorityOwned: "",
+    minorityOwned: false,
     veteranOwned: false,
     smallBusinessAdministration: false,
-    womanOwned: "",
+    womanOwned: false,
     hubZone: false,
     nonProfit: false,
   },
