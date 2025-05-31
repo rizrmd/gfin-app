@@ -13,33 +13,34 @@ export default () => {
       <div>
         <Button
           onClick={async () => {
-            conv.sendUserMessage(
-              "Hello, my name is rizky. walk 5 steps behind me, and point to the moon with 3 fingers"
-            );
+            // conv.sendUserMessage(
+            //   "Hello, my name is rizky. walk 5 steps behind me, and point to the moon with 3 fingers"
+            // );
 
-            // await user.init();
+            await user.init();
 
-            // const res = await ai.task.do("groq", {
+            // const res = await ai.task.do("perplexity", {
             //   prompt: `get latest contract opportunity`,
             // });
 
-            // const prompt = `\
-            //   I have technology company that is looking for grants based in USA. I specialized in AI technology, please provide me the funder, amount, link to apply to this opportinities. If any are missing or link is not correct do not display. Find at least 10 grants `;
-            // console.log(prompt);
-            // const res = await ai.task.do("deepseek", {
-            //   system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
-            //     [
-            //       {
-            //         funder: "",
-            //         amount: { from: "", to: "" },
-            //         deadline: "",
-            //         link: "",
-            //         categories: [""],
-            //       },
-            //     ]
-            //   )}`,
-            //   prompt,
-            // });
+            const prompt = `\
+              I have technology company that is looking for grants based in USA. I specialized in AI technology, please provide me the funder, amount, link to apply to this opportinities. If any are missing or link is not correct do not display. Find at least 10 grants `;
+            console.log(prompt);
+            const res = await ai.task.do("perplexity", {
+              system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
+                [
+                  {
+                    funder: "",
+                    amount: { from: "", to: "" },
+                    deadline: "",
+                    link: "",
+                    categories: [""],
+                  },
+                ]
+              )}`,
+              prompt,
+            });
+            console.log("res", res);
           }}
         >
           SAM.GOV

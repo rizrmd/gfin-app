@@ -1,27 +1,29 @@
+// src/lib/createPerplexityAgent.ts
 import {
   BaseMessage,
-  ChatGroqAI,
-  // ChatOpenRouterAI,
+  ChatOpenRouterAI,
   HumanMessage,
-  StructuredTool,
   SystemMessage,
+  StructuredTool,
 } from "r-agent";
-// import type { ToolCallingMethod } from "r-agent/browser_use/agent/views";
 import type { RequestParams } from "r-agent/browser_use/models/langchain";
 
-export const createGroqAgent = () => {
+export const createPerplexityAgent = () => {
   return async <T extends { role: string; content: string }>(opt: {
     prompt: string;
     system?: string;
     tools?: StructuredTool[];
     tool_choice?: RequestParams["tool_choice"];
   }) => {
-    let llm = new ChatGroqAI({
-      modelName: "meta-llama/llama-4-scout-17b-16e-instruct",
-      apiKey: process.env.GROQ_API_KEY,
+    // Inisialisasi LLM Perplexity dengan model "sonar"
+    const llm = new ChatOpenRouterAI({
+      modelName:   "sonar-deep-research",                         
+      apiKey:      process.env.OPEN_ROUTER_API_KEY!, 
+      temperature: 0.0,                             // deterministik untuk search
+      timeout:     60000,
     });
 
-    const messages: BaseMessage[] = [
+     const messages: BaseMessage[] = [
       opt.system ? new SystemMessage({ content: opt.system }) : undefined,
       new HumanMessage({ content: opt.prompt }),
     ].filter(Boolean) as BaseMessage[];
