@@ -5,8 +5,10 @@ import {
   type Status,
 } from "@elevenlabs/client";
 import { proxy } from "valtio";
-import type { AIClientTool } from "./use-ai-session";
+import type { AIClientTool, AIPhase } from "./use-ai-session";
 import { waitUntil } from "@/lib/wait-until";
+import { act } from "react";
+import { trim } from "lodash";
 
 export const blankState = {
   phase: 0,
@@ -28,35 +30,50 @@ export type ConversationState = typeof blankState;
 export const startConversation = async (arg: {
   prompt: string;
   textOnly: boolean;
-  firstMessage: string;
+  firstMessage: Awaited<ReturnType<AIPhase["init"]>>["firstMessage"];
   tools: AIClientTool[];
   actionHistory: { name: string; params?: Record<string, any> }[];
   firstAction?: { name: string; params?: Record<string, any> };
 }) => {
   const state = proxy({ ...blankState, textOnly: arg.textOnly });
 
-  const prompt = `${arg.prompt}\n\n
-You should call tool with name "action". 
-the action tool takes an object with the following properties:
-  - name: the name of the action to call
-  - param: an object with the arguments for the action
+  let tool_prompt = "";
 
-These are actions available to be passed into the action tool:
+  if (arg.firstAction) {
+    const activeTool = arg.tools.find((e) => e.name === arg.firstAction!.name);
+    if (activeTool) {
+      tool_prompt = activeTool.prompt;
+    }
+  }
+
+  if (!tool_prompt) {
+    tool_prompt = `
+
+currently there is no action tool activated, you can activate one of the following tools by calling them with their name and parameters:
+
 ${arg.tools
-  .map((tool) => {
-    let toolName = tool.name.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
-    return Object.entries(tool.actions)
-      .map(([actionName, { desc, params }]) => {
-        return JSON.stringify({
-          name: `${toolName}.${actionName}`,
-          description: desc,
-          param: params,
-        });
-      })
-      .join("\n");
+  .map((action) => {
+    return `\
+${trim(action.activate, ",. ")}, call action tool with this arguments:
+  - name: "${action.name}.activate"
+  
+only do these prompt after ${action.name} activated:
+
+---START: ${action.name}---
+${action.prompt}
+---END: ${action.name}---
+
+  `;
   })
   .join("\n\n")}
-  `;
+`;
+  }
+
+  const prompt = `\
+${arg.prompt}
+${tool_prompt}`.trim();
+
+  console.log("prompt:", prompt);
 
   const actions = {} as Record<
     string,
@@ -81,6 +98,7 @@ ${arg.tools
     if (!conv.isOpen()) {
       await waitUntil(() => conv.isOpen());
     }
+
     const definition = actions[name];
     if (definition) {
       if (definition.intent) {
@@ -102,7 +120,7 @@ ${arg.tools
     agentId: "agent_01jwd0qk9df0qv578y1sd1r874",
     overrides: {
       agent: {
-        firstMessage: arg.firstMessage,
+        firstMessage: arg.firstMessage?.assistant,
         prompt: {
           prompt: prompt,
         },
@@ -110,16 +128,11 @@ ${arg.tools
     },
     textOnly: arg.textOnly,
     clientTools: {
-      action: async (action: { name: string; params?: any }) => {
-        executeAction(action.name, action.params);
+      action: async (action: { name: string; param?: any }) => {
+        executeAction(action.name, action.param);
       },
     },
     onMessage(props) {
-      const action = arg.firstAction;
-      if (action && arg.actionHistory.length === 0) {
-        executeAction(action.name, action.params);
-      }
-
       state.messages.push({
         role: props.source,
         content: props.message,
@@ -136,6 +149,15 @@ ${arg.tools
       state.canSendFeedback = canSendFeedback;
     },
   });
+
+  if (arg.firstMessage?.user) {
+    conv.sendUserMessage(arg.firstMessage.user);
+  }
+
+  const action = arg.firstAction;
+  if (action && arg.actionHistory.length === 0) {
+    executeAction(action.name, action.params);
+  }
 
   return { conv, state };
 };

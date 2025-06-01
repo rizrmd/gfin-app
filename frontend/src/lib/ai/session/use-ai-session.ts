@@ -30,7 +30,7 @@ export type AIPhase = {
   desc: string;
   init: () => Promise<{
     prompt: string;
-    firstMessage: string;
+    firstMessage?: { user?: string; assistant?: string };
     firstAction?: { name: string; params?: Record<string, any> };
   }>;
   tools?: ((arg: AIPhaseToolArg) => AIClientTool)[];
@@ -47,7 +47,8 @@ export type AIAction = {
 
 export type AIClientTool = {
   name: string;
-  desc: string;
+  prompt: string;
+  activate: string;
   actions: Record<string, AIAction>;
 };
 
@@ -73,7 +74,7 @@ export const useAISession = ({
     conv?: Conversation;
     state: ConversationState;
     prompt: string;
-    firstMessage: string;
+    firstMessage: Awaited<ReturnType<AIPhase["init"]>>["firstMessage"];
     firstAction?: { name: string; params?: Record<string, any> };
     currentPhase: number;
     phase: AIPhase;
@@ -106,10 +107,7 @@ export const useAISession = ({
     const { conv, state } = await startConversation({
       prompt: ref.current.prompt,
       textOnly: !!textOnly,
-      firstMessage:
-        typeof firstMessage === "string"
-          ? firstMessage
-          : ref.current.firstMessage,
+      firstMessage: ref.current.firstMessage,
       tools,
       actionHistory: ref.current.actionHistory!,
       firstAction: ref.current.firstAction,

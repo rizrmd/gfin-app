@@ -1,42 +1,42 @@
 import { convertAIFormToZod } from "@/components/custom/ai/form/ai-form-zod";
 import type { AIFormLayout } from "@/components/custom/ai/form/ai-form.types";
 import type { AIClientTool, AIPhaseToolArg } from "./use-ai-session";
+import { generateSampleData } from "@/components/custom/ai/form/ai-form-sample-data";
 
 export const formTool = ({
   name,
-  desc,
+  activate: activate,
   layout,
 }: {
   name: string;
-  desc: string;
+  activate: string;
   layout: AIFormLayout[];
 }) => {
   const zodSchema = convertAIFormToZod(layout);
 
+  const sampleData = JSON.stringify(generateSampleData(layout));
   return ({ textOnly }: AIPhaseToolArg) =>
     ({
       name,
-      desc:
-        desc + !textOnly
-          ? ". This will collect all fields all at once. "
-          : ". Ask each field to the user one by one.",
+      activate,
+      prompt: `
+whenever you receive an answer from the user, call tool "action" with this arguments:
+- name: "${name}.update"
+- param: ${sampleData}. 
+You can that action tool multiple times to update the form data. always deduce the param from the user answer, do not ask the user to provide the param in a specific format.
+
+if you are done with the form, call tool "action" with this arguments:
+- name: "${name}.submit"
+`,
       actions: {
-        show: {
-          desc: "show the form",
-          intent: "User see the form",
+        activate: {
           action: () => {
             console.log("show form", name);
           },
         },
         update: {
-          desc: "update several fields at once",
           action: (arg) => {
-            const parsed = zodSchema.safeParse(arg);
-            if (!parsed.success) {
-              console.error("Invalid form data", parsed.error);
-              return;
-            }
-            console.log("update form", name, parsed.data);
+            console.log("update form", name, arg);
           },
         },
         submit: {

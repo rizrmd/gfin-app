@@ -3,6 +3,27 @@ import { formTool } from "@/lib/ai/session/form-tool";
 import { useAISession } from "@/lib/ai/session/use-ai-session";
 
 export default () => {
+  const layout = [
+    {
+      type: "text-input" as const,
+      field: "name",
+      title: "Organization Name",
+      required: true,
+    },
+    {
+      type: "text-area" as const,
+      field: "description",
+      title: "Organization Description",
+      required: false,
+    },
+    {
+      type: "text-input" as const,
+      field: "website",
+      title: "Organization Website",
+      required: false,
+    },
+  ];
+
   const session = useAISession({
     name: "Onboarding",
     textOnly: true,
@@ -13,37 +34,24 @@ export default () => {
         async init() {
           return {
             prompt: `\
-You are an AI assistant helping to onboard a new organization. use action tool with name "organization_form" at start of the session to collect organization data.`,
-            firstMessage: `Hello! I am here to help you onboard your organization. Let's start by providing some basic information about your organization.`,
+You are an AI assistant helping to onboard a new organization or company.`,
+            firstMessage: {
+              assistant:
+                "Hello. welcome to the onboarding process. are you ready to provide some information about your organization?",
+              // user: "call action tool with name organization_form.activate",
+              user: 'yes, ask me my organization name.'
+            },
             firstAction: {
-              name: "organization_form.show",
+              name: "organization_form.activate",
             },
           };
         },
         tools: [
           formTool({
             name: "organization_form",
-            desc: "Provide organization data",
-            layout: [
-              {
-                type: "text-input",
-                field: "name",
-                title: "Organization Name",
-                required: true,
-              },
-              {
-                type: "text-area",
-                field: "description",
-                title: "Organization Description",
-                required: false,
-              },
-              {
-                type: "text-input",
-                field: "website",
-                title: "Organization Website",
-                required: false,
-              },
-            ],
+            activate:
+              "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response ",
+            layout,
           }),
         ],
       },
