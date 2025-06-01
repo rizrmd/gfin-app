@@ -30,6 +30,7 @@ if you are done with the form, call tool "action" with this arguments:
 `,
       actions: {
         activate: {
+          intent: `the ${name} is activated, do not activate it again, continue with ${name}.update action`,
           action: () => {
             console.log("show form", name);
           },

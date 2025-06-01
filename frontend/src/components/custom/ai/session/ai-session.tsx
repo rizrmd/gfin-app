@@ -59,11 +59,39 @@ export const AISession: FC<{ session: ReturnType<typeof useAISession> }> = ({
         onClick={() => {
           if (conv)
             conv.sendUserMessage(
-              "deeplearningintellice.com is a technology company focused on AI based solutions"
+              "my company name is Deep learning intelligence, it is a technology company focused on AI based solutions. The url is deeplearningintellice.com."
             );
         }}
       >
-        all
+        Combined
+      </Button>
+
+      <Button
+        onClick={() => {
+          if (conv)
+            conv.sendUserMessage("wait, my company is Damu Intelligence.");
+        }}
+      >
+        Revise
+      </Button>
+      <br />
+
+      <Button
+        onClick={() => {
+          if (conv)
+            conv.sendUserMessage("We built bespke AI solution for businesses.");
+        }}
+      >
+        Q1
+      </Button>
+
+      <Button
+        onClick={() => {
+          if (conv)
+            conv.sendUserMessage("We built bespke AI solution for businesses.");
+        }}
+      >
+        Q1
       </Button>
       {read.messages.map((msg, index) => (
         <div key={index} className={`message ${msg.role}`}>
