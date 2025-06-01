@@ -1,8 +1,14 @@
 import { api } from "@/lib/gen/api";
 import { user } from "@/lib/user";
-import { Conversation, type Mode, type Status } from "@elevenlabs/client";
-import { proxy, ref } from "valtio";
-import { startConversation } from "./ai-converse";
+import { Conversation } from "@elevenlabs/client";
+import { useEffect, useRef, useState } from "react";
+import { proxy } from "valtio";
+import {
+  blankState,
+  startConversation,
+  type ConversationState,
+} from "./ai-converse";
+import { waitUntil } from "@/lib/wait-until";
 
 export type AISession = {
   id: string;
@@ -45,50 +51,114 @@ if (!w.ai_sessions) {
   w.ai_sessions = {};
 }
 
-export const aiSession = {
-  start: async ({
-    name,
-    phases,
-    currentPhase = 0,
+export const useAISession = ({
+  name,
+  phases,
+  currentPhase = 0,
+  textOnly,
+}: {
+  name: string | (() => Promise<string>);
+  phases: AISession["phases"];
+  currentPhase?: number;
+  textOnly?: boolean;
+}) => {
+  const ref = useRef({ state: proxy({ ...blankState }) } as {
+    conv?: Conversation;
+    state: ConversationState;
+    prompt: string;
+    firstMessage: string;
+    currentPhase: number;
+  });
+  const [, render] = useState({});
+
+  const initConv = async ({
     textOnly,
+    firstMessage,
   }: {
-    name: string;
-    phases: AISession["phases"];
-    currentPhase?: number;
-    textOnly?: boolean;
+    textOnly: boolean;
+    firstMessage?: string;
   }) => {
-    if (user.organization.id === "") {
-      throw new Error("Organization ID is required to create an AI session.");
+    const current = ref.current.conv!;
+    if (current) {
+      await current.endSession();
     }
-
-    const ses = await api.ai_session({
-      action: "create",
-      data: {
-        id_org: user.organization.id!,
-        name,
-        config: {
-          currentPhase: 0,
-        },
-        state: {
-          textOnly: !!textOnly,
-          phaseData: {},
-        },
-      },
-    });
-
-    const phase = { ...phases[currentPhase] };
-
-    const { prompt, firstMessage } = await phase.init();
+    ref.current.conv = undefined;
 
     const { conv, state } = await startConversation({
-      prompt,
+      prompt: ref.current.prompt,
       textOnly: !!textOnly,
-      firstMessage,
+      firstMessage:
+        typeof firstMessage === "string"
+          ? firstMessage
+          : ref.current.firstMessage,
     });
 
-    return {
-      conv,
-      state,
-    };
-  },
+    state.phase = currentPhase;
+    ref.current.conv = conv;
+    ref.current.state = state;
+    render({});
+  };
+
+  useEffect(() => {
+    (async () => {
+      let sessionName: string;
+
+      if (typeof name === "function") {
+        sessionName = await name();
+      } else {
+        sessionName = name;
+      }
+      const ses = await api.ai_session({
+        action: "create",
+        data: {
+          id_org: user.organization.id!,
+          name: sessionName,
+          config: {
+            currentPhase: 0,
+          },
+          state: {
+            textOnly: !!textOnly,
+            phaseData: {},
+          },
+        },
+      });
+
+      const phase = { ...phases[currentPhase] };
+
+      const { prompt, firstMessage } = await phase.init();
+      ref.current.prompt = prompt;
+      ref.current.firstMessage = firstMessage;
+      ref.current.currentPhase = currentPhase;
+      initConv({ textOnly: !!textOnly });
+    })();
+  }, []);
+
+  const state = ref.current.state!;
+  return {
+    talk: {
+      on: async () => {
+        if (!state.textOnly) {
+          if (!ref.current.conv) {
+            await waitUntil(() => !!ref.current.conv);
+          }
+          initConv({ textOnly: true, firstMessage: "" });
+        }
+      },
+      off: async () => {
+        if (state.textOnly) {
+          if (!ref.current.conv) {
+            await waitUntil(() => !!ref.current.conv);
+          }
+          initConv({ textOnly: false, firstMessage: "" });
+        }
+      },
+      toggle: async () => {
+        if (!ref.current.conv) {
+          await waitUntil(() => !!ref.current.conv);
+        }
+        initConv({ textOnly: !state.textOnly, firstMessage: "" });
+      },
+    },
+    state: state as ConversationState,
+  };
 };
