@@ -23,6 +23,7 @@ export const formTool = ({
       actions: {
         show: {
           desc: "show the form",
+          intent: "User see the form",
           action: () => {
             console.log("show form", name);
           },

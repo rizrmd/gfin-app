@@ -14,7 +14,10 @@ export default () => {
           return {
             prompt: `\
 You are an AI assistant helping to onboard a new organization. use action tool with name "organization_form" at start of the session to collect organization data.`,
-            firstMessage: ``,
+            firstMessage: `Hello! I am here to help you onboard your organization. Let's start by providing some basic information about your organization.`,
+            firstAction: {
+              name: "organization_form.show",
+            },
           };
         },
         tools: [

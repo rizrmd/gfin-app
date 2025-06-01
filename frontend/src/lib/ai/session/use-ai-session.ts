@@ -28,7 +28,11 @@ export type AIPhaseToolArg = { textOnly: boolean };
 export type AIPhase = {
   name: string;
   desc: string;
-  init: () => Promise<{ prompt: string; firstMessage: string }>;
+  init: () => Promise<{
+    prompt: string;
+    firstMessage: string;
+    firstAction?: { name: string; params?: Record<string, any> };
+  }>;
   tools?: ((arg: AIPhaseToolArg) => AIClientTool)[];
   messages?: AIPhaseMessage[];
   onMessage?: (arg: { message: string }) => Promise<void>;
@@ -36,6 +40,7 @@ export type AIPhase = {
 
 export type AIAction = {
   desc?: string;
+  intent?: string;
   action: (arg?: any) => void;
   params?: Record<string, any>;
 };
@@ -69,8 +74,10 @@ export const useAISession = ({
     state: ConversationState;
     prompt: string;
     firstMessage: string;
+    firstAction?: { name: string; params?: Record<string, any> };
     currentPhase: number;
     phase: AIPhase;
+    actionHistory: { name: string; params?: Record<string, any> }[];
   });
   const [, render] = useState({});
 
@@ -85,11 +92,16 @@ export const useAISession = ({
     if (current) {
       await current.endSession();
     }
+
     ref.current.conv = undefined;
 
     const tools =
       ref.current.phase.tools?.map((tool) => tool({ textOnly: !!textOnly })) ||
       [];
+
+    if (!ref.current.actionHistory) {
+      ref.current.actionHistory = [];
+    }
 
     const { conv, state } = await startConversation({
       prompt: ref.current.prompt,
@@ -99,9 +111,12 @@ export const useAISession = ({
           ? firstMessage
           : ref.current.firstMessage,
       tools,
+      actionHistory: ref.current.actionHistory!,
+      firstAction: ref.current.firstAction,
     });
 
     state.phase = currentPhase;
+
     ref.current.conv = conv;
     ref.current.state = state;
     render({});
@@ -133,9 +148,10 @@ export const useAISession = ({
 
       const phase = { ...phases[currentPhase] };
 
-      const { prompt, firstMessage } = await phase.init();
+      const { prompt, firstMessage, firstAction } = await phase.init();
       ref.current.prompt = prompt;
       ref.current.firstMessage = firstMessage;
+      ref.current.firstAction = firstAction;
       ref.current.currentPhase = currentPhase;
       ref.current.phase = phase;
       initConv({ textOnly: !!textOnly });
