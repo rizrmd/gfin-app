@@ -12,11 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/perplexity": "^1.1.9",
-<<<<<<< HEAD
-    "ai": "^4.3.16",
-=======
     "@elevenlabs/react": "^0.1.6",
->>>>>>> 911656af8d1357d01328991d89eeee665f289085
     "bun-plugin-tailwind": "^0.0.15",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
