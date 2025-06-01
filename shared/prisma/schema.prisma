@@ -21,14 +21,15 @@ model clients {
 }
 
 model organizations {
-  id         String    @id(map: "organization_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  id_client  String    @db.Uuid
-  name       String
-  data       Json
-  questions  Json
-  deleted_at DateTime? @db.Timestamptz(6)
-  onboard    Json      @default("{\"qa\": false, \"profile\": false}")
-  client     clients   @relation(fields: [id_client], references: [id], onDelete: Cascade)
+  id             String     @id(map: "organization_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_client      String     @db.Uuid
+  name           String
+  data           Json
+  questions      Json
+  deleted_at     DateTime?  @db.Timestamptz(6)
+  onboard        Json       @default("{\"qa\": false, \"profile\": false}")
+  client         clients    @relation(fields: [id_client], references: [id], onDelete: Cascade)
+  other_sessions sessions[] @relation("sessionsTosessions")
 }
 
 model ai_task {
@@ -58,13 +59,28 @@ model auth_tokens {
   clients    clients   @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "sessions_client_id_fkey")
 }
 
-/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
-// model session_lines {
-// }
+model sessions {
+  id               String             @id(map: "sessions_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_org           String             @db.Uuid
+  name             String
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  config           Json
+  state            Json
+  status           String             @default("ongoing")
+  session_messages session_messages[]
+  sessions         organizations      @relation("sessionsTosessions", fields: [id_org], references: [id], onDelete: Cascade)
+}
 
-/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
-// model sessions {
-// }
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model session_messages {
+  id         String   @id(map: "session_lines_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id_session String   @db.Uuid
+  role       String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  content    Json     @default("0")
+  phase      Int      @db.SmallInt
+  sessions   sessions @relation(fields: [id_session], references: [id], onDelete: Cascade, map: "session_lines_id_session_fkey")
+}
 
 enum AITaskStatus {
   PENDING
