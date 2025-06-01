@@ -19,7 +19,7 @@ export function convertAIFormToZod(layouts: AIFormLayout[]): z.ZodObject<any> {
         } else {
           // object-boolean mode
           const checkboxSchema: Record<string, z.ZodBoolean> = {};
-          field.options.forEach(option => {
+          field.options.forEach((option) => {
             checkboxSchema[option.value] = z.boolean();
           });
           fieldSchema = z.object(checkboxSchema);
@@ -27,7 +27,7 @@ export function convertAIFormToZod(layouts: AIFormLayout[]): z.ZodObject<any> {
         break;
 
       case "dropdown":
-        const values = field.options.map(option => option.value);
+        const values = field.options.map((option) => option.value);
         fieldSchema = z.enum(values as [string, ...string[]]);
         break;
 
@@ -40,13 +40,15 @@ export function convertAIFormToZod(layouts: AIFormLayout[]): z.ZodObject<any> {
       fieldSchema = fieldSchema.optional();
     }
 
+    fieldSchema = fieldSchema.describe(field.title || field.field);
+
     return fieldSchema;
   }
 
   function processSection(section: AIFormSection): z.ZodTypeAny {
     const sectionSchema: Record<string, z.ZodTypeAny> = {};
-    
-    section.childs.forEach(field => {
+
+    section.childs.forEach((field) => {
       sectionSchema[field.field] = processField(field);
     });
 
@@ -59,9 +61,10 @@ export function convertAIFormToZod(layouts: AIFormLayout[]): z.ZodObject<any> {
     return objectSchema;
   }
 
-  layouts.forEach(layout => {
+  layouts.forEach((layout) => {
     if (layout.type === "section") {
-      schema[layout.title.toLowerCase().replace(/\s+/g, "_")] = processSection(layout);
+      schema[layout.title.toLowerCase().replace(/\s+/g, "_")] =
+        processSection(layout);
     } else {
       schema[layout.field] = processField(layout);
     }

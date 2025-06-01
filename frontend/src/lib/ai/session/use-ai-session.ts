@@ -1,14 +1,14 @@
 import { api } from "@/lib/gen/api";
 import { user } from "@/lib/user";
-import { Conversation } from "@elevenlabs/client";
+import { waitUntil } from "@/lib/wait-until";
+import type { Conversation } from "@elevenlabs/client";
 import { useEffect, useRef, useState } from "react";
 import { proxy } from "valtio";
 import {
   blankState,
   startConversation,
   type ConversationState,
-} from "./ai-converse";
-import { waitUntil } from "@/lib/wait-until";
+} from "./start-conversation";
 
 export type AISession = {
   id: string;
@@ -23,25 +23,27 @@ export type AIPhaseMessage =
     }
   | { role: "action"; name: string };
 
+export type AIPhaseToolArg = { textOnly: boolean };
+
 export type AIPhase = {
   name: string;
   desc: string;
   init: () => Promise<{ prompt: string; firstMessage: string }>;
-  tools?: AIClientTool[];
+  tools?: ((arg: AIPhaseToolArg) => AIClientTool)[];
   messages?: AIPhaseMessage[];
   onMessage?: (arg: { message: string }) => Promise<void>;
 };
 
-export type AIClientTool<T extends Zod.Schema = Zod.Schema> = {
+export type AIAction = {
+  desc?: string;
+  action: (arg?: any) => void;
+  params?: Record<string, any>;
+};
+
+export type AIClientTool = {
   name: string;
-  args: T;
   desc: string;
-  action: (opt: {
-    args: Zod.infer<T>;
-    subAction: (opt: Record<string, (arg: object) => void>) => void;
-    conv: Conversation;
-    done: (result?: any) => void;
-  }) => void;
+  actions: Record<string, AIAction>;
 };
 
 const w = window as unknown as Window & {
@@ -68,6 +70,7 @@ export const useAISession = ({
     prompt: string;
     firstMessage: string;
     currentPhase: number;
+    phase: AIPhase;
   });
   const [, render] = useState({});
 
@@ -84,6 +87,10 @@ export const useAISession = ({
     }
     ref.current.conv = undefined;
 
+    const tools =
+      ref.current.phase.tools?.map((tool) => tool({ textOnly: !!textOnly })) ||
+      [];
+
     const { conv, state } = await startConversation({
       prompt: ref.current.prompt,
       textOnly: !!textOnly,
@@ -91,6 +98,7 @@ export const useAISession = ({
         typeof firstMessage === "string"
           ? firstMessage
           : ref.current.firstMessage,
+      tools,
     });
 
     state.phase = currentPhase;
@@ -129,15 +137,19 @@ export const useAISession = ({
       ref.current.prompt = prompt;
       ref.current.firstMessage = firstMessage;
       ref.current.currentPhase = currentPhase;
+      ref.current.phase = phase;
       initConv({ textOnly: !!textOnly });
     })();
   }, []);
 
   const state = ref.current.state!;
   return {
+    conv: ref.current.conv!,
     talk: {
       on: async () => {
         if (!state.textOnly) {
+          state.textOnly = true;
+
           if (!ref.current.conv) {
             await waitUntil(() => !!ref.current.conv);
           }
@@ -146,6 +158,7 @@ export const useAISession = ({
       },
       off: async () => {
         if (state.textOnly) {
+          state.textOnly = false;
           if (!ref.current.conv) {
             await waitUntil(() => !!ref.current.conv);
           }
@@ -153,10 +166,12 @@ export const useAISession = ({
         }
       },
       toggle: async () => {
+        state.textOnly = !state.textOnly;
+
         if (!ref.current.conv) {
           await waitUntil(() => !!ref.current.conv);
         }
-        initConv({ textOnly: !state.textOnly, firstMessage: "" });
+        initConv({ textOnly: state.textOnly, firstMessage: "" });
       },
     },
     state: state as ConversationState,
