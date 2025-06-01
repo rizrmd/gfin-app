@@ -1,10 +1,8 @@
-// src/lib/perplexity-sdk-wrapper.ts
 import { generateText } from "ai";
 import { createPerplexity } from "@ai-sdk/perplexity";
 
 const perplexity = createPerplexity({
   apiKey: process.env.PERPLEXITY_API_KEY!,
-  baseURL: "https://api.perplexity.ai",
 });
 
 export const perplexitySdkWrapper = () => {
