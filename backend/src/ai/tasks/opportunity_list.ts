@@ -2,16 +2,15 @@ import { createPerplexitySdkAgent } from "../lib/agents/agent-perplexity-sdk";
 import { taskWorker } from "../lib/task-worker";
 
 const opportunityList = {
-    funder: "" as string,
-    amount: {
-      from: "" as string,
-      to: "" as string,
-    },
-    deadline: "" as string,
-    link: "" as string,
-    categories: [] as string[],
-  };
-
+  funder: "" as string,
+  amount: {
+    from: "" as string,
+    to: "" as string,
+  },
+  deadline: "" as string,
+  link: "" as string,
+  categories: [] as string[],
+};
 
 // Helper to extract valid JSON object from model output
 function extractJsonFromContent(content: string): string | null {
@@ -62,24 +61,17 @@ export default taskWorker<
     const parsedResults = responses
       .map((res, i) => {
         try {
-          const cleaned = extractJsonFromContent(res.content);
-          console.log(cleaned);
-          if (!cleaned) {
-            console.error(
-              `Response ${i + 1} does not contain JSON object:\n`,
-              res.content.slice(0, 100)
-            );
+          return JSON.parse(res.content);
+        } catch (e) {
+          try {
+            const cleaned = extractJsonFromContent(res.content);
+            if (!cleaned) {
+              console.error(`Response is null`);
+            }
+            return JSON.parse(cleaned as string);
+          } catch (e) {
             return null;
           }
-          return JSON.parse(cleaned);
-        } catch (e) {
-          console.error(
-            `Failed to parse JSON from response ${i + 1}:`,
-            e,
-            "\nContent:",
-            res.content
-          );
-          return null;
         }
       })
       .filter(Boolean);

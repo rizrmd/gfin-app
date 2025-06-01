@@ -16,7 +16,7 @@ export const createDeepseekAgent = () => {
     tool_choice?: RequestParams["tool_choice"];
   }) => {
     const llm = new ChatOpenRouterAI({
-      modelName: "deepseek/deepseek-r1-0528-qwen3-8b:free",
+      modelName: "deepseek/deepseek-r1-0528:free:online",
       apiKey: process.env.OPEN_ROUTER_API_KEY,
       timeout: 5 * 60 * 1000, // 5 minutes
     });
@@ -27,7 +27,6 @@ export const createDeepseekAgent = () => {
     ].filter(Boolean) as BaseMessage[];
 
     const res = await llm.invoke(messages);
-    console.log("Deepseek response:", res);
 
     return res as T;
   };
