@@ -15,20 +15,38 @@ export default () => {
             //   prompt: `get latest contract opportunity`,
             // });
             const prompt = `\
-              I have technology company that is looking for grants based in USA. I specialized in AI technology, please provide me the funder, amount, link to apply to this opportinities. If any are missing or link is not correct do not display. Find at least 10 grants `;
+              `;
             console.log(prompt);
-            const res = await ai.task.do("perplexity", {
-              system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
-                [
-                  {
-                    funder: "",
-                    amount: { from: "", to: "" },
-                    deadline: "",
-                    link: "",
-                    categories: [""],
-                  },
-                ]
-              )}`,
+            const res = await ai.task.do("opportunity_detail", {
+              // system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
+              //   [
+              //     {
+              //       funder: "",
+              //       amount: { from: "", to: "" },
+              //       deadline: "",
+              //       link: "",
+              //       categories: [""],
+              //     },
+              //   ]
+              // )}`,
+              // system: `
+              //   help me find the data of a company based on these data :
+              //   First Name: Joel
+              //   Last Name: Gascoigne
+              //   Company: Buffer
+              //   Email: hello@buffer.com
+              //   URL: buffer.com
+              //   `,
+              system: `
+                help me find the detail of a funding opportunity based on these data :
+                {
+                  "funder": "Homegrown Capital",
+                  "amount": { "from": "$500,000", "to": "$2,000,000" },
+                  "deadline": "Rolling",
+                  "link": "https://homegrown.capital/",
+                  "categories": ["B2B Software", "AgTech", "FinTech", "Media", "Seed", "Series A"]
+                }
+                `, 
               prompt,
             });
             console.log(res);

@@ -3,8 +3,8 @@ import {
   BaseMessage,
   ChatOpenRouterAI,
   HumanMessage,
-  SystemMessage,
   StructuredTool,
+  SystemMessage,
 } from "r-agent";
 import type { RequestParams } from "r-agent/browser_use/models/langchain";
 
@@ -18,25 +18,23 @@ export const createPerplexityAgent = () => {
     // Inisialisasi LLM Perplexity dengan model "sonar"
     const llm = new ChatOpenRouterAI({
       modelName:   "sonar-deep-research",                         
-      apiKey:      process.env.OPEN_ROUTER_API_KEY!, 
+      apiKey:      process.env.PERPLEXITY_API_KEY!, 
       temperature: 0.0,                             // deterministik untuk search
       timeout:     60000,
+      baseUrl:     "https://api.perplexity.ai/",
     });
 
-     const messages: BaseMessage[] = [
-      opt.system ? new SystemMessage({ content: opt.system }) : undefined,
+    // Bangun array pesan
+    const messages: BaseMessage[] = [
+      opt.system
+        ? new SystemMessage({ content: opt.system })
+        : undefined,
       new HumanMessage({ content: opt.prompt }),
     ].filter(Boolean) as BaseMessage[];
 
-    if (opt.tools && opt.tools.length > 0) {
-      const result = await llm
-        .withTools(opt.tools, { tool_choice: opt.tool_choice })
-        .invoke(messages);
+    // Kirim ke Perplexity dan tunggu jawaban
+    const res = await llm.invoke(messages);
 
-      if (Array.isArray(result)) {
-        return result[result.length - 1] as unknown as T;
-      }
-    }
-    return (await llm.invoke(messages)) as T;
+    return res as T;
   };
 };

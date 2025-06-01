@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/perplexity": "^1.1.9",
+    "ai": "^4.3.16",
     "bun-plugin-tailwind": "^0.0.15",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
