@@ -4,7 +4,8 @@ import { PrismaClient } from "shared/models";
 import { createAgentBrowser } from "./agents/agent-browser";
 import { createDeepseekAgent } from "./agents/agent-deepseek";
 import { createGroqAgent } from "./agents/agent-groq";
-import { createPerplexityAgent } from "./agents/agent-perplexity";  
+import { createPerplexityOpenRouterAgent } from "./agents/agent-perplexity-openrouter";
+import { createPerplexitySdkAgent } from "./agents/agent-perplexity-sdk";
 import type { ClientId } from "./client";
 import type { TaskId } from "./task-main";
 
@@ -151,7 +152,8 @@ const agents = {
   browser: createAgentBrowser(),
   groq: createGroqAgent(),
   deepseek: createDeepseekAgent(),
-  perplexity: createPerplexityAgent(),
+  perplexity_openrouter: createPerplexityOpenRouterAgent(),
+  perplexity_sdk: createPerplexitySdkAgent(),
 };
 
 export const taskWorker = <

@@ -16,7 +16,7 @@ export default taskWorker<
 
     const responses = await Promise.all(
       Array.from({ length: 3 }).map(() =>
-        agent.perplexity({
+        agent.perplexity_openrouter({
           system: input.system
             ? input.system
             : `You are an assistant that will generate a message in this JSON format: { answer: string }`,

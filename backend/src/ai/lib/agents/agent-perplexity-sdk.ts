@@ -1,15 +1,15 @@
 import { generateText } from "ai";
 import { createPerplexity } from "@ai-sdk/perplexity";
 
-const perplexity = createPerplexity({
-  apiKey: process.env.PERPLEXITY_API_KEY!,
-});
-
-export const perplexitySdkWrapper = () => {
+export const createPerplexitySdkAgent = () => {
   return async <T extends { role: string; content: string }>(opt: {
     prompt: string;
     system?: string;
   }) => {
+    const perplexity = createPerplexity({
+      apiKey: process.env.PERPLEXITY_API_KEY!,
+    });
+
     const model = perplexity("sonar-deep-research");
 
     const fullPrompt = opt.system

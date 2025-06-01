@@ -1,4 +1,4 @@
-import { perplexitySdkWrapper } from "../lib/agents/agent-perplexity-sdk";
+import { createPerplexitySdkAgent } from "../lib/agents/agent-perplexity-sdk";
 import { taskWorker } from "../lib/task-worker";
 
 const detail_list = {
@@ -38,7 +38,7 @@ export default taskWorker<
 >({
   name: "opportunity_detail",
   desc: "Asking",
-  async execute({ input }) {
+  async execute({ input, agent }) {
     const context = `
       You are an intelligent assistant tasked with retrieving and extracting detailed, accurate information about a specific funding opportunity.
 
@@ -52,13 +52,15 @@ export default taskWorker<
 
       Do not repeat the field names or explain what you’re doing. Just return the JSON object with populated values.
 
-      Here are the detail fields you must populate: ${JSON.stringify(detail_list)}
+      Here are the detail fields you must populate: ${JSON.stringify(
+        detail_list
+      )}
     `;
 
-    const sdk = perplexitySdkWrapper();
+    const sdk = agent.perplexity_sdk;
 
     const responses = await Promise.all(
-      Array.from({ length: 3 }).map(() =>
+      Array.from({ length: 1 }).map(() =>
         sdk({
           system: input.system
             ? input.system
@@ -68,19 +70,29 @@ export default taskWorker<
       )
     );
 
-    const parsedResults = responses.map((res, i) => {
-      try {
-        const cleaned = extractJsonFromContent(res.content);
-        if (!cleaned) {
-          console.error(`Response ${i + 1} does not contain JSON object:\n`, res.content.slice(0, 100));
+    const parsedResults = responses
+      .map((res, i) => {
+        try {
+          const cleaned = extractJsonFromContent(res.content);
+          if (!cleaned) {
+            console.error(
+              `Response ${i + 1} does not contain JSON object:\n`,
+              res.content.slice(0, 100)
+            );
+            return null;
+          }
+          return JSON.parse(cleaned);
+        } catch (e) {
+          console.error(
+            `Failed to parse JSON from response ${i + 1}:`,
+            e,
+            "\nContent:",
+            res.content
+          );
           return null;
         }
-        return JSON.parse(cleaned);
-      } catch (e) {
-        console.error(`Failed to parse JSON from response ${i + 1}:`, e, "\nContent:", res.content);
-        return null;
-      }
-    }).filter(Boolean);
+      })
+      .filter(Boolean);
 
     function countValidFields(obj: any): number {
       let count = 0;
@@ -103,7 +115,9 @@ export default taskWorker<
 
     const bestResult = parsedResults.reduce((best, current) => {
       if (!best) return current;
-      return countValidFields(current) > countValidFields(best) ? current : best;
+      return countValidFields(current) > countValidFields(best)
+        ? current
+        : best;
     }, null);
 
     return bestResult;
