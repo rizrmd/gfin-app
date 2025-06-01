@@ -1,27 +1,17 @@
 import { createPerplexitySdkAgent } from "../lib/agents/agent-perplexity-sdk";
 import { taskWorker } from "../lib/task-worker";
 
-const detailList = {
-  company_name: "" as string,
-  grant_amount: "" as string,
-  fields_of_work: [] as string[],
-  application_types: [] as string[],
-  overview: "" as string,
-  funding_uses: "" as string,
-  location_of_projects: "" as string,
-  location_of_residence: "" as string,
-  url: "" as string,
-  contact_information: {
-    address: "" as string,
-    email: "" as string,
-    phone: "" as string,
-  },
-  key_people: [] as {
-    name: string;
-    title: string;
-    email: string;
-  }[],
-};
+const opportunityList = {
+    funder: "" as string,
+    amount: {
+      from: "" as string,
+      to: "" as string,
+    },
+    deadline: "" as string,
+    link: "" as string,
+    categories: [] as string[],
+  };
+
 
 // Helper to extract valid JSON object from model output
 function extractJsonFromContent(content: string): string | null {
@@ -34,27 +24,26 @@ function extractJsonFromContent(content: string): string | null {
 export default taskWorker<
   {},
   { prompt: string; system?: string },
-  typeof detailList
+  typeof opportunityList
 >({
-  name: "opportunity_detail",
+  name: "opportunity_list",
   desc: "Asking",
   async execute({ input, agent }) {
     const context = `
-      You are an intelligent assistant tasked with retrieving and extracting detailed, accurate information about a specific funding opportunity.
+      You are an intelligent assistant tasked with retrieving a list of current, publicly available funding opportunities based on a user's query.
 
-      Your job is to fill in the following detail fields based on all available and reliable sources. Perform a thorough search by repeating the process 4 to 5 times using different query variations to maximize data coverage and accuracy. Only include confirmed information—do not assume or fabricate.
+      Your job is to search and extract multiple relevant funding opportunities. Perform a thorough search by using 4 to 5 query variations to ensure broad and accurate results. Only include verified, factual information—do not assume or fabricate.
 
-      Output must be a valid JSON object and nothing else. Do NOT include any tags like <think>, <reasoning>, or explanation. Just return a raw JSON object starting with { and ending with }.
+      Your response must be a valid JSON array of objects. Do NOT include any text outside the JSON—no explanation, no tags, and no wrapping. The output must start with [ and end with ].
 
-      For each field, ensure the value is a complete, well-formed sentence or list with specific, factual information. Avoid vague or generic phrases. For example, do NOT just answer "yes", "available", or "applicable". Each value must be clearly understandable without requiring external context.
+      Each object in the array must follow this structure:
+      ${JSON.stringify(opportunityList, null, 2)}
 
-      If a field is a string, it must be a full sentence or informative phrase. If a field is a list, it must contain specific items. Do not leave any field blank — if you find no information, use a single dash "-" to indicate that.
-
-      Do not repeat the field names or explain what you’re doing. Just return the JSON object with populated values.
-
-      Here are the detail fields you must populate: ${JSON.stringify(
-        detailList
-      )}
+      Guidelines:
+      - Ensure each field contains complete and informative content.
+      - Use "-" if information is not available.
+      - Do not return partial or vague entries.
+      - Include at least 3–5 opportunities if possible.
     `;
 
     const sdk = agent.deepseek;
@@ -74,6 +63,7 @@ export default taskWorker<
       .map((res, i) => {
         try {
           const cleaned = extractJsonFromContent(res.content);
+          console.log(cleaned);
           if (!cleaned) {
             console.error(
               `Response ${i + 1} does not contain JSON object:\n`,
@@ -97,7 +87,7 @@ export default taskWorker<
     function countValidFields(obj: any): number {
       let count = 0;
 
-      for (const key in detailList) {
+      for (const key in opportunityList) {
         const val = obj[key];
         if (typeof val === "string") {
           if (val.trim() !== "-") count++;

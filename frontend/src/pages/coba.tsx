@@ -17,17 +17,17 @@ export default () => {
             // });
             const prompt = `\
               `;
-            const res = await ai.task.do("opportunity_detail", {
+            const res = await ai.task.do("opportunity_list", {
               // system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
-              //   [
-              //     {
-              //       funder: "",
-              //       amount: { from: "", to: "" },
-              //       deadline: "",
-              //       link: "",
-              //       categories: [""],
-              //     },
-              //   ]
+                // [
+                //   {
+                //     funder: "",
+                //     amount: { from: "", to: "" },
+                //     deadline: "",
+                //     link: "",
+                //     categories: [""],
+                //   },
+                // ]
               // )}`,
               // system: `
               //   help me find the data of a company based on these data :
@@ -37,16 +37,17 @@ export default () => {
               //   Email: hello@buffer.com
               //   URL: buffer.com
               //   `,
-              system: `
-                help me find the detail of a funding opportunity based on these data :
-                {
-                  "funder": "Homegrown Capital",
-                  "amount": { "from": "$500,000", "to": "$2,000,000" },
-                  "deadline": "Rolling",
-                  "link": "https://homegrown.capital/",
-                  "categories": ["B2B Software", "AgTech", "FinTech", "Media", "Seed", "Series A"]
-                }
-                `,
+              // system: `
+              //   help me find the detail of a funding opportunity based on these data :
+              //   {
+              //     "funder": "Homegrown Capital",
+              //     "amount": { "from": "$500,000", "to": "$2,000,000" },
+              //     "deadline": "Rolling",
+              //     "link": "https://homegrown.capital/",
+              //     "categories": ["B2B Software", "AgTech", "FinTech", "Media", "Seed", "Series A"]
+              //   }
+              //   `,
+              system: `find me the 30 latest grant opportunities for AI startups in the US`,
               prompt,
             });
             console.log(res);
@@ -57,7 +58,11 @@ export default () => {
         <Button
           onClick={async () => {
             await user.init();
-            ai.task.do("search_org", {
+            if (!user.organization.id) {
+              console.error("Organization ID is undefined");
+              return;
+            }
+            ai.task.do("update_org_profile", {
               id_org: user.organization.id,
               prompt: "Find the latest information about this organization.",
               system:

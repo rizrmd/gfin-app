@@ -8,7 +8,7 @@ export default taskWorker<
   { id_org: string; prompt: string; system?: string },
   { answer: string }
 >({
-  name: "search_org",
+  name: "update_org_profile",
   desc: "Asking",
   async execute({ agent, input }) {
     const org = await db.organizations.findFirst({
@@ -31,7 +31,7 @@ export default taskWorker<
     )} Search thoroughly and carefully, using multiple reputable sources to cross-verify your findings before responding.`;
 
     const responses = await Promise.all(
-      Array.from({ length: 3 }).map(() =>
+      Array.from({ length: 2 }).map(() =>
         agent.perplexity_openrouter({
           system: input.system
             ? input.system
