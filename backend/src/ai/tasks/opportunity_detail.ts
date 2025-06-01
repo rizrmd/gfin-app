@@ -1,7 +1,7 @@
 import { createPerplexitySdkAgent } from "../lib/agents/agent-perplexity-sdk";
 import { taskWorker } from "../lib/task-worker";
 
-const detail_list = {
+const detailList = {
   company_name: "" as string,
   grant_amount: "" as string,
   fields_of_work: [] as string[],
@@ -34,7 +34,7 @@ function extractJsonFromContent(content: string): string | null {
 export default taskWorker<
   {},
   { prompt: string; system?: string },
-  { answer: string }
+  typeof detailList
 >({
   name: "opportunity_detail",
   desc: "Asking",
@@ -53,7 +53,7 @@ export default taskWorker<
       Do not repeat the field names or explain what you’re doing. Just return the JSON object with populated values.
 
       Here are the detail fields you must populate: ${JSON.stringify(
-        detail_list
+        detailList
       )}
     `;
 
@@ -97,7 +97,7 @@ export default taskWorker<
     function countValidFields(obj: any): number {
       let count = 0;
 
-      for (const key in detail_list) {
+      for (const key in detailList) {
         const val = obj[key];
         if (typeof val === "string") {
           if (val.trim() !== "-") count++;
