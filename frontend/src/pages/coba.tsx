@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAI } from "@/lib/ai/use-ai";
+import { user } from "@/lib/user";
 
 export default () => {
   const ai = useAI();
@@ -16,7 +17,6 @@ export default () => {
             // });
             const prompt = `\
               `;
-            console.log(prompt);
             const res = await ai.task.do("opportunity_detail", {
               // system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
               //   [
@@ -46,13 +46,26 @@ export default () => {
                   "link": "https://homegrown.capital/",
                   "categories": ["B2B Software", "AgTech", "FinTech", "Media", "Seed", "Series A"]
                 }
-                `, 
+                `,
               prompt,
             });
             console.log(res);
           }}
         >
           SAM.GOV
+        </Button>
+        <Button
+          onClick={async () => {
+            await user.init();
+            ai.task.do("search_org", {
+              id_org: user.organization.id,
+              prompt: "Find the latest information about this organization.",
+              system:
+                "You are an expert in gathering verified information about organizations.",
+            });
+          }}
+        >
+          Search org
         </Button>
       </div>
     </>
