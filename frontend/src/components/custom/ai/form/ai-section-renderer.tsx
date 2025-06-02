@@ -47,8 +47,8 @@ export const AISectionRenderer = ({
     const arrayPath = fieldParts.slice(0, -1).join(".");
 
     // Get current array value
-    const arrayValue = getNestedValue(read, arrayPath) || [];
-    
+    const arrayValue = arrayPath ? getNestedValue(read, arrayPath) || [] : read;
+
     const addItem = () => {
       const newItem = createDefaultItem(section);
       const currentArray = getNestedValue(write, arrayPath) || [];
@@ -76,43 +76,55 @@ export const AISectionRenderer = ({
             >
               <div className="flex justify-between items-center mb-4">
                 <h4 className="font-medium text-sm text-gray-700">
-                  {section.title} #{index + 1}
+                  {section.labelField ? (
+                    item[section.labelField]
+                  ) : (
+                    <>
+                      {section.title} #{index + 1}
+                    </>
+                  )}
                 </h4>
                 <div className="flex gap-2">
-                  {index > 0 && (
+                  {section.canMove !== false && (
+                    <>
+                      {index > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => moveItem(index, index - 1)}
+                          disabled={disabled}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {index < arrayValue.length - 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => moveItem(index, index + 1)}
+                          disabled={disabled}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  {section.canRemove !== false && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => moveItem(index, index - 1)}
+                      onClick={() => removeItem(index)}
                       disabled={disabled}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                     >
-                      <ChevronUp className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
-                  {index < arrayValue.length - 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => moveItem(index, index + 1)}
-                      disabled={disabled}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeItem(index)}
-                    disabled={disabled}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -125,7 +137,13 @@ export const AISectionRenderer = ({
                       .pop()}`,
                   };
                   return (
-                    <div key={modifiedField.field}>
+                    <div 
+                      key={modifiedField.field}
+                      className={cn(
+                        modifiedField.width === 'full' && "md:col-span-2",
+                        modifiedField.width === 'half' && "md:col-span-1"
+                      )}
+                    >
                       {renderField(modifiedField, shouldHideLabels)}
                     </div>
                   );
@@ -133,16 +151,18 @@ export const AISectionRenderer = ({
               </div>
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addItem}
-            disabled={disabled}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add {section.title}
-          </Button>
+          {section.canAdd !== false && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addItem}
+              disabled={disabled}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add {section.title}
+            </Button>
+          )}
         </div>
       </SectionComponent>
     );
@@ -151,7 +171,13 @@ export const AISectionRenderer = ({
   return (
     <SectionComponent key={section.title} title={section.title}>
       {section.childs.map((child, index) => (
-        <div key={`${child.field}-${index}`}>
+        <div 
+          key={`${child.field}-${index}`}
+          className={cn(
+            child.width === 'full' && "md:col-span-2",
+            child.width === 'half' && "md:col-span-1"
+          )}
+        >
           {renderField(child, shouldHideLabels)}
         </div>
       ))}

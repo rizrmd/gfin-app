@@ -23,12 +23,24 @@ export const questions = [
 const form = localStorage.getItem("form-layout");
 const layout = JSON.parse(form!) as AIFormLayout[];
 
+const questionAnswerValue = questions.map((e) => ({
+  question: e,
+  answer: "",
+})) as { answer: string; question: string }[];
+
 export default () => {
   const local = useLocal({
     formName: "",
     write: null as any,
     getConversation: (() => {}) as () => Conversation | void,
     contextUpdateTimeout: null as null | Timer,
+    layout: null as null | AIFormLayout[],
+    init: ({ proxy, getConversation, name, layout }) => {
+      local.write = proxy;
+      local.formName = name;
+      local.getConversation = getConversation;
+      local.layout = layout;
+    },
   });
   const session = useAISession({
     name: "Onboarding",
@@ -47,61 +59,45 @@ You are an AI assistant helping to onboard a new organization or company. `,
               user: "start only with question about unfilled data, do not tell me you understand.",
             },
             firstAction: {
-              name: "organization_form.activate",
-              // name: "question_answer_form.activate",
+              // name: "organization_form.activate",
+              name: "question_answer_form.activate",
             },
           };
         },
         tools: [
-          // formTool({
-          //   name: "question_answer_form",
-          //   activate:
-          //     "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response. ",
-          //   layout: [
-          //     {
-          //       type: "section" as const,
-          //       title: "Organization Questions",
-          //       isArray: true,
-          //       childs: questions.map((question, index) => ({
-          //         type: "text-input" as const,
-          //         field: question,
-          //         title: question,
-          //         required: true,
-          //       })),
-          //     },
-          //   ],
-          // }),
           formTool({
-            name: "organization_form",
-            activate: "after question_answer_form submitted",
-            blankData: { ...blankOrg },
-            init: ({ proxy, getConversation, name }) => {
-              local.write = proxy;
-              local.formName = name;
-              local.getConversation = getConversation;
-            },
-            layout,
-            // layout: [
-            //   {
-            //     type: "text-input" as const,
-            //     field: "name",
-            //     title: "Organization Name",
-            //     required: true,
-            //   },
-            //   {
-            //     type: "text-area" as const,
-            //     field: "description",
-            //     title: "Organization Description",
-            //     required: false,
-            //   },
-            //   {
-            //     type: "text-input" as const,
-            //     field: "website",
-            //     title: "Organization Website",
-            //     required: false,
-            //   },
-            // ],
+            name: "question_answer_form",
+            activate:
+              "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response. ",
+            blankData: questionAnswerValue,
+            layout: [
+              {
+                type: "section" as const,
+                title: "Organization Questions",
+                isArray: true,
+                labelField: "question",
+                canAdd: false,
+                canMove: false,
+                canRemove: false,
+                childs: [
+                  {
+                    type: "text-area" as const,
+                    field: "answer",
+                    title: "",
+                    width: "full",
+                  },
+                ],
+              },
+            ],
+            init: local.init,
           }),
+          // formTool({
+          //   name: "organization_form",
+          //   activate: "after question_answer_form submitted",
+          //   blankData: { ...blankOrg },
+          //   init: local.init,
+          //   layout,
+          // }),
         ],
       },
     ],
@@ -112,9 +108,9 @@ You are an AI assistant helping to onboard a new organization or company. `,
       <AISession session={session}>
         <div className="flex flex-1 relative overflow-auto">
           <div className="absolute inset-0">
-            {local.write && (
+            {local.write && local.layout && (
               <AIForm
-                layout={layout}
+                layout={local.layout}
                 value={snapshot(local.write)}
                 onInit={(read, write) => {
                   subscribe(write, () => {
@@ -142,15 +138,15 @@ You are an AI assistant helping to onboard a new organization or company. `,
             )}
           </div>
         </div>
-        {local.write && <Pre write={local.write} />}
+        {/* {local.write && <Pre write={local.write} />} */}
       </AISession>
     </div>
   );
 };
 
-const Pre: FC<{ write: any }> = ({ write }) => {
-  const read = useSnapshot(write, { sync: true });
-  return (
-    <div className="flex flex-1 relative">{JSON.stringify(read, null, 2)}</div>
-  );
-};
+// const Pre: FC<{ write: any }> = ({ write }) => {
+//   const read = useSnapshot(write, { sync: true });
+//   return (
+//     <div className="flex flex-1 relative">{JSON.stringify(read, null, 2)}</div>
+//   );
+// };

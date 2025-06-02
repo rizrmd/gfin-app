@@ -1,5 +1,5 @@
 export type AIFieldText = {
-  type: "text-input" | "text-area";
+  type: "text-input" | "text-area" | "label";
   suggestions?: string[];
   title?: string;
   field: string;
@@ -29,7 +29,13 @@ export type AIFormSection = {
   title: string;
   childs: AIField[]; // Allow nested sections
   isArray?: boolean;
+  labelField?: string;
+  canAdd?: boolean;
+  canRemove?: boolean;
+  canMove?: boolean;
 };
 
-export type AIField = AIFieldText | AIFieldCheckbox | AIFieldDropdown;
+export type AIField = (AIFieldText | AIFieldCheckbox | AIFieldDropdown) & {
+  width?: "full" | "half";
+};
 export type AIFormLayout = AIField | AIFormSection;
