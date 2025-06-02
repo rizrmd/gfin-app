@@ -57,10 +57,10 @@ export default taskWorker<
       )}
     `;
 
-    const sdk = agent.deepseek;
+    const sdk = agent.perplexity_sdk;
 
     const responses = await Promise.all(
-      Array.from({ length: 1 }).map(() =>
+      Array.from({ length: 2 }).map(() =>
         sdk({
           system: input.system
             ? input.system

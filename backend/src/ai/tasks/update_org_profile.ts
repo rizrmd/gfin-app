@@ -10,7 +10,7 @@ export default taskWorker<
 >({
   name: "update_org_profile",
   desc: "Asking",
-  async execute({ agent, input }) {
+  async execute({ agent, input, db }) {
     const org = await db.organizations.findFirst({
       where: { id: input.id_org },
       select: {
@@ -27,7 +27,10 @@ export default taskWorker<
     const clientProfile = org?.client?.profile;
 
     const context = `You are an intelligent assistant tasked with accurately gathering verified information about a specific organization using multiple online sources. Your task: 1. Search using the provided official business URL as a reference point. 2. Use multiple (4–5) searches with variations of the organization name and URL to ensure data accuracy and completeness. 3. Fill the provided JSON fields only with verified information (no assumptions or placeholders). 4. If a specific field is not publicly available or verifiable, use a dash "-" to denote that. 5. Your response must be in valid JSON format only, with no additional text or explanation outside the JSON structure. 6. Include only relevant and up-to-date information — do not include outdated, placeholder, or speculative data. Reference business URL: ${usBizUrl} Organization fields to fill: ${JSON.stringify(
-      { ...blankOrg, ...(orgData as any) }
+      { ...blankOrg},
+    )}. 
+    current available data : ${JSON.stringify(
+      {...(orgData as any), ...(clientProfile as any) },
     )} Search thoroughly and carefully, using multiple reputable sources to cross-verify your findings before responding.`;
 
     const responses = await Promise.all(

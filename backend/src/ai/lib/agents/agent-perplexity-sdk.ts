@@ -10,8 +10,6 @@ export const createPerplexitySdkAgent = () => {
       apiKey: process.env.PERPLEXITY_API_KEY!,
     });
 
-    console.log("Using Perplexity SDK with API Key:", process.env.PERPLEXITY_API_KEY);
-
     const model = perplexity("sonar-deep-research");
 
     const fullPrompt = opt.system
