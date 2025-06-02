@@ -254,6 +254,7 @@ export const taskWorker = <
     if (message.type === "dbResult") {
       const { id, result, error } = message;
       const dbPromise = dbPromises[id];
+
       if (dbPromise) {
         if (error) {
           dbPromise.reject(error);

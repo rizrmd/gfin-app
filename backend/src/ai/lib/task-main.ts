@@ -75,6 +75,7 @@ async function handleWorkerMessage<
       case "dbRequest":
         try {
           const table = (db as any)[message.tableName];
+
           if (!table) {
             managedTask.worker.process.postMessage({
               type: "dbResponse",
@@ -101,7 +102,7 @@ async function handleWorkerMessage<
           const dbResponse = await method(...message.args);
 
           managedTask.worker.process.postMessage({
-            type: "dbResponse",
+            type: "dbResult",
             id: message.id,
             client_id: message.client_id,
             task_id: message.task_id,
@@ -109,7 +110,7 @@ async function handleWorkerMessage<
           });
         } catch (error: any) {
           managedTask.worker.process.postMessage({
-            type: "dbResponse",
+            type: "dbResult",
             id: message.id,
             client_id: message.client_id,
             task_id: message.task_id,
