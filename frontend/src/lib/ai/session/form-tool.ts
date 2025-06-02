@@ -12,6 +12,7 @@ export const formTool = ({
   layout,
   init,
   blankData,
+  executeUpdate,
 }: {
   name: string;
   activate: string;
@@ -23,10 +24,15 @@ export const formTool = ({
     layout: AIFormLayout[];
     name: string;
   }) => void;
+  executeUpdate?: (arg: { newData: any; proxy: any }) => void;
 }) => {
   const current = { data: proxy(blankData ? cloneDeep(blankData) : {}) };
   const updateData = (data: object) => {
-    merge(current.data, data);
+    if (executeUpdate) {
+      executeUpdate({ newData: data, proxy: current.data });
+    } else {
+      merge(current.data, data);
+    }
   };
 
   return async ({ getConversation }: AIPhaseToolArg) => {

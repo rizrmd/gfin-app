@@ -123,7 +123,7 @@ ${tool_prompt}`.trim();
   };
 
   const conv = await Conversation.startSession({
-    agentId: "agent_01jwd0qk9df0qv578y1sd1r874",
+    agentId: "agent_01jwr4n4qnfax9dp0t2gz235gt",
     overrides: {
       agent: {
         firstMessage: arg.firstMessage?.assistant,

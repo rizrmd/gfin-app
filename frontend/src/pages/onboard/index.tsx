@@ -89,6 +89,18 @@ You are an AI assistant helping to onboard a new organization or company. `,
               },
             ],
             init: local.init,
+            executeUpdate({ newData, proxy }) {
+              console.log("executeUpdate", newData, proxy);
+              for (const qa of newData) {
+                if (qa.question && qa.answer) {
+                  const cur = proxy.find((q) => q.question === qa.question);
+                  console.log(qa, cur);
+                  if (cur) {
+                    cur.answer = qa.answer;
+                  }
+                }
+              }
+            },
           }),
           // formTool({
           //   name: "organization_form",
@@ -145,16 +157,16 @@ const SessionForm: FC<{
     },
     () => {
       subscribe(write, () => {
-        // const data = snapshot(write);
-        // if (local.updateFromUser) return;
-        // local.updateFromAI = true;
-
-        // for (const key in data) {
-        //   local.formWrite[key] = data[key];
-        // }
-        // setTimeout(() => {
-        //   local.updateFromAI = false;
-        // }, 500);
+        const data = snapshot(write);
+        console.log(data);
+        if (local.updateFromUser) return;
+        local.updateFromAI = true;
+        for (const key in data) {
+          local.formWrite[key] = data[key];
+        }
+        setTimeout(() => {
+          local.updateFromAI = false;
+        }, 500);
       });
     }
   );
