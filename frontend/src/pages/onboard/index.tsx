@@ -123,16 +123,19 @@ You are an AI assistant helping to onboard a new organization or company. `,
                       local.write[key] = data[key];
                     }
 
-                    clearTimeout(local.contextUpdateTimeout!);
-                    local.contextUpdateTimeout = setTimeout(() => {
-                      local
-                        .getConversation()
-                        ?.sendContextualUpdate(
+                    const conv = local.getConversation();
+
+                    if (conv) {
+                      conv.sendUserActivity();
+                      clearTimeout(local.contextUpdateTimeout!);
+                      local.contextUpdateTimeout = setTimeout(() => {
+                        conv.sendContextualUpdate(
                           `current ${local.formName} data is: ${JSON.stringify(
                             data
                           )}`
                         );
-                    }, 1000);
+                      }, 1000);
+                    }
                   });
                 }}
               />

@@ -20,6 +20,7 @@ export const formTool = ({
   init?: (arg: {
     proxy: any;
     getConversation: () => void | Conversation;
+    layout: AIFormLayout[];
     name: string;
   }) => void;
 }) => {
@@ -29,16 +30,13 @@ export const formTool = ({
   };
 
   return async ({ getConversation }: AIPhaseToolArg) => {
+    const finalLayout = typeof layout === "function" ? await layout() : layout;
     const finalSample = blankData
       ? JSON.stringify(blankData)
-      : JSON.stringify(
-          generateSampleData(
-            typeof layout === "function" ? await layout() : layout
-          )
-        );
+      : JSON.stringify(generateSampleData(finalLayout));
 
     if (init) {
-      init({ getConversation, proxy: current.data, name });
+      init({ getConversation, proxy: current.data, name, layout: finalLayout });
     }
 
     return {
