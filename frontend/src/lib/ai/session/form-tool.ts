@@ -2,21 +2,34 @@ import { convertAIFormToZod } from "@/components/custom/ai/form/ai-form-zod";
 import type { AIFormLayout } from "@/components/custom/ai/form/ai-form.types";
 import type { AIClientTool, AIPhaseToolArg } from "./use-ai-session";
 import { generateSampleData } from "@/components/custom/ai/form/ai-form-sample-data";
+import { proxy, snapshot } from "valtio";
+import { merge } from "lodash";
 
 export const formTool = ({
   name,
   activate: activate,
   layout,
+  init,
 }: {
   name: string;
   activate: string;
-  layout: AIFormLayout[];
+  layout: AIFormLayout[] | (() => AIFormLayout[] | Promise<AIFormLayout[]>);
+  init?: (arg: { updateData: (data: object) => void }) => void;
 }) => {
-  const zodSchema = convertAIFormToZod(layout);
+  const current = { data: proxy({}) };
+  const updateData = (data: object) => {
+    merge(current.data, data);
+  };
 
-  const sampleData = JSON.stringify(generateSampleData(layout));
-  return ({ textOnly }: AIPhaseToolArg) =>
-    ({
+  if (init) {
+    init({ updateData });
+  }
+  return async ({ textOnly }: AIPhaseToolArg) => {
+    const sampleData = JSON.stringify(
+      generateSampleData(typeof layout === "function" ? await layout() : layout)
+    );
+
+    return {
       name,
       activate,
       prompt: `
@@ -30,21 +43,37 @@ if you are done with the form, call tool "action" with this arguments:
 `,
       actions: {
         activate: {
-          intent: `the ${name} is activated, do not activate it again, continue with ${name}.update action`,
+          intent: () => {
+            const data = snapshot(current.data);
+            return `\
+the ${name} is activated, do not activate it again, 
+when you get the answer for unfilled field continue with ${name}.update action.
+current data is: ${JSON.stringify(data)}.
+`;
+          },
           action: () => {
             console.log("show form", name);
           },
         },
         update: {
+          intent: () => {
+            const data = snapshot(current.data);
+            return `\
+when you get the answer for unfilled field continue with ${name}.update action.
+current data is: ${JSON.stringify(data)}.`;
+          },
           action: (arg) => {
+            updateData(arg);
             console.log("update form", name, arg);
           },
         },
         submit: {
           action: () => {
-            console.log("submit form", name);
+            const data = snapshot(current.data);
+            console.log("submit form", name, data);
           },
         },
       },
-    } satisfies AIClientTool);
+    } satisfies AIClientTool;
+  };
 };

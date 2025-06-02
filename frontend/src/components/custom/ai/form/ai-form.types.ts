@@ -27,7 +27,7 @@ export type AIFieldDropdown = {
 export type AIFormSection = {
   type: "section";
   title: string;
-  childs: AIField[];
+  childs: AIFormLayout[]; // Allow nested sections
   isArray?: boolean;
 };
 

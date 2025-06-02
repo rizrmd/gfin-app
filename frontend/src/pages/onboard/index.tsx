@@ -1,3 +1,4 @@
+import type { AIFormLayout } from "@/components/custom/ai/form/ai-form.types";
 import { AISession } from "@/components/custom/ai/session/ai-session";
 import { formTool } from "@/lib/ai/session/form-tool";
 import { useAISession } from "@/lib/ai/session/use-ai-session";
@@ -24,59 +25,72 @@ export default () => {
         async init() {
           return {
             prompt: `\
-You are an AI assistant helping to onboard a new organization or company.`,
+You are an AI assistant helping to onboard a new organization or company. `,
             firstMessage: {
               assistant:
                 "Hello. welcome to the onboarding process. are you ready to provide some information about your organization?",
-              user: "yes, ask me the first question.",
+              user: "start only with question about unfilled data, do not tell me you understand.",
             },
             firstAction: {
-              name: "question_answer_form.activate",
+              name: "organization_form.activate",
+              // name: "question_answer_form.activate",
             },
           };
         },
         tools: [
-          formTool({
-            name: "question_answer_form",
-            activate:
-              "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response. ",
-            layout: [
-              {
-                type: "section" as const,
-                title: "Organization Questions",
-                isArray: true,
-                childs: questions.map((question, index) => ({
-                  type: "text-input" as const,
-                  field: question,
-                  title: question,
-                  required: true,
-                })),
-              },
-            ],
-          }),
+          // formTool({
+          //   name: "question_answer_form",
+          //   activate:
+          //     "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response. ",
+          //   layout: [
+          //     {
+          //       type: "section" as const,
+          //       title: "Organization Questions",
+          //       isArray: true,
+          //       childs: questions.map((question, index) => ({
+          //         type: "text-input" as const,
+          //         field: question,
+          //         title: question,
+          //         required: true,
+          //       })),
+          //     },
+          //   ],
+          // }),
           formTool({
             name: "organization_form",
             activate: "after question_answer_form submitted",
-            layout: [
-              {
-                type: "text-input" as const,
-                field: "name",
-                title: "Organization Name",
-                required: true,
-              },
-              {
-                type: "text-area" as const,
-                field: "description",
-                title: "Organization Description",
-                required: false,
-              },
-              {
-                type: "text-input" as const,
-                field: "website",
-                title: "Organization Website",
-                required: false,
-              },
-            ],
+            init: ({ updateData }) => {
+              updateData({
+                name: "Deep Leearning Intelligence",
+                // description:
+                // "An organization that provides services to government agencies.",
+                website: "deeplearningintelligence.com",
+              });
+            },
+            layout: () => {
+              const form = localStorage.getItem("form-layout");
+              return JSON.parse(form!) as AIFormLayout[];
+            },
+            // layout: [
+            //   {
+            //     type: "text-input" as const,
+            //     field: "name",
+            //     title: "Organization Name",
+            //     required: true,
+            //   },
+            //   {
+            //     type: "text-area" as const,
+            //     field: "description",
+            //     title: "Organization Description",
+            //     required: false,
+            //   },
+            //   {
+            //     type: "text-input" as const,
+            //     field: "website",
+            //     title: "Organization Website",
+            //     required: false,
+            //   },
+            // ],
           }),
         ],
       },
