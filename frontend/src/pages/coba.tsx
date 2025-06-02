@@ -53,9 +53,66 @@ export default () => {
             console.log(res);
           }}
         >
-          SAM.GOV
+          find opportunity detail
         </Button>
         <Button
+          onClick={async () => {
+            // await user.init();
+            // const res = await ai.task.do("groq", {
+            //   prompt: `get latest contract opportunity`,
+            // });
+            const prompt = `\
+              `;
+            const res = await ai.task.do("opportunity_list", {
+              system: `You are an expert in finding grants and funding opportunities for technology companies, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
+                [
+                  {
+                    funder: "",
+                    amount: { from: "", to: "" },
+                    deadline: "",
+                    link: "",
+                    categories: [""],
+                  },
+                ]
+              )}`,
+              // system: `
+              //   help me find the data of a company based on these data :
+              //   First Name: Joel
+              //   Last Name: Gascoigne
+              //   Company: Buffer
+              //   Email: hello@buffer.com
+              //   URL: buffer.com
+              //   `,
+              // system: `find me the 30 latest grant opportunities for AI startups in the US`,
+              prompt,
+            });
+            console.log(res);
+          }}
+        >
+          find opportunity list from perplexity
+        </Button>
+        <Button
+          onClick={async () => {
+            const prompt = `\
+              `;
+            const res = await ai.task.do("search_sam_gov", {
+              // system: `
+              //   help me find the data of a company based on these data :
+              //   First Name: Joel
+              //   Last Name: Gascoigne
+              //   Company: Buffer
+              //   Email: hello@buffer.com
+              //   URL: buffer.com
+              //   `,
+              system: `find me the 30 latest grant opportunities for AI startups in the US`,
+              prompt,
+            });
+            console.log(res);
+          }}
+        >
+          find opportunity list from sam.gov
+        </Button>
+        {/* <Button
           onClick={async () => {
             // await user.init();
             // if (!user.organization.id) {
@@ -71,7 +128,8 @@ export default () => {
           }}
         >
           Search org
-        </Button>
+        </Button> */}
+        
       </div>
     </>
   );
