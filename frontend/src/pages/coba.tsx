@@ -112,7 +112,7 @@ export default () => {
         >
           find opportunity list from sam.gov
         </Button>
-        {/* <Button
+        <Button
           onClick={async () => {
             // await user.init();
             // if (!user.organization.id) {
@@ -128,7 +128,7 @@ export default () => {
           }}
         >
           Search org
-        </Button> */}
+        </Button>
         
       </div>
     </>
