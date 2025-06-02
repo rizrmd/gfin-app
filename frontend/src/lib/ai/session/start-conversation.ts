@@ -1,14 +1,13 @@
+import { waitUntil } from "@/lib/wait-until";
 import {
   Conversation,
   type Mode,
   type Role,
   type Status,
 } from "@elevenlabs/client";
+import { trim } from "lodash";
 import { proxy } from "valtio";
 import type { AIClientTool, AIPhase } from "./use-ai-session";
-import { waitUntil } from "@/lib/wait-until";
-import { act } from "react";
-import { trim } from "lodash";
 
 export const blankState = {
   phase: 0,
@@ -63,6 +62,9 @@ only do these prompt after ${action.name} activated:
 ${action.prompt}
 ---END: ${action.name}---
 
+
+do not ask the user if they need anything else.
+
   `;
   })
   .join("\n\n")}
@@ -77,14 +79,14 @@ ${tool_prompt}`.trim();
 
   const actions = {} as Record<
     string,
-    { intent: string; action: (params?: any) => void }
+    { intent?: string | (() => string); action: (params?: any) => void }
   >;
 
   arg.tools.forEach((tool) => {
     const toolName = tool.name.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
     Object.entries(tool.actions).forEach(([actionName, action]) => {
       actions[`${toolName}.${actionName}`] = {
-        intent: action.intent || "",
+        intent: action.intent,
         action: (params) => {
           if (action.action) {
             action.action(params);
@@ -102,7 +104,11 @@ ${tool_prompt}`.trim();
     const definition = actions[name];
     if (definition) {
       if (definition.intent) {
-        conv.sendContextualUpdate(definition.intent);
+        conv.sendContextualUpdate(
+          typeof definition.intent === "function"
+            ? definition.intent()
+            : definition.intent
+        );
       }
       definition.action(params);
       arg.actionHistory.push({
@@ -148,15 +154,22 @@ ${tool_prompt}`.trim();
     onCanSendFeedbackChange({ canSendFeedback }) {
       state.canSendFeedback = canSendFeedback;
     },
+    onDisconnect: () => {
+      console.log("Conversation disconnected");
+      state.status = "disconnected";
+    },
+    onError(message, context) {
+      console.error("Conversation error:", message, context);
+    },
   });
-
-  if (arg.firstMessage?.user) {
-    conv.sendUserMessage(arg.firstMessage.user);
-  }
 
   const action = arg.firstAction;
   if (action && arg.actionHistory.length === 0) {
-    executeAction(action.name, action.params);
+    await executeAction(action.name, action.params);
+  }
+
+  if (arg.firstMessage?.user) {
+    conv.sendUserMessage(arg.firstMessage.user);
   }
 
   return { conv, state };

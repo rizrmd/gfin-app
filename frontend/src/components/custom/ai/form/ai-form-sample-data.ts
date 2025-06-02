@@ -40,9 +40,17 @@ export const generateSampleDataFromLayout = (layout: AIFormLayout[]): Record<str
       // For regular sections, process each child field
       const sectionData: Record<string, any> = {};
       section.childs.forEach((child) => {
-        // Get the field name (last part after the dot)
-        const fieldName = child.field.split(".").pop() || child.field;
-        sectionData[fieldName] = processField(child);
+        if (child.type === "section") {
+          // Handle nested sections recursively
+          const nestedSectionName = child.title.toLowerCase().replace(/\s+/g, "_");
+          sectionData[nestedSectionName] = processSection(child);
+        } else {
+          // Handle field children
+          if ('field' in child && child.field) {
+            const fieldName = child.field.split(".").pop() || child.field;
+            sectionData[fieldName] = processField(child);
+          }
+        }
       });
       return sectionData;
     }
@@ -65,13 +73,15 @@ export const generateSampleDataFromLayout = (layout: AIFormLayout[]): Record<str
       result[sectionName] = processSection(item);
     } else {
       // For direct fields, use the field name
-      const fieldValue = processField(item);
-      
-      // Handle nested field paths (e.g., "organization.name")
-      if (item.field.includes(".")) {
-        setNestedValue(result, item.field, fieldValue);
-      } else {
-        result[item.field] = fieldValue;
+      if ('field' in item && item.field) {
+        const fieldValue = processField(item);
+        
+        // Handle nested field paths (e.g., "organization.name")
+        if (item.field.includes(".")) {
+          setNestedValue(result, item.field, fieldValue);
+        } else {
+          result[item.field] = fieldValue;
+        }
       }
     }
   });
@@ -80,26 +90,30 @@ export const generateSampleDataFromLayout = (layout: AIFormLayout[]): Record<str
 };
 
 /**
- * Generates sample data object from simple AIFormLayout configuration (like the example provided)
- * This is a simplified version that assumes all fields are at the root level
+ * Generates sample data object from AIFormLayout configuration
+ * Handles nested sections recursively
  * @param layout - The AIFormLayout array configuration
  * @returns Object with field names as keys and empty string values
  */
 export const generateSampleData = (layout: AIFormLayout[]): Record<string, string> => {
   const result: Record<string, string> = {};
 
-  layout.forEach((item) => {
+  const processItem = (item: AIFormLayout) => {
     if (item.type === "section") {
-      // For sections, extract field names from children
+      // For sections, recursively process children
       item.childs.forEach((child) => {
-        const fieldName = child.field.split(".").pop() || child.field;
-        result[fieldName] = "";
+        processItem(child);
       });
     } else {
-      // For direct fields
-      result[item.field] = "";
+      // For direct fields, check if field exists before processing
+      if ('field' in item && item.field) {
+        const fieldName = item.field.split(".").pop() || item.field;
+        result[fieldName] = "";
+      }
     }
-  });
+  };
+
+  layout.forEach(processItem);
 
   return result;
 };

@@ -10,7 +10,7 @@ interface AIFormProps<T extends object> {
   className?: string;
   onChange?: (data: T) => void;
   disabled?: boolean;
-  onInit?: (data: T) => void;
+  onInit?: (read: T, write: T) => void;
 }
 
 export const AIForm = <T extends object>({
@@ -44,6 +44,7 @@ export const AIForm = <T extends object>({
   const createDefaultItem = (section: AIFormSection) => {
     const item: any = {};
     section.childs.forEach((child) => {
+      // Now, TypeScript infers 'child' as AIField.
       const fieldName = child.field.split(".").pop()!; // Get the last part of the field path
       switch (child.type) {
         case "text-input":
@@ -76,7 +77,7 @@ export const AIForm = <T extends object>({
 
         // Call onInit callback if provided
         if (onInit) {
-          onInit(read as T);
+          onInit(read as T, write as T);
         }
       }}
       onSubmit={async ({ write, read }) => {
@@ -103,14 +104,16 @@ export const AIForm = <T extends object>({
         });
 
         return (
-          <AILayoutRenderer
-            layout={layout}
-            fieldProps={fieldProps}
-            disabled={disabled}
-            getNestedValue={getNestedValue}
-            setNestedValue={setNestedValue}
-            createDefaultItem={createDefaultItem}
-          />
+          <>
+            <AILayoutRenderer
+              layout={layout}
+              fieldProps={fieldProps}
+              disabled={disabled}
+              getNestedValue={getNestedValue}
+              setNestedValue={setNestedValue}
+              createDefaultItem={createDefaultItem}
+            />
+          </>
         );
       }}
     </EForm>

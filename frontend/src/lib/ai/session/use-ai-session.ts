@@ -23,7 +23,10 @@ export type AIPhaseMessage =
     }
   | { role: "action"; name: string };
 
-export type AIPhaseToolArg = { textOnly: boolean };
+export type AIPhaseToolArg = {
+  textOnly: boolean;
+  getConversation: () => Conversation;
+};
 
 export type AIPhase = {
   name: string;
@@ -33,14 +36,14 @@ export type AIPhase = {
     firstMessage?: { user?: string; assistant?: string };
     firstAction?: { name: string; params?: Record<string, any> };
   }>;
-  tools?: ((arg: AIPhaseToolArg) => AIClientTool)[];
+  tools?: ((arg: AIPhaseToolArg) => AIClientTool | Promise<AIClientTool>)[];
   messages?: AIPhaseMessage[];
   onMessage?: (arg: { message: string }) => Promise<void>;
 };
 
 export type AIAction = {
   desc?: string;
-  intent?: string;
+  intent?: string | (() => string);
   action: (arg?: any) => void;
   params?: Record<string, any>;
 };
@@ -96,9 +99,18 @@ export const useAISession = ({
 
     ref.current.conv = undefined;
 
-    const tools =
-      ref.current.phase.tools?.map((tool) => tool({ textOnly: !!textOnly })) ||
-      [];
+    const tools = ref.current.phase.tools
+      ? await Promise.all(
+          ref.current.phase.tools.map((tool) =>
+            tool({
+              textOnly: !!textOnly,
+              getConversation: () => {
+                return conv;
+              },
+            })
+          )
+        )
+      : [];
 
     if (!ref.current.actionHistory) {
       ref.current.actionHistory = [];
@@ -117,6 +129,7 @@ export const useAISession = ({
 
     ref.current.conv = conv;
     ref.current.state = state;
+
     render({});
   };
 

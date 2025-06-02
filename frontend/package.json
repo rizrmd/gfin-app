@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@11labs/react": "^0.1.4",
+    "@elevenlabs/client": "^0.1.6",
     "@ezraobiwale/laravel-style-validation": "^3.2.4",
     "@fontsource/inter": "^5.2.5",
     "@hookform/resolvers": "^4.1.0",
