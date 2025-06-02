@@ -104,14 +104,16 @@ export const AIForm = <T extends object>({
         });
 
         return (
-          <AILayoutRenderer
-            layout={layout}
-            fieldProps={fieldProps}
-            disabled={disabled}
-            getNestedValue={getNestedValue}
-            setNestedValue={setNestedValue}
-            createDefaultItem={createDefaultItem}
-          />
+          <>
+            <AILayoutRenderer
+              layout={layout}
+              fieldProps={fieldProps}
+              disabled={disabled}
+              getNestedValue={getNestedValue}
+              setNestedValue={setNestedValue}
+              createDefaultItem={createDefaultItem}
+            />
+          </>
         );
       }}
     </EForm>

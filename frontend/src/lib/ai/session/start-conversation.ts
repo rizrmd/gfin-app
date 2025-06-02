@@ -154,6 +154,13 @@ ${tool_prompt}`.trim();
     onCanSendFeedbackChange({ canSendFeedback }) {
       state.canSendFeedback = canSendFeedback;
     },
+    onDisconnect: () => {
+      console.log("Conversation disconnected");
+      state.status = "disconnected";
+    },
+    onError(message, context) {
+      console.error("Conversation error:", message, context);
+    },
   });
 
   const action = arg.firstAction;

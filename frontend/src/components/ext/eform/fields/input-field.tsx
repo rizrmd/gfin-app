@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { proxy, useSnapshot } from "valtio";
 import { getNestedProperty, setNestedProperty } from "../utils";
 import { useLocal } from "@/lib/hooks/use-local";
+import { useEffect } from "react";
 
 type Props<
   K extends string,
@@ -65,11 +66,13 @@ export const InputField = function <
 
   if (textarea) {
     return (
-      <Textarea
-        {...commonProps}
-        {...(rest as React.ComponentProps<"textarea">)}
-        value={commonProps.value || rest.value || ""}
-      />
+      <>
+        <Textarea
+          {...commonProps}
+          {...(rest as React.ComponentProps<"textarea">)}
+          value={commonProps.value || rest.value || ""}
+        />
+      </>
     );
   }
 

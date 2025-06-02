@@ -26,17 +26,6 @@ export const AISectionRenderer = ({
   const SectionComponent = EFormSection || Section;
   const shouldHideLabels = section.childs.length === 1;
 
-  const renderField = (field: AIField, hideLabel = false) => {
-    return (
-      <AIFieldRenderer
-        field={field}
-        Field={Field}
-        hideLabel={hideLabel}
-        disabled={disabled}
-      />
-    );
-  };
-
   if (section.isArray) {
     // Get the base field path (common prefix for all fields in this section)
     const firstField = section.childs[0]?.field;
@@ -137,14 +126,19 @@ export const AISectionRenderer = ({
                       .pop()}`,
                   };
                   return (
-                    <div 
+                    <div
                       key={modifiedField.field}
                       className={cn(
-                        modifiedField.width === 'full' && "md:col-span-2",
-                        modifiedField.width === 'half' && "md:col-span-1"
+                        modifiedField.width === "full" && "md:col-span-2",
+                        modifiedField.width === "half" && "md:col-span-1"
                       )}
                     >
-                      {renderField(modifiedField, shouldHideLabels)}
+                      <AIFieldRenderer
+                        field={modifiedField}
+                        Field={Field}
+                        hideLabel={shouldHideLabels}
+                        disabled={disabled}
+                      />
                     </div>
                   );
                 })}
@@ -171,14 +165,19 @@ export const AISectionRenderer = ({
   return (
     <SectionComponent key={section.title} title={section.title}>
       {section.childs.map((child, index) => (
-        <div 
+        <div
           key={`${child.field}-${index}`}
           className={cn(
-            child.width === 'full' && "md:col-span-2",
-            child.width === 'half' && "md:col-span-1"
+            child.width === "full" && "md:col-span-2",
+            child.width === "half" && "md:col-span-1"
           )}
         >
-          {renderField(child, shouldHideLabels)}
+          <AIFieldRenderer
+            field={child}
+            Field={Field}
+            hideLabel={shouldHideLabels}
+            disabled={disabled}
+          />
         </div>
       ))}
     </SectionComponent>

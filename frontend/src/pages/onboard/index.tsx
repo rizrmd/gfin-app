@@ -1,13 +1,13 @@
 import { AIForm } from "@/components/custom/ai/form/ai-form";
 import type { AIFormLayout } from "@/components/custom/ai/form/ai-form.types";
 import { AISession } from "@/components/custom/ai/session/ai-session";
+import { Button } from "@/components/ui/button";
 import { formTool } from "@/lib/ai/session/form-tool";
 import { useAISession } from "@/lib/ai/session/use-ai-session";
 import { useLocal } from "@/lib/hooks/use-local";
 import type { Conversation } from "@elevenlabs/client";
 import type { FC } from "react";
-import { blankOrg } from "shared/lib/client_state";
-import { snapshot, subscribe, useSnapshot } from "valtio";
+import { snapshot, subscribe } from "valtio";
 
 export const questions = [
   "What sets your company apart from others in the same field? Any unique qualifications, proprietary technologies, or differentiators that make your company stand out",
@@ -33,7 +33,6 @@ export default () => {
     formName: "",
     write: null as any,
     getConversation: (() => {}) as () => Conversation | void,
-    contextUpdateTimeout: null as null | Timer,
     layout: null as null | AIFormLayout[],
     init: ({ proxy, getConversation, name, layout }) => {
       local.write = proxy;
@@ -68,7 +67,7 @@ You are an AI assistant helping to onboard a new organization or company. `,
           formTool({
             name: "question_answer_form",
             activate:
-              "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response. ",
+              "at the beginning of conversation or when it is not activated, or when user said yes, ready, or any affirmative response, ensure each answer in the question array is answered. ",
             blankData: questionAnswerValue,
             layout: [
               {
@@ -109,31 +108,11 @@ You are an AI assistant helping to onboard a new organization or company. `,
         <div className="flex flex-1 relative overflow-auto">
           <div className="absolute inset-0">
             {local.write && local.layout && (
-              <AIForm
+              <SessionForm
                 layout={local.layout}
-                value={snapshot(local.write)}
-                onInit={(read, write) => {
-                  subscribe(write, () => {
-                    const data = snapshot(write);
-                    for (const key in data) {
-                      local.write[key] = data[key];
-                    }
-
-                    const conv = local.getConversation();
-
-                    if (conv) {
-                      conv.sendUserActivity();
-                      clearTimeout(local.contextUpdateTimeout!);
-                      local.contextUpdateTimeout = setTimeout(() => {
-                        conv.sendContextualUpdate(
-                          `current ${local.formName} data is: ${JSON.stringify(
-                            data
-                          )}`
-                        );
-                      }, 1000);
-                    }
-                  });
-                }}
+                write={local.write}
+                getConversation={local.getConversation}
+                formName={local.formName}
               />
             )}
           </div>
@@ -150,3 +129,65 @@ You are an AI assistant helping to onboard a new organization or company. `,
 //     <div className="flex flex-1 relative">{JSON.stringify(read, null, 2)}</div>
 //   );
 // };
+
+const SessionForm: FC<{
+  layout: AIFormLayout[];
+  write: any;
+  getConversation: () => Conversation | void;
+  formName: string;
+}> = ({ write, getConversation, layout, formName }) => {
+  const local = useLocal(
+    {
+      contextUpdateTimeout: null as null | Timer,
+      formWrite: null as any,
+      updateFromAI: false,
+      updateFromUser: false,
+    },
+    () => {
+      subscribe(write, () => {
+        // const data = snapshot(write);
+        // if (local.updateFromUser) return;
+        // local.updateFromAI = true;
+
+        // for (const key in data) {
+        //   local.formWrite[key] = data[key];
+        // }
+        // setTimeout(() => {
+        //   local.updateFromAI = false;
+        // }, 500);
+      });
+    }
+  );
+  return (
+    <>
+      <AIForm
+        layout={layout}
+        value={snapshot(write)}
+        onInit={(read, formWrite) => {
+          local.formWrite = formWrite;
+          // subscribe(formWrite, () => {
+          //   if (local.updateFromAI) return;
+          //   local.updateFromUser = true;
+          //   const data = snapshot(formWrite);
+          //   for (const key in data) {
+          //     write[key] = data[key];
+          //   }
+
+          //   const conv = getConversation();
+
+          //   if (conv) {
+          //     conv.sendUserActivity();
+          //     clearTimeout(local.contextUpdateTimeout!);
+          //     local.contextUpdateTimeout = setTimeout(() => {
+          //       conv.sendContextualUpdate(
+          //         `current ${formName} data is: ${JSON.stringify(data)}`
+          //       );
+          //       local.updateFromUser = false;
+          //     }, 1000);
+          //   }
+          // });
+        }}
+      />
+    </>
+  );
+};

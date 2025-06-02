@@ -129,6 +129,7 @@ export const useAISession = ({
 
     ref.current.conv = conv;
     ref.current.state = state;
+
     render({});
   };
 
