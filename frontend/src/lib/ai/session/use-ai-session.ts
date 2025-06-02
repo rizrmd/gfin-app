@@ -23,7 +23,10 @@ export type AIPhaseMessage =
     }
   | { role: "action"; name: string };
 
-export type AIPhaseToolArg = { textOnly: boolean };
+export type AIPhaseToolArg = {
+  textOnly: boolean;
+  getConversation: () => Conversation;
+};
 
 export type AIPhase = {
   name: string;
@@ -98,7 +101,14 @@ export const useAISession = ({
 
     const tools = ref.current.phase.tools
       ? await Promise.all(
-          ref.current.phase.tools.map((tool) => tool({ textOnly: !!textOnly }))
+          ref.current.phase.tools.map((tool) =>
+            tool({
+              textOnly: !!textOnly,
+              getConversation: () => {
+                return conv;
+              },
+            })
+          )
         )
       : [];
 

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { proxy, ref, useSnapshot } from "valtio";
+import { proxy, ref, snapshot, useSnapshot } from "valtio";
 import { CalendarSelect } from "./fields/calendar-select";
 import { CheckboxGroup } from "./fields/checkbox-group";
 import { CheckboxLabel } from "./fields/checkbox-label";
@@ -23,10 +23,13 @@ import type {
   TMultipleSelect,
   TSection,
   TSingleSelect,
-  TUploadFile, ValidationErrors, ValidationRule
+  TUploadFile,
+  ValidationErrors,
+  ValidationRule,
 } from "./types";
 import { hasErrors, validateForm } from "./validation";
 import { Field } from "./field";
+import { cloneDeep } from "lodash";
 
 export const Form = <
   T extends Record<string, any>,
@@ -47,7 +50,7 @@ export const Form = <
 
   const write = useRef(
     proxy({
-      data: opt.data,
+      data: cloneDeep(opt.data),
       Field: ref(() => {}) as unknown as TField<string>,
       Input: ref(() => {}) as unknown as TInputField<string>,
       SingleSelect: ref(() => {}) as unknown as TSingleSelect<string>,

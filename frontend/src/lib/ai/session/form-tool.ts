@@ -3,31 +3,43 @@ import type { AIFormLayout } from "@/components/custom/ai/form/ai-form.types";
 import type { AIClientTool, AIPhaseToolArg } from "./use-ai-session";
 import { generateSampleData } from "@/components/custom/ai/form/ai-form-sample-data";
 import { proxy, snapshot } from "valtio";
-import { merge } from "lodash";
+import { cloneDeep, merge } from "lodash";
+import { Conversation } from "@elevenlabs/client";
 
 export const formTool = ({
   name,
   activate: activate,
   layout,
   init,
+  blankData,
 }: {
   name: string;
   activate: string;
+  blankData?: Record<string, any>;
   layout: AIFormLayout[] | (() => AIFormLayout[] | Promise<AIFormLayout[]>);
-  init?: (arg: { updateData: (data: object) => void }) => void;
+  init?: (arg: {
+    proxy: any;
+    getConversation: () => void | Conversation;
+    name: string;
+  }) => void;
 }) => {
-  const current = { data: proxy({}) };
+  const current = { data: proxy(blankData ? cloneDeep(blankData) : {}) };
   const updateData = (data: object) => {
     merge(current.data, data);
   };
 
-  if (init) {
-    init({ updateData });
-  }
-  return async ({ textOnly }: AIPhaseToolArg) => {
-    const sampleData = JSON.stringify(
-      generateSampleData(typeof layout === "function" ? await layout() : layout)
-    );
+  return async ({ getConversation }: AIPhaseToolArg) => {
+    const finalSample = blankData
+      ? JSON.stringify(blankData)
+      : JSON.stringify(
+          generateSampleData(
+            typeof layout === "function" ? await layout() : layout
+          )
+        );
+
+    if (init) {
+      init({ getConversation, proxy: current.data, name });
+    }
 
     return {
       name,
@@ -35,7 +47,7 @@ export const formTool = ({
       prompt: `
 whenever you receive an answer from the user, call tool "action" with this arguments:
 - name: "${name}.update"
-- param: ${sampleData}. 
+- param: ${finalSample}. 
 You can that action tool multiple times to update the form data. always deduce the param from the user answer, do not ask the user to provide the param in a specific format.
 
 if you are done with the form, call tool "action" with this arguments:
