@@ -112,23 +112,24 @@ export default () => {
         >
           find opportunity list from sam.gov
         </Button>
-        {/* <Button
+        <Button
           onClick={async () => {
             // await user.init();
             // if (!user.organization.id) {
             //   console.error("Organization ID is undefined");
             //   return;
             // }
-            ai.task.do("update_org_profile", {
+            const res = await ai.task.do("update_org_profile", {
               id_org: "f232f896-8a87-4542-8f6a-a7f314486708",
               prompt: "Find the latest information about this organization.",
               system:
                 "You are an expert in gathering verified information about organizations.",
             });
+            console.log(res);
           }}
         >
-          Search org
-        </Button> */}
+          Update organization profile
+        </Button>
         
       </div>
     </>
