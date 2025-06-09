@@ -180,6 +180,7 @@ export class SamGovAPI {
 
       const json = await res.json();
       // v2 returns under "opportunitiesData"
+      console.log("SAM.gov API response:", json);
       return json.opportunitiesData as OpportunityResponse[];
     } catch (err) {
       console.error("Error fetching SAM.gov data:", err);

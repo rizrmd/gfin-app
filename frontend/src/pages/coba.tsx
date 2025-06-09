@@ -36,7 +36,7 @@ export default () => {
           onClick={async () => {
             const prompt = `\ `;
             const res = await ai.task.do("opportunity_list", {
-              system: `You are an expert in finding grants and funding opportunities for Sierra Nevada Corporation, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
+              system: `You are an expert in finding grants and funding opportunities for Deep Learning Intelligence, especially in the field of AI. only output in JSON format like this: ${JSON.stringify(
                 [
                   {
                     funder: "",
@@ -58,6 +58,7 @@ export default () => {
           onClick={async () => {
             const prompt = `\ `;
             const res = await ai.task.do("search_sam_gov", {
+              id_org: "f232f896-8a87-4542-8f6a-a7f314486708",
               system: `find me the 30 latest grant opportunities for AI startups in the US`,
               prompt,
             });
