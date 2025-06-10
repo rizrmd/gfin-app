@@ -53,10 +53,12 @@ export default () => {
         ) : ai.local.mode === "" ? (
           <PickMode ai={ai} len={ai.local.messages.length} />
         ) : (
-          <>
-            {ai.local.mode === "auto" && (
+          <>            {ai.local.mode === "auto" && (
               <>
-                {ai.local.summary ? (
+                {ai.local.phase.qa ? (() => {
+                  navigate("/profile");
+                  return null;
+                })() : ai.local.summary ? (
                   <SummaryQA ai={ai} len={ai.local.messages.length} />
                 ) : (
                   <ConversationQA ai={ai} />
