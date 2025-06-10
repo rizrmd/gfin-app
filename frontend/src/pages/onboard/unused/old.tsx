@@ -8,6 +8,7 @@ import { useAI } from "@/lib/ai/use-ai";
 import { useLocal } from "@/lib/hooks/use-local";
 import { Protected } from "@/lib/user";
 import { user } from "@/lib/user";
+import { navigate } from "@/lib/router";
 
 export default () => {
   const ai = useAiOnboard();
@@ -64,12 +65,12 @@ export default () => {
             )}
 
             {ai.local.mode === "manual" && (
-              <>
-                {!ai.local.phase.qa ? (
+              <>                {!ai.local.phase.qa ? (
                   <SummaryQA ai={ai} len={ai.local.messages.length} />
-                ) : (
-                  <SummaryProfile />
-                )}
+                ) : (() => {
+                  navigate("/profile");
+                  return null;
+                })()}
               </>
             )}
           </>

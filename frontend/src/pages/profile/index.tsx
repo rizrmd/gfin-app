@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { proxy } from "valtio";
 import { user } from "@/lib/user";
+import type { OrganizationData } from "shared/lib/client_state";
 import { api } from "@/lib/gen/api"; // Update import path
 
 export const orgWrite = {
@@ -64,8 +65,29 @@ export default () => {
         data={read}
         onSubmit={async ({ read }) => {
           orgWrite.write.loading = true;
-          // Add your submit logic here
-          orgWrite.write.loading = false;
+          try {
+            const organizationId = user.organization?.id;
+            const userId = user.client?.id;
+            
+            if (!organizationId || !userId) {
+              throw new Error("Organization ID or User ID not found");
+            }
+            
+            const res = await api["profile-org_update-org-profile"]({
+              data: read as unknown as OrganizationData,
+              orgId: organizationId,
+              userId: userId
+            });
+
+            if (!res.success) {
+              throw new Error(res.message || "Failed to update profile");
+            }
+          } catch (error) {
+            console.error("Error updating profile:", error);
+            // Here you might want to show an error notification to the user
+          } finally {
+            orgWrite.write.loading = false;
+          }
         }}
         className="space-y-8"
       >
