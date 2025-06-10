@@ -8,7 +8,7 @@ export default () => {
   useEffect(() => {
     user.init().then(() => {
       if (user.status === "logged-in") {
-        navigate("/onboard/");
+        navigate("/onboard/unused/old");
       } else if (user.status === "logged-out") {
         navigate("/auth/login/");
       }

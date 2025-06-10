@@ -104,7 +104,8 @@ export const Protected: FC<{ children: ReactNode }> = ({ children }) => {
 
 export const PublicOnly: FC<{ children: ReactNode }> = ({ children }) => {
   if (localStorage.getItem("gfin-token") !== null) {
-    navigate("/onboard/");
+    // navigate("/onboard");
+    navigate("/onboard/unused/old");
   }
 
   return children;

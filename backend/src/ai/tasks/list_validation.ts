@@ -38,13 +38,11 @@ export default taskWorker<
   desc: "Asking",
   async execute({ input, agent }) {
     const context = `
-      You are an intelligent assistant tasked with retrieving a list of current, publicly available funding opportunities based on a user's query.
+      You are an intelligent assistant tasked with verifying a list of current, publicly available funding opportunities based on a user's input.
 
-      Your job is to search and extract multiple relevant funding opportunities. Perform a thorough search by using 4 to 5 query variations to ensure broad and accurate results. Only include verified, factual information—do not assume or fabricate.
+      Your job is to review and verify each funding opportunity object provided by the user for accuracy, completeness, and factual correctness. Use available, credible web sources to confirm each entry and update any incomplete, inaccurate, or outdated information as needed. If an opportunity cannot be verified, update its fields accordingly or mark unavailable fields with "-". Only include verified, factual information—do not assume or fabricate.
 
       Your response must be a valid JSON array of objects and ONLY JSON ARRAY starts with [ and ends with ]. no need to include any reasoning, explanation, or additional text outside the JSON structure.
-
-      no need to add any tags like <think>, <reasoning>, or explanation. Just return a raw JSON array starting with [ and ending with ].
 
       Each object in the array must follow this structure:
       ${JSON.stringify(opportunityList, null, 2)}
@@ -55,9 +53,11 @@ export default taskWorker<
       - Ensure each field contains complete and informative content.
       - Use "-" if information is not available.
       - Do not return partial or vague entries.
-      - If you use a reference link, please try to fill in all available fields as completely as possible especially amount. For the link field, do not use the reference link—please provide the actual opportunity link (the direct link to the opportunity itself).
-      - you can also search for opportunities outside the reference link, but try to fill all the fields as much as possible especially amount.
-    `;
+
+      If you use a reference link, please try to fill in all available fields as completely as possible especially amount. For the link field, do not use the reference link—please provide the actual opportunity link (the direct link to the opportunity itself).
+
+      you can also verify opportunities outside the reference link, but try to fill all the fields as much as possible especially amount.
+      `;
 
     const sdk = agent.perplexity_sdk;
 

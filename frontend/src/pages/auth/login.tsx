@@ -76,7 +76,7 @@ export default () => {
           user: verifyResponse.user,
         });
 
-        location.href = "/onboard/";
+        location.href = "/onboard/unused/old";
       } else {
         await Alert.info(
           "Verification failed:" +

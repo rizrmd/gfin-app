@@ -113,7 +113,35 @@ export default taskWorker<
         : best;
     });
 
-    console.log("Best result:", bestResult);
-    return parsedResults;
+    // Validate the parsed results using the validation context
+    const validationContext = `
+      You are an intelligent assistant tasked with verifying a list of current, publicly available funding opportunities.
+
+      Your job is to review and verify each funding opportunity object provided for accuracy, completeness, and factual correctness. 
+      Use available, credible web sources to confirm each entry and update any incomplete, inaccurate, or outdated information as needed.
+      If an opportunity cannot be verified, update its fields accordingly or mark unavailable fields with "-". 
+      Only include verified, factual information—do not assume or fabricate.
+
+      Your response must be a valid JSON array of objects and ONLY JSON ARRAY starts with [ and ends with ]. no need to include any reasoning, explanation, or additional text outside the JSON structure.
+
+      Each object in the array must follow this structure:
+      ${JSON.stringify(opportunityList, null, 2)}
+    `;
+
+    const validationRes = await agent.deepseek({
+      system: "You are an assistant that will validate and verify the funding opportunities",
+      prompt: `${validationContext}\n\nValidate and verify these opportunities:\n${JSON.stringify(parsedResults)}`,
+    });
+
+    try {
+      const cleanedContent = stripThinkTags(validationRes.content);
+      const jsonPart = extractJsonFromContent(cleanedContent);
+      const validatedResults = JSON.parse(jsonPart);
+      console.log("Best result:", bestResult);
+      return validatedResults;
+    } catch (err) {
+      console.error("Failed to validate results:", err);
+      return parsedResults; // Return original results if validation fails
+    }
   },
 });

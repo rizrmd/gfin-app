@@ -58,7 +58,7 @@ export default () => {
           onClick={async () => {
             const prompt = `\ `;
             const res = await ai.task.do("search_sam_gov", {
-              id_org: "f232f896-8a87-4542-8f6a-a7f314486708",
+              // id_org: "f232f896-8a87-4542-8f6a-a7f314486708",
               system: `find me the 30 latest grant opportunities for AI startups in the US`,
               prompt,
             });
