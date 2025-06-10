@@ -63,7 +63,7 @@ export default () => {
     <div className="container mx-auto p-6">
       <EForm
         data={read}
-        onSubmit={async ({ read }) => {
+        onSubmit={async ({ write }) => {
           orgWrite.write.loading = true;
           try {
             const organizationId = user.organization?.id;
@@ -74,13 +74,33 @@ export default () => {
             }
             
             const res = await api["profile-org_update-org-profile"]({
-              data: read as unknown as OrganizationData,
+              data: write as unknown as OrganizationData,
               orgId: organizationId,
               userId: userId
             });
 
             if (!res.success) {
               throw new Error(res.message || "Failed to update profile");
+            }
+            
+            // Reload the data from server to ensure we have the latest state
+            const updatedProfile = await api.getOrgProfile({ organizationId });
+            if (updatedProfile?.data) {
+              function deepAssign(target: any, source: any) {
+                for (const key in source) {
+                  if (
+                    source[key] &&
+                    typeof source[key] === "object" &&
+                    !Array.isArray(source[key]) &&
+                    target[key]
+                  ) {
+                    deepAssign(target[key], source[key]);
+                  } else {
+                    target[key] = source[key];
+                  }
+                }
+              }
+              deepAssign(orgWrite.write, updatedProfile.data);
             }
           } catch (error) {
             console.error("Error updating profile:", error);
