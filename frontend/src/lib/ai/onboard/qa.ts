@@ -18,7 +18,7 @@ export const onboardQA = async (arg: {
       local.qa_user[question] = qa_session[question];
     }
   }
-
+  console.log("Starting Q&A onboarding with questions:", questions);
   let firstMessage = await defineFirstMessage(arg);
 
   if (
@@ -60,6 +60,7 @@ there are ${
     .map((e, idx) => `${idx + 1}. ${e.replace(/"/g, "'")}`)
     .join("\n ");
 
+  console.log("Starting conversation with questions:", textQuestions);
   conv.startSession({
     agentId: "agent_01jvcrfcp1ere9ys6m72dejez9",
     dynamicVariables: {
@@ -100,6 +101,7 @@ there are ${
         local.qa_done = true;
       }
       local.messages.push({ ...props, ts: Date.now() });
+      console.log("New message in conversation", props);
       local.render();
       if (local.messages.find((e) => e.source === "user")) {
         localzip.set("gfin-ai-qa-msgs", local.messages);
@@ -256,7 +258,7 @@ ${JSON.stringify(local.qa_final)}
   }
 
   if (user.organization.id) {
-    if (Object.keys(local.qa_final).length === questions.length) {
+    if (Object.keys(local.qa_final).length >= questions.length) {
       local.qa_done = true;
       local.render();
     }

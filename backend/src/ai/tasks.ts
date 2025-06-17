@@ -3,7 +3,7 @@ import deepseek from "./tasks/deepseek";
 import perplexity from "./tasks/perplexity";
 import update_org_profile from "./tasks/update_org_profile";
 import opportunity_detail from "./tasks/opportunity_detail";
-import search_sam_gov from "./tasks/search_sam_gov";
+import search_sam_gov from "./tasks/search_sam_gov_old";
 import opportunity_list from "./tasks/opportunity_list";
 import check_requirement from "./tasks/check_requirement";
 

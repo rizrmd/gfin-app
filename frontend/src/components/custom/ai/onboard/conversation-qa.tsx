@@ -8,11 +8,15 @@ import type { useAiOnboard } from "@/lib/ai/onboard";
 import { questions } from "@/lib/ai/onboard";
 import { user } from "@/lib/user";
 import { ArrowRight, Bot, Mic, Pause, Play } from "lucide-react";
-import { type FC } from "react";
+import { type FC, useEffect, useState } from "react";
+import { api } from "@/lib/gen/api";
+import { useAI } from "@/lib/ai/use-ai";
 
 export const ConversationQA: FC<{
   ai: ReturnType<typeof useAiOnboard>;
 }> = ({ ai }) => {
+  const ai_profile = useAI();
+  const [orgProfile, setOrgProfile] = useState<any>(null);
   const {
     permission,
     phase,
@@ -21,6 +25,31 @@ export const ConversationQA: FC<{
     messages,
     summary,
   } = ai.local;
+
+  useEffect(() => {
+    console.log("Messages:", messages);
+    console.log("Permission:", permission);
+    console.log("Phase:", phase);
+  }, [messages, permission, phase]);
+  // useEffect(() => {
+  //   if (
+  //     typeof user.organization?.id === "string" &&
+  //     user.organization.id.length > 0
+  //   ) {
+  //     // Fetch organization profile and set to state
+  //     api["ai_get-profile"]({ organizationId: user.organization.id }).then((res) => {
+  //       setOrgProfile(res?.data || {});
+  //       // Removed ai.local.formData assignment to fix error
+  //       ai.local.render();
+  //     });
+  //     ai_profile.task.do("update_org_profile", {
+  //       id_org: user.organization.id,
+  //       prompt: "Find the latest information about this organization.",
+  //       system:
+  //         "You are an expert in gathering verified information about organizations.",
+  //     });
+  //   }
+  // }, []);
 
   const qa_len = Object.keys(qa_session).length;
   return (
@@ -95,13 +124,13 @@ export const ConversationQA: FC<{
       {((messages.length === 0 &&
         !["denied", "requesting"].includes(permission)) ||
         permission === "pending") && (
-        <div className="flex items-center flex-1 justify-center select-none">
-          <div className="flex items-bottom gap-2">
-            <Bot />
-            <TextShimmer>Initializing...</TextShimmer>
+          <div className="flex items-center flex-1 justify-center select-none">
+            <div className="flex items-bottom gap-2">
+              <Bot />
+              <TextShimmer>Initializing...</TextShimmer>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       {permission === "requesting" && (
         <div className="flex flex-col items-stretch px-10 justify-center gap-10">
           <div className="text-3xl font-bold">

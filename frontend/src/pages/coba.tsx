@@ -56,10 +56,9 @@ export default () => {
         </Button>
         <Button
           onClick={async () => {
-            const prompt = `\ `;
+            const prompt =`find me the 30 latest grants opportunities for AI startups in the US`;
             const res = await ai.task.do("search_sam_gov", {
               // id_org: "f232f896-8a87-4542-8f6a-a7f314486708",
-              system: `find me the 30 latest grant opportunities for AI startups in the US`,
               prompt,
             });
             console.log(res);

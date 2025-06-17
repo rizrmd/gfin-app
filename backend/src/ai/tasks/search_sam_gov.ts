@@ -1,101 +1,143 @@
-// tasks/sam_gov.ts
 import { taskWorker } from "../lib/task-worker";
-// import { SamGovAPI } from "../lib/sam-gov-api";
 
-// Input tetap sama
-type SamGovInput = {
-  prompt: string;
-  system?: string;
-};
+const opportunityList = [{
+  funder: "" as string,
+  amount: "" as string,
+  deadline: "" as string,
+  link: "" as string,
+  categories: [] as string[],
+}];
 
-// Semua parameter request API, dipakai sebagai hasil parse LLM
-interface LlmParsed {
-  ptype: string[]; // kosong [] kalau tidak disebut
-  solnum: string;
-  noticeid: string;
-  title: string;
-  query: string;
-  postedFrom: string; // MM/DD/YYYY
-  postedTo: string; // MM/DD/YYYY
-  deptname: string;
-  subtier: string;
-  state: string;
-  zip: string;
-  organizationCode: string;
-  organizationName: string;
-  typeOfSetAside: string;
-  typeOfSetAsideDescription: string;
-  ncode: string;
-  ccode: string;
-  rdlfrom: string;
-  rdlto: string;
-  status: string;
-  limit: number;
-  offset: number;
+// Hilangkan tag <think> ... </think> dari string
+function stripThinkTags(content: string): string {
+  return content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
 }
 
-// Output juga menambahkan results, plus semua parameter
-type SamGovOutput =
-  // LlmParsed &
-  {
-    results: any[];
-  };
+// Ekstrak JSON array dari string setelah pembersihan
+function extractJsonFromContent(content: string): string {
+  const startIndex = content.indexOf("[");
+  const endIndex = content.lastIndexOf("]");
 
-const system = `You are an assistant whose SOLE JOB is to prepare a query for the SAM.gov Opportunities Search API (endpoint: https://api.sam.gov/opportunities/v2/search).
-  You understand that:
-  - All dates must be in MM/DD/YYYY format.
-  - “title” corresponds to a full-text search on the opportunity title.
-  - If the user does not provide a “query” field, default to "contracts".
-  - If the user does not provide any other field, still include the key with an empty string as its value.
-  - If the user doesnt provide a time range, use today for postedTo
-  - If the user doesnt provide a time range, Compute postedFrom as the date exactly eleven months before today’s date (MM/DD/YYYY)
-  - If the user provides a time range, use those dates.
-  Available request parameters (all optional except where noted):
-  - ptype (Array<String>)
-  - solnum (String)
-  - noticeid (String)
-  - title (String)
-  - query (String)
-  - postedFrom (String, MM/DD/YYYY, required)
-  - postedTo (String, MM/DD/YYYY, required)
-  - deptname (String)
-  - subtier (String)
-  - state (String)
-  - zip (String)
-  - organizationCode (String)
-  - organizationName (String)
-  - typeOfSetAside (String)
-  - typeOfSetAsideDescription (String)
-  - ncode (String)
-  - ccode (String)
-  - rdlfrom (String, MM/DD/YYYY)
-  - rdlto (String, MM/DD/YYYY)
-  - status (String)
-  - limit (Integer)
-  - offset (Integer)
+  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+    throw new Error("Failed to locate JSON array in content.");
+  }
 
-  From the user’s input, extract values for **every** parameter above. If the user doesn’t mention a parameter, set its value to an empty string ("") for strings, or an empty array ([]) for arrays, or 0 for integers. Use today’s date (05/28/2025) if the user says “now” for postedTo.
+  return content.slice(startIndex, endIndex + 1).trim();
+}
 
-  Return a single JSON object with all keys exactly as listed above. **No comments, no extra keys, no markdown.**`;
+export default taskWorker<
+  {},
+  { prompt: string; system?: string },
+  typeof opportunityList
+>({
+  name: "search_sam_gov",
+  desc: "Asking",
+  async execute({ input, agent }) {
+    const context = `
+      You are an intelligent assistant tasked with retrieving a list of current, publicly available funding opportunities based on a user's query on https://sam.gov/.
 
-export default taskWorker<{}, SamGovInput, SamGovOutput>({
-  name: "sam_gov",
-  desc: "LLM-powered search for SAM.gov",
-  async execute({ agent, input }) {
-    const res = await agent.oneshot({ system, ...input });
-    const parsed = JSON.parse(res.content) as LlmParsed;
+      if the user request a spesific number of opportunities, ignore it and return as many as you can find but atleast 30.
 
-    console.log(parsed);
-    // panggil API
-    const sam = new SamGovAPI({ apiKey: process.env.SAM_API_KEY! });
-    const results = await sam.searchOpportunities(parsed);
-    return {
-      // ...parsed,
-      results,
-    };
+      Your job is to search and extract multiple relevant funding opportunities. Perform a thorough search by using 4 to 5 query variations to ensure broad and accurate results. Only include verified, factual information—do not assume or fabricate.
+
+      Your response must be a valid JSON array of objects and ONLY JSON ARRAY starts with [ and ends with ]. no need to include any reasoning, explanation, or additional text outside the JSON structure.
+
+      no need to add any tags like <think>, <reasoning>, or explanation. Just return a raw JSON array starting with [ and ending with ].
+
+      Each object in the array must follow this structure:
+      ${JSON.stringify(opportunityList, null, 2)}
+
+      Guidelines:
+      - Ensure each field contains complete and informative content.
+      - Use "-" if information is not available.
+      - Do not return partial or vague entries.
+      - If you use a reference link, please try to fill in all available fields as completely as possible especially amount. For the link field, do not use the reference link—please provide the actual opportunity link (the direct link to the opportunity itself).
+    `;
+
+    const sdk = agent.perplexity_openrouter;
+
+    const responses = await Promise.all(
+      Array.from({ length: 3 }).map(() =>
+        sdk({
+          system: input.system
+            ? input.system
+            : `You are an assistant that will generate a message in this JSON array format: [{ answer: string }]`,
+          prompt: `${context}\n\n${input.prompt}`,
+        })
+      )
+    );
+    console.log("Responses:", responses);
+
+    const parsedResults = responses
+      .map((res, i) => {
+        try {
+          const cleanedContent = stripThinkTags(res.content);
+          const jsonPart = extractJsonFromContent(cleanedContent);
+          return JSON.parse(jsonPart);
+        } catch (err) {
+          console.error(`❌ Failed to parse response[${i}]:`, res.content);
+          throw new Error(`JSON parsing failed on response[${i}]: ${err}`);
+        }
+      })
+      .flat();
+
+    function countValidFields(obj: any): number {
+      let count = 0;
+
+      for (const key in opportunityList[0]) {
+        const val = obj[key];
+        if (typeof val === "string" && val.trim() !== "-") {
+          count++;
+        } else if (Array.isArray(val) && val.length > 0) {
+          count++;
+        } else if (typeof val === "object" && val !== null) {
+          for (const subKey in val) {
+            if (val[subKey]?.trim?.() !== "-") {
+              count++;
+            }
+          }
+        }
+      }
+
+      return count;
+    }
+
+    const bestResult = parsedResults.reduce((best, current) => {
+      return !best || countValidFields(current) > countValidFields(best)
+        ? current
+        : best;
+    });
+
+    // Validate the parsed results using the validation context
+    const validationContext = `
+      You are an intelligent assistant tasked with verifying a list of current, publicly available funding opportunities from sam.gov.
+
+      Your job is to review and verify each funding opportunity object provided for accuracy, completeness, and factual correctness. 
+      Use available, credible web sources to confirm each entry and update any incomplete, inaccurate, or outdated information as needed.
+      If an opportunity cannot be verified or expired just remove the entry from the list.
+      Ensure that each entry is complete and informative, with all fields filled out as accurately as possible.
+      Only include verified, factual information—do not assume or fabricate.
+
+      Your response must be a valid JSON array of objects and ONLY JSON ARRAY starts with [ and ends with ]. no need to include any reasoning, explanation, or additional text outside the JSON structure.
+
+      Each object in the array must follow this structure:
+      ${JSON.stringify(opportunityList, null, 2)}
+    `;
+
+    const validationRes = await agent.deepseek({
+      system: "You are an assistant that will validate and verify the funding opportunities",
+      prompt: `${validationContext}\n\nValidate and verify these opportunities:\n${JSON.stringify(parsedResults)}`,
+    });
+
+    try {
+      const cleanedContent = stripThinkTags(validationRes.content);
+      const jsonPart = extractJsonFromContent(cleanedContent);
+      const validatedResults = JSON.parse(jsonPart);
+      console.log("Best result:", bestResult);
+      return validatedResults;
+    } catch (err) {
+      console.error("Failed to validate results:", err);
+      return parsedResults; // Return original results if validation fails
+    }
   },
 });
-
-// "Error: LLM response missing required fields: {"query":"","postedFrom":"01/01/2025","postedTo":"05/28/2025"}
-// at execute (C:\Users\Asus\Documents\New folder\gfin-app\backend\src\ai\tasks\sam_gov.ts:66:17)
-// at processTicksAndRejections (native:7:39)"

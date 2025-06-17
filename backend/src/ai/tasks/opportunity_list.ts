@@ -3,10 +3,7 @@ import { taskWorker } from "../lib/task-worker";
 
 const opportunityList = [{
   funder: "" as string,
-  amount: {
-    from: "" as string,
-    to: "" as string,
-  },
+  amount: "" as string,
   deadline: "" as string,
   link: "" as string,
   categories: [] as string[],
@@ -50,14 +47,17 @@ export default taskWorker<
       ${JSON.stringify(opportunityList, null, 2)}
 
       reference link : https://www.fundsforngos.org/
+      reference link 2 : https://www.sioe.org/online-databases-contracts-us-state-governments
 
       Guidelines:
       - Ensure each field contains complete and informative content.
       - Use "-" if information is not available.
       - Do not return partial or vague entries.
       - If you use a reference link, please try to fill in all available fields as completely as possible especially amount. For the link field, do not use the reference link—please provide the actual opportunity link (the direct link to the opportunity itself).
-      - you can also search for opportunities outside the reference link, but try to fill all the fields as much as possible especially amount.
-    `;
+      - for reference link 2 the site will contain links to other sites, so you can use the links from there to find the opportunities.
+      - focus on opportunities that are currently open and accepting applications.
+      - focus on opportunities from those links, do not use other sources.
+      `;
 
     const sdk = agent.perplexity_sdk;
 
@@ -115,7 +115,7 @@ export default taskWorker<
 
     // Validate the parsed results using the validation context
     const validationContext = `
-      You are an intelligent assistant tasked with verifying a list of current, publicly available funding opportunities.
+      You are an intelligent assistant tasked with verifying a list of current, publicly available funding opportunities from provided reference link. for reference link 2 the site will contain links to other sites, so you can use the links from there to find the opportunities. 
 
       Your job is to review and verify each funding opportunity object provided for accuracy, completeness, and factual correctness. 
       Use available, credible web sources to confirm each entry and update any incomplete, inaccurate, or outdated information as needed.
@@ -123,6 +123,9 @@ export default taskWorker<
       Only include verified, factual information—do not assume or fabricate.
 
       Your response must be a valid JSON array of objects and ONLY JSON ARRAY starts with [ and ends with ]. no need to include any reasoning, explanation, or additional text outside the JSON structure.
+
+      reference link : https://www.fundsforngos.org/
+      reference link 2 : https://www.sioe.org/online-databases-contracts-us-state-governments
 
       Each object in the array must follow this structure:
       ${JSON.stringify(opportunityList, null, 2)}

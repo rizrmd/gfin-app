@@ -6,6 +6,7 @@ import { user } from "../../user";
 import { aiOnboardLocal } from "./local";
 import { onboardQA } from "./qa";
 import { useAI } from "../use-ai";
+import { navigate } from "@/lib/router";
 
 export const questions = [
   "What sets your company apart from others in the same field? Any unique qualifications, proprietary technologies, or differentiators that make your company stand out",
@@ -88,9 +89,13 @@ export const useAiOnboard = () => {
         if (local.permission === "denied") {
           return;
         }
-
+        console.log("local", local);
         if (!local.phase.qa) {
           await onboardQA({ questions, local, conv, ai });
+        }
+        else {
+          console.log("Phase QA already completed, skipping");
+          navigate("/profile");
         }
       }
     };
@@ -98,7 +103,7 @@ export const useAiOnboard = () => {
     local.start = start;
     local.render();
     start();
-    return () => {};
+    return () => { };
   }, []);
 
   return {
