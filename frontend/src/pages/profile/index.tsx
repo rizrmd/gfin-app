@@ -73,15 +73,13 @@ export default () => {
               throw new Error("Organization ID or User ID not found");
             }
             
-            const res = await api["profile-org_update-org-profile"]({
-              data: write as unknown as OrganizationData,
-              orgId: organizationId,
-              userId: userId
+            // Save to onboard API
+            await api.ai_onboard({
+              id: organizationId,
+              mode: "update",
+              data: write,
+              onboard: { qa: true, profile: true }
             });
-
-            if (!res.success) {
-              throw new Error(res.message || "Failed to update profile");
-            }
             
             // Reload the data from server to ensure we have the latest state
             const updatedProfile = await api.getOrgProfile({ organizationId });

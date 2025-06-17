@@ -31,25 +31,25 @@ export const ConversationQA: FC<{
     console.log("Permission:", permission);
     console.log("Phase:", phase);
   }, [messages, permission, phase]);
-  // useEffect(() => {
-  //   if (
-  //     typeof user.organization?.id === "string" &&
-  //     user.organization.id.length > 0
-  //   ) {
-  //     // Fetch organization profile and set to state
-  //     api["ai_get-profile"]({ organizationId: user.organization.id }).then((res) => {
-  //       setOrgProfile(res?.data || {});
-  //       // Removed ai.local.formData assignment to fix error
-  //       ai.local.render();
-  //     });
-  //     ai_profile.task.do("update_org_profile", {
-  //       id_org: user.organization.id,
-  //       prompt: "Find the latest information about this organization.",
-  //       system:
-  //         "You are an expert in gathering verified information about organizations.",
-  //     });
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (
+      typeof user.organization?.id === "string" &&
+      user.organization.id.length > 0
+    ) {
+      // Fetch organization profile and set to state
+      api["ai_get-profile"]({ organizationId: user.organization.id }).then((res) => {
+        setOrgProfile(res?.data || {});
+        // Removed ai.local.formData assignment to fix error
+        ai.local.render();
+      });
+      ai_profile.task.do("update_org_profile", {
+        id_org: user.organization.id,
+        prompt: "Find the latest information about this organization.",
+        system:
+          "You are an expert in gathering verified information about organizations.",
+      });
+    }
+  }, []);
 
   const qa_len = Object.keys(qa_session).length;
   return (

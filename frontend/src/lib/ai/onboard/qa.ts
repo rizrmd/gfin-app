@@ -4,6 +4,7 @@ import type { useConversation } from "@elevenlabs/react";
 import { localzip } from "../localzip";
 import type { useAI } from "../use-ai";
 import type { aiOnboardLocal } from "./local";
+import { navigate } from "@/lib/router"; // Tambahkan import ini
 
 export const onboardQA = async (arg: {
   local: ReturnType<typeof aiOnboardLocal>;
@@ -87,8 +88,24 @@ there are ${
         localzip.set("gfin-ai-qa-user", local.qa_user);
         local.render();
         await storeQA(arg);
-        if (local.qa_done) {
-          conv.sendContextualUpdate("All questions have been answered");
+        
+        if (Object.keys(local.qa_final).length >= questions.length) {
+          local.qa_done = true;
+          local.phase.qa = true;
+          local.render();
+          conv.endSession();
+          
+          if (user.organization.id) {
+            await api.ai_onboard({
+              mode: "update",
+              id: user.organization.id,
+              questions: local.qa_final,
+              onboard: local.phase,
+            });
+            
+            // Tambahkan redirect setelah update berhasil
+            navigate("/profile");
+          }
         }
       },
       pause: () => {
@@ -114,17 +131,23 @@ there are ${
       if (local.paused) return;
 
       if (local.qa_done) {
-        local.phase.qa = true;
+        local.phase.qa = true; 
         local.render();
-        api.ai_onboard({
-          mode: "update",
-          id: user.organization.id!,
-          onboard: local.phase,
-        });
-      } else {
-        await storeQA(arg);
-        onboardQA(arg);
+        if (user.organization.id) {
+          await api.ai_onboard({
+            mode: "update", 
+            id: user.organization.id,
+            onboard: local.phase,
+          });
+          
+          // Tambahkan redirect di sini juga
+          navigate("/profile");
+        }
+        return;
       }
+      
+      await storeQA(arg);
+      onboardQA(arg);
     },
   });
 };
