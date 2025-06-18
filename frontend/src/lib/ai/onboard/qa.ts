@@ -30,32 +30,36 @@ export const onboardQA = async (arg: {
   }
 
   let systemPrompt =
-    Object.keys(local.qa_final).length === 0
+    Object.keys(local.qa_final).length === questions.length
       ? undefined
-      : `You are a helpful assistant to help onboard clients to gofunditnow you will capture the needed questions to help them build quality proposals for grants and government contracts. this information needs to be captured form the users in a conversation/consulting manner this will be used and passed to another agent to  hep identify opportunities and write proposals for them. 
+      : `You are a helpful assistant for gofunditnow client onboarding. Your role is to:
 
-Dont read all the whole question keep them short and sweet use these as a guide 
+1. Ask questions one at a time - do not ask multiple questions at once
+2. After EACH user response:
+   - Analyze if it answers the current question
+   - Call the 'answer' tool immediately when you get a valid answer
+   - Only move to the next question after storing the current answer
+   - If the answer is unclear, politely ask for clarification
 
-If the user has profile information use that to have knowledge on the customer and confirm the answer to the question get as much data from them as you can to help us apply for the contracts 
+The organization is {{org_name}} located in {{state}} - USA.
 
-The organization is {{org_name}} located in {{state}} - USA. 
-
-The list of questions are as followed, 
-
+Questions to ask:
 {{questions}}
 
-If all of the questions have been answered, you should call 'end_call' tool , and say thank you to the user also inform them that we will do Organization profile onboarding.
+Current progress:
+- Answered questions: ${JSON.stringify(local.qa_final)}
+- Questions remaining: ${questions.length - Object.keys(local.qa_final).length}
 
-these are the question and answer that already answered by the user do not ask them again: 
+Important:
+- Call 'answer' tool IMMEDIATELY after getting each answer
+- Do not skip calling the 'answer' tool
+- If user provides relevant information, use it to answer appropriate questions
+- Never proceed to next question without storing the current answer
 
-${JSON.stringify(
-  local.qa_final
-)}, you should call 'answer' tool when you have the answer to the question. If all of the questions have been answered, you should call 'end_call' tool, and say thank you to the user also inform them that we will do Organization profile onboarding.
-
-there are ${
-          questions.length - Object.keys(local.qa_final).length
-        } questions left to ask the user.
-`;
+When all questions are answered:
+1. Call 'end_call' tool
+2. Thank the user
+3. Inform them about upcoming Organization profile onboarding`;
 
   const textQuestions = questions
     .map((e, idx) => `${idx + 1}. ${e.replace(/"/g, "'")}`)
@@ -84,28 +88,38 @@ there are ${
       : undefined,
     clientTools: {
       answer: async (params) => {
-        local.qa_user[params.question] = params.answer;
-        localzip.set("gfin-ai-qa-user", local.qa_user);
-        local.render();
-        await storeQA(arg);
-        
-        if (Object.keys(local.qa_final).length >= questions.length) {
-          local.qa_done = true;
-          local.phase.qa = true;
-          local.render();
-          conv.endSession();
-          
-          if (user.organization.id) {
-            await api.ai_onboard({
-              mode: "update",
-              id: user.organization.id,
-              questions: local.qa_final,
-              onboard: local.phase,
-            });
-            
-            // Tambahkan redirect setelah update berhasil
-            navigate("/profile");
+        try {
+          if (!params.question || !params.answer) {
+            console.error("Invalid answer params:", params);
+            return;
           }
+
+          console.log("Processing answer:", params);
+          
+          local.qa_user[params.question] = params.answer;
+          localzip.set("gfin-ai-qa-user", local.qa_user);
+          
+          // Force render setelah update qa_user
+          local.render();
+          
+          await storeQA(arg);
+          
+          if (Object.keys(local.qa_final).length >= questions.length) {
+            local.qa_done = true;
+            local.phase.qa = true;
+            local.render();
+            
+            if (user.organization.id) {
+              await api.ai_onboard({
+                mode: "update",
+                id: user.organization.id,
+                questions: local.qa_final,
+                onboard: local.phase,
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error in answer handler:", error);
         }
       },
       pause: () => {
@@ -114,14 +128,35 @@ there are ${
       },
     },
     onMessage(props) {
-      if (Object.keys(local.qa_final).length === questions.length) {
-        local.qa_done = true;
-      }
-      local.messages.push({ ...props, ts: Date.now() });
-      console.log("New message in conversation", props);
-      local.render();
-      if (local.messages.find((e) => e.source === "user")) {
-        localzip.set("gfin-ai-qa-msgs", local.messages);
+      try {
+        if (!props.message) {
+          console.warn("Empty message received:", props);
+          return;
+        }
+
+        if (Object.keys(local.qa_final).length >= questions.length) {
+          local.qa_done = true;
+        }
+
+        // Pastikan message valid sebelum di-push
+        const newMessage = { 
+          ...props, 
+          ts: Date.now(),
+          message: props.message.trim() // Pastikan tidak ada whitespace
+        };
+        
+        local.messages.push(newMessage);
+        console.log("New message added:", newMessage);
+        
+        // Force render setelah update messages
+        local.render();
+
+        // Simpan ke local storage jika ada user message
+        if (local.messages.find((e) => e.source === "user")) {
+          localzip.set("gfin-ai-qa-msgs", local.messages);
+        }
+      } catch (error) {
+        console.error("Error in onMessage:", error);
       }
     },
     onError(message, context) {
@@ -140,7 +175,7 @@ there are ${
             onboard: local.phase,
           });
           
-          // Tambahkan redirect di sini juga
+          // Redirect setelah AI selesai berbicara
           navigate("/profile");
         }
         return;
@@ -225,7 +260,8 @@ const storeQA = async ({
   ai: ReturnType<typeof useAI>;
   questions: string[];
 }) => {
-  const prompt = `Extract high-quality question and answer pairs from the conversation below, improving upon existing low-quality Q&A pairs.
+  try {
+    const prompt = `Extract high-quality question and answer pairs from the conversation below, improving upon existing low-quality Q&A pairs.
 
 Input:
 1. Conversation transcript (JSON format)
@@ -262,37 +298,45 @@ Existing sumarized Q&A pairs:
 ${JSON.stringify(local.qa_final)}
 
 `;
-  const res = (await ai.task.do("groq", {
-    prompt,
-  })) as unknown as Record<string, string>;
+    const res = (await ai.task.do("groq", {
+      prompt,
+    })) as unknown as Record<string, string>;
 
-  if (typeof res === "object" && !res.content) {
-    for (const q in res) {
-      if (
-        !!res[q] &&
-        res[q] !== "null" &&
-        q.length > "Are you ready to start?".length
-      ) {
-        local.qa_final[q] = res[q];
+    if (typeof res === "object" && !res.content) {
+      for (const q in res) {
+        if (
+          !!res[q] &&
+          res[q] !== "null" &&
+          q.length > "Are you ready to start?".length
+        ) {
+          local.qa_final[q] = res[q];
+        }
       }
-    }
-    local.render();
-  } else {
-  }
-
-  if (user.organization.id) {
-    if (Object.keys(local.qa_final).length >= questions.length) {
-      local.qa_done = true;
       local.render();
+    } else {
     }
 
-    if (Object.keys(local.qa_final).length > 0) {
-      api.ai_onboard({
-        mode: "update",
-        id: user.organization.id,
-        questions: local.qa_final,
-        onboard: local.phase,
-      });
+    if (user.organization.id) {
+      if (Object.keys(local.qa_final).length >= questions.length) {
+        local.qa_done = true;
+        local.render();
+      }
+
+      if (Object.keys(local.qa_final).length > 0) {
+        // Add await here and error handling
+        await api.ai_onboard({
+          mode: "update",
+          id: user.organization.id,
+          questions: local.qa_final,
+          onboard: local.phase,
+        });
+        console.log("Q&A data saved successfully:", local.qa_final);
+      }
+    } else {
+      console.error("No organization ID found");
     }
+  } catch (error) {
+    console.error("Error storing Q&A data:", error);
+    // Optionally add error handling UI feedback here
   }
 };
