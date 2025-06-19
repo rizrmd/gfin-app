@@ -29,37 +29,50 @@ export const onboardQA = async (arg: {
     await storeQA(arg);
   }
 
-  let systemPrompt =
-    Object.keys(local.qa_final).length === questions.length
-      ? undefined
-      : `You are a helpful assistant for gofunditnow client onboarding. Your role is to:
+  const systemPrompt = `You are a helpful assistant for gofunditnow client onboarding. Your role is to:
 
-1. Ask questions one at a time - do not ask multiple questions at once
-2. After EACH user response:
-   - Analyze if it answers the current question
-   - Call the 'answer' tool immediately when you get a valid answer
-   - Only move to the next question after storing the current answer
-   - If the answer is unclear, politely ask for clarification
+1. Ask questions one at a time from the provided list
+2. For EACH user response:
+   - Listen carefully to user's answer
+   - IMPORTANT: Call the 'answer' tool with exact parameters:
+     {
+       "question": "<the exact question from list>",
+       "answer": "<user's complete answer>"
+     }
+   - Verify the answer was stored before moving to next question
+   - If answer is unclear, ask for clarification
 
-The organization is {{org_name}} located in {{state}} - USA.
+Current Questions Progress:
+Questions Answered: {{answered_count}} of {{total_questions}}
+Remaining Questions: {{remaining_questions}}
 
 Questions to ask:
 {{questions}}
 
-Current progress:
-- Answered questions: ${JSON.stringify(local.qa_final)}
-- Questions remaining: ${questions.length - Object.keys(local.qa_final).length}
+CRITICAL INSTRUCTIONS:
+1. ALWAYS call 'answer' tool after EACH valid response and before continuing to the next question
+2. Use EXACT question text from the list when calling 'answer'
+3. Include complete user response as answer
+4. Confirm answer is stored before continuing
+5. Never skip the 'answer' tool call
+6. Stay focused on getting answers for remaining questions
 
-Important:
-- Call 'answer' tool IMMEDIATELY after getting each answer
-- Do not skip calling the 'answer' tool
-- If user provides relevant information, use it to answer appropriate questions
-- Never proceed to next question without storing the current answer
+Example correct behavior:
+User: "Our organization's mission is to help homeless pets"
+Assistant: Let me save that answer.
+[Calls 'answer' tool with exact question and complete response]
+"Thank you. Now for the next question..."
 
-When all questions are answered:
-1. Call 'end_call' tool
+When all questions are complete:
+1. Verify all questions have answers
 2. Thank the user
-3. Inform them about upcoming Organization profile onboarding`;
+3. End the conversation`;
+
+  const answered_count = Object.keys(local.qa_final).length;
+  const total_questions = questions.length;
+  const remaining_questions = questions.filter((q) =>
+    !Object.keys(local.qa_final).includes(q)
+  );
 
   const textQuestions = questions
     .map((e, idx) => `${idx + 1}. ${e.replace(/"/g, "'")}`)
@@ -69,6 +82,9 @@ When all questions are answered:
   conv.startSession({
     agentId: "agent_01jvcrfcp1ere9ys6m72dejez9",
     dynamicVariables: {
+      answered_count,
+      total_questions,
+      remaining_questions: remaining_questions.join("\n"),
       user_name: user.fullName,
       org_name: user.organization.data!.entityInformation.entityName,
       state: user.organization.data!.filingInformation?.state,
@@ -89,35 +105,26 @@ When all questions are answered:
     clientTools: {
       answer: async (params) => {
         try {
+          console.log("Answer tool called with params:", params);
+          console.log("Current qa_user state:", local.qa_user);
+
           if (!params.question || !params.answer) {
             console.error("Invalid answer params:", params);
             return;
           }
 
           console.log("Processing answer:", params);
-          
+
           local.qa_user[params.question] = params.answer;
+          console.log("Updated qa_user:", local.qa_user);
+          
           localzip.set("gfin-ai-qa-user", local.qa_user);
-          
-          // Force render setelah update qa_user
+          console.log("Saved to localzip");
+
           local.render();
-          
+          console.log("Rendered with new state");
+
           await storeQA(arg);
-          
-          if (Object.keys(local.qa_final).length >= questions.length) {
-            local.qa_done = true;
-            local.phase.qa = true;
-            local.render();
-            
-            if (user.organization.id) {
-              await api.ai_onboard({
-                mode: "update",
-                id: user.organization.id,
-                questions: local.qa_final,
-                onboard: local.phase,
-              });
-            }
-          }
         } catch (error) {
           console.error("Error in answer handler:", error);
         }
@@ -139,15 +146,15 @@ When all questions are answered:
         }
 
         // Pastikan message valid sebelum di-push
-        const newMessage = { 
-          ...props, 
+        const newMessage = {
+          ...props,
           ts: Date.now(),
-          message: props.message.trim() // Pastikan tidak ada whitespace
+          message: props.message.trim(), // Pastikan tidak ada whitespace
         };
-        
+
         local.messages.push(newMessage);
         console.log("New message added:", newMessage);
-        
+
         // Force render setelah update messages
         local.render();
 
@@ -166,21 +173,21 @@ When all questions are answered:
       if (local.paused) return;
 
       if (local.qa_done) {
-        local.phase.qa = true; 
+        local.phase.qa = true;
         local.render();
         if (user.organization.id) {
           await api.ai_onboard({
-            mode: "update", 
+            mode: "update",
             id: user.organization.id,
             onboard: local.phase,
           });
-          
+
           // Redirect setelah AI selesai berbicara
           navigate("/profile");
         }
         return;
       }
-      
+
       await storeQA(arg);
       onboardQA(arg);
     },
@@ -201,7 +208,6 @@ const defineFirstMessage = async ({
   let firstMessage: undefined | string = undefined;
   const gfin_msgs = localzip.get("gfin-ai-qa-msgs") || [];
 
-  
   if (gfin_msgs.length >= 2 || Object.keys(local.qa_final).length > 0) {
     const res = await ai.task.do("groq", {
       prompt: `\
@@ -261,60 +267,77 @@ const storeQA = async ({
   questions: string[];
 }) => {
   try {
-    const prompt = `Extract high-quality question and answer pairs from the conversation below, improving upon existing low-quality Q&A pairs.
+    // Memastikan data yang akan di-stringify adalah valid JSON
+    const safeMessages = local.messages.map((msg) => ({
+      message: String(msg.message || ""),
+      source: String(msg.source || ""),
+      ts: Number(msg.ts) || Date.now(),
+    }));
 
-Input:
-1. Conversation transcript (JSON format)
-2. Predefined list of questions to extract answers for
-3. Existing low-quality Q&A pairs that need improvement
+    const prompt = `Extract high-quality question and answer pairs from the conversation below.
 
-Rules:
-1. Only include questions from the predefined list
-2. Only extract answers that directly respond to those questions
-3. If a question has no answer in the conversation, set the answer value to null
-4. When improving existing low-quality Q&A pairs:
-   - Correct any inaccuracies by referencing the actual conversation
-   - Expand incomplete answers with relevant details from the conversation
-   - Maintain factual consistency with the conversation
-   - Remove any hallucinated or unsupported information
-5. Format output as valid JSON object: 
-   {
-     "question 1": "answer 1",
-     "question 2": "answer 2",
-   }
-7. Only include the question and answer pairs in the output, do not include question without answer.
-6. Do not include explanations or thoughts in the output, 
+Input Data:
+Conversation: ${JSON.stringify(safeMessages)}
+Questions: ${JSON.stringify(questions)}
+Current Q&A: ${JSON.stringify(local.qa_user)}
+Summarized Q&A: ${JSON.stringify(local.qa_final)}
 
-Conversation:
-${JSON.stringify(local.messages)}
+Instructions:
+1. Output must be a valid JSON object with question-answer pairs
+2. Only include questions from the provided list
+3. Answer format: { "question": "answer" }
+4. Skip questions without clear answers
+5. No additional text or explanations in output
 
-Predefined questions:
-${JSON.stringify(questions)}
-
-Existing low-quality Q&A pairs:
-${JSON.stringify(local.qa_user)}
-
-Existing sumarized Q&A pairs:
-${JSON.stringify(local.qa_final)}
-
+Example valid output:
+{
+  "What is your mission?": "Our mission is to help others",
+  "Where are you located?": "New York City"
+}
 `;
-    const res = (await ai.task.do("groq", {
-      prompt,
-    })) as unknown as Record<string, string>;
 
-    if (typeof res === "object" && !res.content) {
-      for (const q in res) {
-        if (
-          !!res[q] &&
-          res[q] !== "null" &&
-          q.length > "Are you ready to start?".length
-        ) {
-          local.qa_final[q] = res[q];
-        }
-      }
-      local.render();
-    } else {
+    const res = await ai.task.do("groq", {
+      prompt,
+      system:
+        "You are a Q&A extraction assistant. Output must be valid JSON object containing only question-answer pairs.",
+    });
+
+    // Better response validation
+    if (!res || typeof res !== 'object') {
+      throw new Error('Invalid response from Groq API');
     }
+
+    // Handle both object and string responses
+    let qaData = res;
+    if (typeof res === 'string') {
+      try {
+        qaData = JSON.parse(res);
+      } catch (e) {
+        console.error('Failed to parse Groq response:', e);
+        throw new Error('Invalid JSON response from Groq');
+      }
+    }
+
+    // Process valid Q&A pairs
+    let validPairsCount = 0;
+    for (const [question, answer] of Object.entries(qaData)) {
+      if (
+        questions.includes(question) && 
+        typeof answer === 'string' && 
+        answer.trim().length > 0
+      ) {
+        local.qa_final[question] = answer.trim();
+        validPairsCount++;
+      }
+    }
+
+    console.log("Q&A Processing Results:", {
+      totalReceived: Object.keys(qaData).length,
+      validPairs: validPairsCount,
+      currentTotal: Object.keys(local.qa_final).length
+    });
+
+    local.render();
 
     if (user.organization.id) {
       if (Object.keys(local.qa_final).length >= questions.length) {
