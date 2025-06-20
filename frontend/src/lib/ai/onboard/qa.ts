@@ -66,7 +66,7 @@ Assistant: Let me save that answer.
 When all questions are complete:
 1. Verify all questions have answers
 2. Thank the user
-3. End the conversation`;
+3. End the conversation immediately without further conversation`;
 
   const answered_count = Object.keys(local.qa_final).length;
   const total_questions = questions.length;
